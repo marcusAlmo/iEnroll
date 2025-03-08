@@ -7,6 +7,9 @@ export const routes: RouteObject[] = [
   ...publicRoutes,
   ...protectedRoutes,
   {
+    path: "/not-found", element: <NotFound />
+  },
+  {
     path: "*", element: <NotFound />
   }
 ];
