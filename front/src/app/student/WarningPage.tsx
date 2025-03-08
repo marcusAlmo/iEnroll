@@ -1,13 +1,9 @@
 import { Button } from "@headlessui/react";
 import Image from "../../assets/woman-presenting-mobile.png";
-import { Navigate, useNavigate } from "react-router";
-import { isMobile } from "../../utils/miscUtils";
+import { useNavigate } from "react-router";
 
 const WarningPage = () => {
   const navigate = useNavigate();
-
-  // If device is mobile, navigate to 404
-  if (isMobile()) return <Navigate to="/not-found" />
 
   const goToHome = () => {
     navigate("/");
