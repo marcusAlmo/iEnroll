@@ -1,13 +1,13 @@
-CREATE SCHEMA enrollment;
+CREATE SCHEMA IF NOT EXISTS enrollment;
 
-CREATE SCHEMA chat;
+CREATE SCHEMA IF NOT EXISTS chat;
 
-CREATE SCHEMA system;
-CREATE SCHEMA metrics;
+CREATE SCHEMA IF NOT EXISTS system;
+CREATE SCHEMA IF NOT EXISTS metrics;
 
 
 -- permission
-CREATE TABLE enrollment.permission (
+CREATE TABLE IF NOT EXISTS enrollment.permission (
     permission_id INT GENERATED ALWAYS AS IDENTITY,
     permission VARCHAR(100) NOT NULL,
     description VARCHAR(255),  
@@ -19,7 +19,7 @@ CREATE TABLE enrollment.permission (
 );
 
 -- role
-CREATE TABLE enrollment.role (
+CREATE TABLE IF NOT EXISTS enrollment.role (
     role_id INT GENERATED ALWAYS AS IDENTITY,
     role VARCHAR(100) NOT NULL,
     description VARCHAR(255),  
@@ -31,21 +31,21 @@ CREATE TABLE enrollment.role (
 );
 
 -- role_permission
-CREATE TABLE enrollment.role_permission (
+CREATE TABLE IF NOT EXISTS enrollment.role_permission (
     role_id INT NOT NULL,
     permission_id INT NOT NULL,
     assignment_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_role_permission PRIMARY KEY (role_id, permission_id),
-    constraint fk_role FOREIGN KEY (role_id) REFERENCES role(role_id)
+    constraint fk_role FOREIGN KEY (role_id) REFERENCES enrollment.role(role_id)
 );
 
 -- gender_enum
-CREATE TYPE enrollment.gender AS ENUM ('Male', 'Female', 'Other');
+CREATE TYPE IF NOT EXISTS enrollment.gender AS ENUM ('Male', 'Female', 'Other');
 
 -- user
-CREATE TABLE enrollment.user (
+CREATE TABLE IF NOT EXISTS enrollment.user (
     user_id INT GENERATED ALWAYS AS IDENTITY,
     f_name VARCHAR(100) NOT NULL,
     m_name VARCHAR(100),
@@ -67,7 +67,7 @@ CREATE TABLE enrollment.user (
 );
 
 -- user_log
-CREATE TABLE enrollment.user_log (
+CREATE TABLE IF NOT EXISTS enrollment.user_log (
     user_log_id INT GENERATED ALWAYS AS IDENTITY,
     user_id INT NOT NULL,
     action VARCHAR(100) NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE enrollment.user_log (
 );
 
 -- user_role
-CREATE TABLE enrollment.user_role (
+CREATE TABLE IF NOT EXISTS enrollment.user_role (
     user_id INT NOT NULL,
     role_id INT NOT NULL,
     assigned_by INT NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE enrollment.user_role (
 );
 
 -- student
-CREATE TABLE enrollment.student (
+CREATE TABLE IF NOT EXISTS enrollment.student (
     student_id INT NOT NULL,
     school_id INT NOT NULL,
     birth_date DATE NOT NULL,
@@ -99,4 +99,3 @@ CREATE TABLE enrollment.student (
 
     constraint pk_student PRIMARY KEY (student_id)
 );
-
