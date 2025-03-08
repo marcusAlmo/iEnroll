@@ -1,11 +1,11 @@
 import React from 'react'
-import { isMobile } from '../utils/miscUtils'
 import { Navigate } from 'react-router'
+import { useScreenSize } from '../contexts/ScreenSizeContext';
 
 const MeetOurPartners = () => {
+  const { mobile } = useScreenSize();
 
-  // If not mobile, navigate to the Warning Page
-  if (!isMobile()) return <Navigate to="/iEnroll" />
+  if (!mobile) return <Navigate to="/iEnroll" />;
 
   // If mobile, display the following JSX
   return (
