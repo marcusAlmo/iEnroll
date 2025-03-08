@@ -1,8 +1,9 @@
- /** @type {import('tailwindcss').Config} */
- module.exports = {
+/** @type {import('tailwindcss').Config} */
+export default {
   content: [
-    "./src/**/*.{ts,tsx}", 
     "./index.html",
+    "./src/**/*.{ts,tsx}",
+    "./src/app/**/*.{ts,tsx}"
   ],
   theme: {
     extend: {
@@ -18,8 +19,12 @@
         "success": "#61BC79",
         "warning": "#FFC107",
         "danger": "#FF0000"
+      },
+      borderRadius: {
+        "normal": "10px"
       }
     },
   },
   plugins: [],
 }
+

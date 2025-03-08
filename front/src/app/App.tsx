@@ -1,8 +1,11 @@
+import { BrowserRouter } from "react-router"
+import AppRouter from "./router"
+
 function App() {
   return (
-    <div className='text-7xl'>
-      home page here
-    </div>
+    <BrowserRouter>
+      <AppRouter />
+    </BrowserRouter>
   )
 }
 
