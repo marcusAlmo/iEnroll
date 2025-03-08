@@ -1,8 +1,6 @@
-import './App.css'
-
 function App() {
   return (
-    <div>
+    <div className='text-7xl'>
       home page here
     </div>
   )
