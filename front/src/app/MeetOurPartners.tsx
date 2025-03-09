@@ -1,18 +1,24 @@
-import { Navigate } from 'react-router'
+import { Navigate, useNavigate } from 'react-router'
 import { useScreenSize } from '../contexts/ScreenSizeContext';
 import Image from '../assets/school.png';
 
 // Test data
 import schools from '../test/data/partner-schools.json';
+import { Button } from '@headlessui/react';
 
 const MeetOurPartners = () => {
   const { mobile } = useScreenSize();
+  const navigate = useNavigate();
 
   if (!mobile) return <Navigate to="/iEnroll" />;
 
+  const goToLogin = () => {
+    navigate("/log-in");
+  };
+
   // If mobile, display the following JSX
   return (
-    <div className="mt-8 flex flex-col items-center gap-y-4">
+    <div className="my-8 flex flex-col items-center gap-y-4">
       <img 
         src={Image}
         alt="School facade"
@@ -28,6 +34,15 @@ const MeetOurPartners = () => {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="mt-6">
+        <Button
+          onClick={goToLogin}
+          className="bg-accent rounded-small w-fit text-background font-bold self-center py-2 px-10 text-base hover:bg-sky-600"
+        >
+          Log in
+        </Button>
       </div>
 
     </div>
