@@ -115,6 +115,8 @@ To run the `front` directory, execute the following command on the terminal.
 cd front
 npm run dev
 ```
+You may encounter errors due to unresolved dependencies. To fix this, run `npm install`. This will install the missing packages in the node modules from the `package.json` file.
+
 ### Running the mobile interface
 To run the localhost and make the site accessible to your mobile device, do the following steps.
 
