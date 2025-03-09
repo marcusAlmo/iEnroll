@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function CredentialsForm() {
   return (
@@ -24,7 +25,7 @@ export default function CredentialsForm() {
             placeholder="Value"
           />
         </div>
-        <button className="bg-primary py-2 rounded-[8px] text-white">Sign In</button>
+        <Link className="bg-primary py-2 rounded-[8px] text-white" to={"/admin/dashboard"}>Sign In</Link>
         <button className="flex items-start">Forgot password?</button>
       </div>
     </>
