@@ -12,4 +12,8 @@ html {
   .full-screen {
     @apply w-screen h-screen
   }
+
+  .button-transition {
+    @apply transition-all ease-in-out duration-300
+  }
 }
