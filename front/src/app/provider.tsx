@@ -8,18 +8,23 @@
  */
 
 import { ReactNode } from 'react';
+import { ScreenSizeProvider } from '../contexts/ScreenSizeContext';
+import { AuthProvider } from '../contexts/AuthContext';
 
 interface AppProviderProps {
   children: ReactNode
 };
 
-// Uncomment the following code block once the providers are implemented
-
-// const AppProvider = ({ children }: AppProviderProps) => {
-//   <AuthProvider>
-//     <NavigationGuardProvider>
-//       {children}
-//     </NavigationGuardProvider>
-//   </AuthProvider>
-// };
+// Uncomment the commented lines once the providers are implemented
+export const AppProvider = ({ children }: AppProviderProps) => {
+  return (
+    <ScreenSizeProvider>
+      <AuthProvider>
+        {/* <NavigationGuardProvider> */}
+          {children}
+        {/* </NavigationGuardProvider> */}
+      </AuthProvider>
+    </ScreenSizeProvider>
+  )
+};
 

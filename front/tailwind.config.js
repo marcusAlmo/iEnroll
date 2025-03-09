@@ -21,7 +21,8 @@ export default {
         "danger": "#FF0000"
       },
       borderRadius: {
-        "normal": "10px"
+        "normal": "10px",
+        "small": "8px"
       }
     },
   },

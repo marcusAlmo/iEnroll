@@ -3,6 +3,8 @@ import { Home } from "../Home";
 import LoginPage from "../student/authentication/LoginPage";
 import SignUpPage from "../student/authentication/SignUpPage";
 import CredentialsPage from "../admin/authentication/CredentialsPage";
+import MeetOurPartners from "../MeetOurPartners";
+import WarningPage from "../student/WarningPage";
 
 export const publicRoutes: RouteObject[] = [
   {
@@ -21,4 +23,12 @@ export const publicRoutes: RouteObject[] = [
     path: "/admin-credentials",
     element: <CredentialsPage />,
   },
-];
+  {
+    path: "/meet-our-partners",
+    element: <MeetOurPartners />
+  },
+  {
+    path: "/iEnroll",
+    element: <WarningPage />
+  }
+]
