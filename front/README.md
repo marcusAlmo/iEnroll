@@ -1,5 +1,5 @@
 # iEnroll 
-Welcome to iEnroll, a web-based desktop and mobile platform for efficient enrollment in schools. This README file contains instructions on the project's file structure, naming conventions, and other programming practices.
+Welcome to iEnroll, a web-based desktop and mobile platform for efficient enrollment in schools. This README file contains instructions on the project's file structure, naming conventions, other programming practices, and a guide on how to run this project.
 
 ## File Structure
 This project shall have the following project structure:
@@ -108,4 +108,21 @@ Use the **PascalCase** for component directories when each folder has an index f
 
 ## Others
 For more info, visit this [conversation](https://chatgpt.com/share/67ca1dea-7d0c-800a-a901-014b9ceacda3).
+
+## Running the project
+To run the `front` directory, execute the following command on the terminal.
+```sh
+cd front
+npm run dev
+```
+### Running the mobile interface
+To run the localhost and make the site accessible to your mobile device, do the following steps.
+
+1. Make sure that your local server and mobile device are connected to the **same network**.
+2. Run `npm run dev -- --host` on the terminal.
+3. Vite will display three URLs: one local (`http://localhost:5173`), and two networks (`http://[ip-address]:5173`). 
+4. Enter the URL of one of the network URLs on the browser of your mobile device.
+5. You should be able to see now the mobile interface on your mobile device.
+
+(You can try appending `/log-in` or `meet-our-partners` on the URL. You should be able to see the page and not be redirected to the Warning Page.)
 
