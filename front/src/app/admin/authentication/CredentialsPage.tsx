@@ -1,5 +1,5 @@
 import React from "react";
-import Smiley from "../../../assets/images/faSmileWink.svg";
+import Smiley from "../../../assets/images/Smiley.svg";
 import Forms from "../components/CredentialsForm";
 
 export default function CredentialsPage() {
