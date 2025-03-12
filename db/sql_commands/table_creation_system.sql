@@ -1,28 +1,30 @@
 CREATE SCHEMA IF NOT EXISTS system;
 
--- grade_level
-CREATE TABLE IF NOT EXISTS system.grade_level (
-    grade_level_id INT GENERATED ALWAYS AS IDENTITY,
-    academic_level_id INT NOT NULL,
-    grade_level VARCHAR(100) NOT NULL,
-    is_supported BOOLEAN DEFAULT FALSE,
-    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    constraint pk_grade_level PRIMARY KEY (grade_level_id),
-    constraint uq_grade_level UNIQUE (academic_level_id, grade_level)
-);
-
 -- academic_level
 CREATE TABLE IF NOT EXISTS system.academic_level (
-    academic_level_id INT GENERATED ALWAYS AS IDENTITY,
+    academic_level_code CHAR(3) NOT NULL,
     academic_level VARCHAR(100) NOT NULL,
     is_supported BOOLEAN DEFAULT FALSE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_academic_level PRIMARY KEY (academic_level_id),
+    constraint pk_academic_level PRIMARY KEY (academic_level_code),
     constraint uq_academic_level UNIQUE (academic_level)
+);
+
+-- grade_level
+CREATE TABLE IF NOT EXISTS system.grade_level (
+    grade_level_code CHAR(3) NOT NULL,
+    academic_level_code CHAR(3) NOT NULL,
+    grade_level VARCHAR(100) NOT NULL,
+    is_supported BOOLEAN DEFAULT FALSE,
+    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    constraint pk_grade_level PRIMARY KEY (grade_level_code),
+    constraint uq_grade_level UNIQUE (academic_level_code, grade_level),
+    constraint fk_grade_level_academic_level FOREIGN KEY (academic_level_code) 
+        REFERENCES system.academic_level(academic_level_code)
 );
 
 -- system_setting

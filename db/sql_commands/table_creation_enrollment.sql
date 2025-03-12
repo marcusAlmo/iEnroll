@@ -15,25 +15,24 @@ CREATE TABLE IF NOT EXISTS enrollment.permission (
 
 -- role
 CREATE TABLE IF NOT EXISTS enrollment.role (
-    role_id INT GENERATED ALWAYS AS IDENTITY,
+    role_code CHAR(3) NOT NULL,
     role VARCHAR(100) NOT NULL,
     description VARCHAR(255),  
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_role PRIMARY KEY (role_id),
+    constraint pk_role PRIMARY KEY (role_code),
     constraint uq_role UNIQUE (role)
 );
 
 -- role_permission
 CREATE TABLE IF NOT EXISTS enrollment.role_permission (
-    role_id INT NOT NULL,
+    role_code CHAR(3) NOT NULL,
     permission_id INT NOT NULL,
     assignment_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_role_permission PRIMARY KEY (role_id, permission_id),
-    constraint fk_role FOREIGN KEY (role_id) REFERENCES enrollment.role(role_id)
+    constraint pk_role_permission PRIMARY KEY (role_code, permission_id)
 );
 
 -- gender_enum
@@ -75,13 +74,13 @@ CREATE TABLE IF NOT EXISTS enrollment.user_log (
 -- user_role
 CREATE TABLE IF NOT EXISTS enrollment.user_role (
     user_id INT NOT NULL,
-    role_id INT NOT NULL,
+    role_code CHAR(3) NOT NULL,
     assigned_by INT NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     assignment_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_user_role PRIMARY KEY (user_id, role_id)
+    constraint pk_user_role PRIMARY KEY (user_id, role_code)
 );
 
 -- student
