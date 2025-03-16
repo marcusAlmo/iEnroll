@@ -229,20 +229,65 @@ CREATE TABLE IF NOT EXISTS enrollment.enrollment_schedule (
     constraint pk_enrollment_schedule PRIMARY KEY (enrollment_schedule_id)
 );
 
+-- grade_level_section_type
+CREATE TYPE enrollment.section_type AS ENUM ('regular', 'special');
+CREATE TABLE IF NOT EXISTS enrollment.grade_level_section_type (
+    grade_level_section_type_id INT NOT NULL,
+    grade_level_offered_id INT NOT NULL,
+    section_type enrollment.section_type NOT NULL,
+    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    constraint pk_grade_level_section_type PRIMARY KEY (grade_level_section_type_id),
+    constraint uq_grade_level_section_type UNIQUE (grade_level_offered_id, section_type)
+);
+
 -- grade_level_section
 CREATE TABLE IF NOT EXISTS enrollment.grade_level_section (
     grade_level_section_id INT NOT NULL,
-    grade_level_offered_id INT NOT NULL,
+    grade_level_section_type_id INT NOT NULL,
     section_name VARCHAR(100) NOT NULL,
     adviser VARCHAR(100) NOT NULL,
     slot INT NOT NULL,
-    waitlist_slot INT NOT NULL,
+    max_application_slot INT NOT NULL,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_grade_level_section PRIMARY KEY (grade_level_section_id),
-    constraint uq_grade_level_section UNIQUE (grade_level_offered_id, section_name),
-    constraint ck_grade_level_section CHECK (slot > 0 AND waitlist_slot > 0)
+    constraint uq_grade_level_section UNIQUE (grade_level_section_type_id, section_name),
+    constraint ck_grade_level_section CHECK (slot > 0 AND max_application_slot > 0),
+    constraint ck_max_application_slot CHECK (max_application_slot >= slot)
+);
+
+-- enrollment_requirement
+CREATE TYPE enrollment.requirement_type AS ENUM ('document', 'image', 'text');
+CREATE TYPE enrollment.accepted_data_type AS ENUM ('string', 'number', 'date', 'image', 'document');
+CREATE TABLE IF NOT EXISTS enrollment.enrollment_requirement (
+    enrollment_requirement_id INT NOT NULL,
+    grade_level_section_type_id INT NOT NULL,
+    requirement_name VARCHAR(50) NOT NULL,
+    requirement_type enrollment.requirement_type NOT NULL,
+    accepted_data_type enrollment.accepted_data_type NOT NULL,
+    is_required BOOLEAN DEFAULT TRUE,
+    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    constraint pk_enrollment_requirement PRIMARY KEY (enrollment_requirement_id),
+    constraint uq_enrollment_requirement UNIQUE (grade_level_section_type_id, requirement_name)
+);
+
+-- enrollment_fee
+CREATE TABLE IF NOT EXISTS enrollment.enrollment_fee (
+    enrollment_fee_id INT NOT NULL,
+    grade_level_section_type_id INT NOT NULL,
+    fee_name VARCHAR(100) NOT NULL,
+    fee_amount DECIMAL(10, 2) NOT NULL,
+    fee_description VARCHAR(100) ,
+    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    constraint pk_enrollment_fee PRIMARY KEY (enrollment_fee_id),
+    constraint uq_enrollment_fee UNIQUE (grade_level_section_type_id, fee_name),
+    constraint ck_enrollment_fee CHECK (fee_amount > 0)
 );
 
 -- school_subscription
@@ -260,23 +305,5 @@ CREATE TABLE IF NOT EXISTS enrollment.school_subscription (
     constraint pk_school_subscription PRIMARY KEY (school_subscription_id),
     constraint ck_school_subscription CHECK (subscription_start_datetime < subscription_end_datetime)
 );
-
--- enrollment_requirement
-CREATE TYPE enrollment.requirement_type AS ENUM ('document', 'image', 'text');
-CREATE TYPE enrollment.accepted_data_type AS ENUM ('string', 'number', 'date', 'image', 'document');
-CREATE TABLE IF NOT EXISTS enrollment.enrollment_requirement (
-    enrollment_requirement_id INT NOT NULL,
-    grade_level_section_id INT NOT NULL,
-    requirement_name VARCHAR(100) NOT NULL,
-    requirement_type enrollment.requirement_type NOT NULL,
-    accepted_data_type enrollment.accepted_data_type NOT NULL,
-    is_required BOOLEAN DEFAULT TRUE,
-    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    constraint pk_enrollment_requirement PRIMARY KEY (enrollment_requirement_id),
-    constraint uq_enrollment_requirement UNIQUE (grade_level_section_id, requirement_name)
-);
-
 
 
