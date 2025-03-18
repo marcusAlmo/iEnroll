@@ -3,7 +3,7 @@ import EnrollmentManagement from "../../admin/pages/EnrollmentManagement";
 
 export const enrollmentManagementRoutes: RouteObject[] = [
   {
-    path: "/enrollment-management",
+    path: "enrollment-management",
     element: <EnrollmentManagement />
   }
 ];
