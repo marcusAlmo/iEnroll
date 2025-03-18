@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import SubNav from "../components/SubNav.tsx";
 import { getEnrollmentData } from "../../routes/dataRoutes.tsx"; 
 

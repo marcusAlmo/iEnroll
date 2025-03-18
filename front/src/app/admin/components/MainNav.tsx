@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import Smiley from "../../../assets/images/Smiley.svg";
 
 const MainNav: React.FC = () => {

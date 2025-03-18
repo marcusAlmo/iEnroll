@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const SubNav = ({ setActiveTab }: { setActiveTab: (tab: string) => void }) => {
   const [activeTab, setActive] = useState("Enrollment Breakdown");
@@ -24,7 +24,7 @@ const SubNav = ({ setActiveTab }: { setActiveTab: (tab: string) => void }) => {
         <button
           key={label}
           onClick={() => handleTabClick(label, to)}
-          className={`py-2 px-4 mx-3 rounded-lg font-semibold font-inter transition duration-300 ${
+          className={`py-2 px-4 mx-3 rounded-lg font-semibold font-inter transition duration-300 hover:cursor-pointer ${
             activeTab === label
               ? "bg-accent text-background"
               : "bg-background text-primary hover:bg-accent hover:text-background"

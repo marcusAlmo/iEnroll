@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import Vector from "../../../assets/images/Vector.svg";
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 function PricingList() {
     const Perks = [

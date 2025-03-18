@@ -1,16 +1,21 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useLocation } from "react-router";
 import Settings from "../../../assets/images/Settings.svg";
 import Smiley from "../../../assets/images/Smiley.svg";
 
 const Navbar: React.FC = () => {
   const location = useLocation(); 
+  
   const navItems = [
     { to: "/admin/dashboard", label: "Dashboard" },
     { to: "/admin/enrollment-review", label: "Enrollment Review" },
     { to: "/admin/enrollment-management", label: "Enrollment Management" },
     { to: "/admin/personnel-center", label: "Personnel Center" },
   ];
+
+  useEffect(() => {
+    console.log(location.pathname)
+  }, [location]);
 
   return (
     <nav className="bg-white shadow-md py-3 px-8 flex justify-between items-center w-full font-inter">
@@ -21,15 +26,15 @@ const Navbar: React.FC = () => {
         <span className="text-primary">ll</span>
       </div>
 
-      <div className="flex space-x-6 text-md">
+      <div className="flex gap-x-8 text-md">
         {navItems.map((item) => (
           <Link
             key={item.to}
             to={item.to}
-            className={`py-2 px-4 font-semibold transition duration-300 
+            className={`font-semibold transition duration-300 
               ${
                 location.pathname === item.to
-                  ? "bg-container_1 text-primary"
+                  ? "bg-text-2 text-primary"
                   : "text-primary hover:bg-gray-200"
               }`}
           >

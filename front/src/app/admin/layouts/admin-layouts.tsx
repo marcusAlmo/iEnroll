@@ -1,6 +1,6 @@
 import React from 'react'
 import NavBar from '../components/Navbar';
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 
 const ProtectedAdminRoute: React.FC = () => {
   return (

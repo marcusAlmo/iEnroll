@@ -127,4 +127,3 @@ To run the localhost and make the site accessible to your mobile device, do the 
 5. You should be able to see now the mobile interface on your mobile device.
 
 (You can try appending `/log-in` or `meet-our-partners` on the URL. You should be able to see the page and not be redirected to the Warning Page.)
-
