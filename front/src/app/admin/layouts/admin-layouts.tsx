@@ -4,11 +4,10 @@ import { Outlet } from "react-router-dom";
 
 const ProtectedAdminRoute: React.FC = () => {
   return (
-    <div>
+    <div className='w-screen h-screen flex flex-col'>
       <NavBar />
-      <div className="p-4">
-        <Outlet /> 
-      </div>
+        
+      <Outlet /> 
     </div>
   );
 };
