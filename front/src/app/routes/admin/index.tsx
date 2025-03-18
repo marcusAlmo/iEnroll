@@ -4,6 +4,7 @@ import { enrollmentReviewRoutes } from "./enrollmentReviewRoutes";
 import { personnelManagementRoutes } from "./personnelManagementRoutes";
 import ContactSection from "../../admin/components/ContactSection";
 import PricingList from "../../admin/components/PricingList";
+import { enrollmentManagementRoutes } from "./enrollmentManagementRoutes";
 
 /**
  * Defines the routes for the admin section of the application.
@@ -23,6 +24,7 @@ import PricingList from "../../admin/components/PricingList";
 export const adminRoutes: RouteObject[] = [
   ...dashboardRoutes,
   ...enrollmentReviewRoutes,
+  ...enrollmentManagementRoutes,
   ...personnelManagementRoutes,
   {
     path: "contact-section",

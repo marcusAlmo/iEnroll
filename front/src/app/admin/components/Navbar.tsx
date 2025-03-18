@@ -9,7 +9,7 @@ const Navbar: React.FC = () => {
     { to: "/admin/dashboard", label: "Dashboard" },
     { to: "/admin/enrollment-review", label: "Enrollment Review" },
     { to: "/admin/enrollment-management", label: "Enrollment Management" },
-    { to: "/admin/personnel-", label: "Personnel Center" },
+    { to: "/admin/personnel-center", label: "Personnel Center" },
   ];
 
   return (
