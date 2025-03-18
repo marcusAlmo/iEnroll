@@ -13,7 +13,7 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="bg-white shadow-md py-3 px-8 flex justify-between items-center fixed top-0 w-full z-50 font-inter">
+    <nav className="bg-white shadow-md py-3 px-8 flex justify-between items-center w-full font-inter">
       <div className="flex items-center font-bold text-2xl">
         <span className="text-accent">i</span>
         <span className="text-primary">Enr</span>
