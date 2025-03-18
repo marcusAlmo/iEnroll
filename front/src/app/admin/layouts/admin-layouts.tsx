@@ -2,7 +2,7 @@ import React from 'react'
 import NavBar from '../components/Navbar';
 import { Outlet } from "react-router-dom";
 
-const MainLayout: React.FC = () => {
+const ProtectedAdminRoute: React.FC = () => {
   return (
     <div>
       <NavBar />
@@ -13,4 +13,4 @@ const MainLayout: React.FC = () => {
   );
 };
 
-export default MainLayout;
+export default ProtectedAdminRoute;
