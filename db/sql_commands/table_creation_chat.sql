@@ -1,5 +1,4 @@
 CREATE SCHEMA IF NOT EXISTS chat;
-
 -- conversation
 CREATE TABLE IF NOT EXISTS chat.conversation (
     conversation_id INT NOT NULL,
@@ -14,7 +13,7 @@ CREATE TABLE IF NOT EXISTS chat.conversation (
 
 -- message
 CREATE TABLE IF NOT EXISTS chat.message (
-    message_id INT NOT NULL,
+    message_id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
     conversation_id INT NOT NULL,
     sender_id INT NOT NULL,
     content TEXT NOT NULL,

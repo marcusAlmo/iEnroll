@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS metrics.consumption_data (
     slot_used INT NOT NULL,
     upload_count INT NOT NULL,
     download_count INT NOT NULL,
-    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    generation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_consumption_data PRIMARY KEY (consumption_data_id),
     constraint uq_consumption_data UNIQUE (school_id, date)
@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS metrics.enrollment_data (
     generation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_enrollment_data PRIMARY KEY (enrollment_data_id),
-    constraint uq_enrollment_data UNIQUE (school_id, date)
+    constraint uq_enrollment_data UNIQUE (school_id, date),
+    constraint ck_enrollment_data CHECK (application_count >= 0 AND accepted_application_count >= 0 AND denied_application_count >= 0 AND invalid_application_count >= 0)
 );
 
 -- performance_data
@@ -41,6 +42,8 @@ CREATE TABLE IF NOT EXISTS metrics.performance_data (
     academic_level VARCHAR(50) NOT NULL,
     grade_level VARCHAR(50) NOT NULL,
     date DATE NOT NULL,
+    login_count INT NOT NULL,
+    account_creation_count INT NOT NULL,
     application_received_count INT NOT NULL,
     reviewed_application_count INT NOT NULL,
     declined_application_count INT NOT NULL,

@@ -1,10 +1,11 @@
 CREATE SCHEMA IF NOT EXISTS system;
 
 -- academic_level
+drop table system.academic_level;
 CREATE TABLE IF NOT EXISTS system.academic_level (
     academic_level_code CHAR(3) NOT NULL,
-    academic_level VARCHAR(100) NOT NULL,
-    is_supported BOOLEAN DEFAULT FALSE,
+    academic_level VARCHAR(50) NOT NULL,
+    is_supported BOOLEAN DEFAULT TRUE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -16,32 +17,30 @@ CREATE TABLE IF NOT EXISTS system.academic_level (
 CREATE TABLE IF NOT EXISTS system.grade_level (
     grade_level_code CHAR(3) NOT NULL,
     academic_level_code CHAR(3) NOT NULL,
-    grade_level VARCHAR(100) NOT NULL,
-    is_supported BOOLEAN DEFAULT FALSE,
+    grade_level VARCHAR(50) NOT NULL,
+    is_supported BOOLEAN DEFAULT TRUE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_grade_level PRIMARY KEY (grade_level_code),
-    constraint uq_grade_level UNIQUE (academic_level_code, grade_level),
-    constraint fk_grade_level_academic_level FOREIGN KEY (academic_level_code) 
-        REFERENCES system.academic_level(academic_level_code)
+    constraint uq_grade_level UNIQUE (academic_level_code, grade_level)
 );
 
 -- system_setting
 CREATE TABLE IF NOT EXISTS system.system_setting (
-    system_setting_id INT GENERATED ALWAYS AS IDENTITY,
-    setting_name VARCHAR(100) NOT NULL,
+    setting_id INT GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
     current_value VARCHAR(100) NOT NULL,
     default_value VARCHAR(100) NOT NULL,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_system_setting PRIMARY KEY (system_setting_id),
+    constraint pk_system_setting PRIMARY KEY (setting_id),
     constraint uq_system_setting UNIQUE (setting_name)
 );
 
 -- system_log
 CREATE TABLE IF NOT EXISTS system.system_log (
-    system_log_id INT GENERATED ALWAYS AS IDENTITY,
+    log_id INT GENERATED ALWAYS AS IDENTITY,
     initiator VARCHAR(100) NOT NULL,
     action VARCHAR(100) NOT NULL,
     details JSONB,
@@ -52,43 +51,43 @@ CREATE TABLE IF NOT EXISTS system.system_log (
 
 -- common_enrollment_requirement
 CREATE TABLE IF NOT EXISTS system.common_enrollment_requirement (
-    common_enrollment_requirement_id INT GENERATED ALWAYS AS IDENTITY,
-    requirement_name VARCHAR(100) NOT NULL,
-    requirement_type enrollment.requirement_type NOT NULL,
+    requirement_id INT GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
+    type enrollment.requirement_type NOT NULL,
     accepted_data_type enrollment.accepted_data_type NOT NULL,
     is_required BOOLEAN DEFAULT TRUE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_common_enrollment_requirement PRIMARY KEY (common_enrollment_requirement_id),
-    constraint uq_common_enrollment_requirement UNIQUE (requirement_name)
+    constraint pk_common_enrollment_requirement PRIMARY KEY (requirement_id),
+    constraint uq_common_enrollment_requirement UNIQUE (name)
 );
 
 -- requirement_group
 CREATE TABLE IF NOT EXISTS system.requirement_group (
-    requirement_group_id INT GENERATED ALWAYS AS IDENTITY,
-    group_name VARCHAR(100) NOT NULL,
+    group_id INT GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
     description VARCHAR(255) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_requirement_group PRIMARY KEY (requirement_group_id),
-    constraint uq_requirement_group UNIQUE (group_name)
+    constraint pk_requirement_group PRIMARY KEY (group_id),
+    constraint uq_requirement_group UNIQUE (name)
 );
 
 -- enrollment_group_requirement
 CREATE TABLE IF NOT EXISTS system.enrollment_group_requirement (
-    requirement_group_id INT NOT NULL,
-    common_enrollment_requirement_id INT NOT NULL,
+    group_id INT NOT NULL,
+    requirement_id INT NOT NULL,
 
-    constraint pk_enrollment_group_requirement PRIMARY KEY (requirement_group_id, common_enrollment_requirement_id)
+    constraint pk_enrollment_group_requirement PRIMARY KEY (group_id, requirement_id)
 );
 
 -- plan
 CREATE TABLE IF NOT EXISTS system.plan (
     plan_id INT GENERATED ALWAYS AS IDENTITY,
-    plan_name VARCHAR(100) NOT NULL,
+    name VARCHAR(30) NOT NULL,
     description VARCHAR(255) NOT NULL,
     duration_days INT NOT NULL,
     discounted_price DECIMAL(10, 2) NOT NULL,
@@ -103,7 +102,7 @@ CREATE TABLE IF NOT EXISTS system.plan (
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_plan PRIMARY KEY (plan_id),
-    constraint uq_plan UNIQUE (plan_name), 
+    constraint uq_plan UNIQUE (name), 
     constraint ck_discount_percent CHECK (discount_percent BETWEEN 0 AND 100),
     constraint ck_duration_days CHECK (duration_days > 0),
     constraint ck_max_student_count CHECK (max_student_count > 0),
@@ -117,7 +116,7 @@ CREATE TABLE IF NOT EXISTS system.plan (
 -- about_uppend
 CREATE TABLE IF NOT EXISTS system.about_uppend (
     email_address VARCHAR(100) NOT NULL,
-    contact_number VARCHAR(11) NOT NULL,
+    contact_number CHAR(11) NOT NULL,
     website_url VARCHAR(255) NOT NULL,  
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
