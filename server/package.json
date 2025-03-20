@@ -5,6 +5,10 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=18.16"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -29,8 +33,12 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.5.0",
+    "@types/express-session": "^1.18.1",
     "bcryptjs": "^3.0.2",
+    "connect-redis": "^4.0.4",
     "dotenv": "^16.4.7",
+    "express-session": "^1.18.1",
+    "ioredis": "^5.3.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
