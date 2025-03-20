@@ -7,7 +7,9 @@ import * as dotenv from 'dotenv';
 const result = dotenv.config();
 
 if (result.error) {
-  throw new Error(`Failed to load environment variables: ${result.error.message}`);
+  throw new Error(
+    `Failed to load environment variables: ${result.error.message}`,
+  );
 }
 
 @Injectable()
