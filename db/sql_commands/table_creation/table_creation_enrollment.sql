@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS enrollment.user (
     username VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     school_id INT NOT NULL,
+    for_deletion BOOLEAN NOT NULL DEFAULT FALSE,
     registration_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -60,9 +61,9 @@ CREATE TABLE IF NOT EXISTS enrollment.user (
 
 -- user_log
 CREATE TABLE IF NOT EXISTS enrollment.user_log (
-    log_id INT GENERATED ALWAYS AS IDENTITY,
+    user_log_id INT GENERATED ALWAYS AS IDENTITY,
     user_id INT NOT NULL,
-    action VARCHAR(100) NOT NULL,
+    user_action VARCHAR(100) NOT NULL,
     details JSONB,
     log_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -83,7 +84,7 @@ CREATE TABLE IF NOT EXISTS enrollment.user_role (
 
 -- student
 CREATE TABLE IF NOT EXISTS enrollment.student (
-    student_id INT GENERATED ALWAYS AS IDENTITY,
+    student_id INT NOT NULL,
     address_id INT NOT NULL,
     enroller_id INT NOT NULL,
     birthdate DATE NOT NULL,
@@ -100,7 +101,7 @@ CREATE TABLE IF NOT EXISTS enrollment.school_file (
     file_id INT GENERATED ALWAYS AS IDENTITY,
     school_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    path VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     access_type enrollment.access_type NOT NULL,
     upload_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -111,16 +112,16 @@ CREATE TABLE IF NOT EXISTS enrollment.school_file (
 
 -- school_file_access
 CREATE TABLE IF NOT EXISTS enrollment.school_file_access (
-    access_id INT GENERATED ALWAYS AS IDENTITY,
+    file_access_id INT GENERATED ALWAYS AS IDENTITY,
     file_id INT NOT NULL,
     student_id INT NOT NULL,
     issuer_id INT NOT NULL,
     access_datetime TIMESTAMP,
     issue_datetime TIMESTAMP NOT NULL,
-    termination_datetime TIMESTAMP NOT NULL,
+    access_end_datetime TIMESTAMP NOT NULL,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_school_file_access PRIMARY KEY (access_id)
+    constraint pk_school_file_access PRIMARY KEY (file_access_id)
 );
 
 -- address 

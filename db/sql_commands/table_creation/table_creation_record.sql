@@ -2,10 +2,7 @@ CREATE SCHEMA IF NOT EXISTS record;
 
 -- student_list
 CREATE TABLE IF NOT EXISTS record.student_list (
-    student_list_id INT NOT NULL,
-    school_id INT NOT NULL,
-    school_name VARCHAR(100) NOT NULL,
-    academic_year VARCHAR(9) NOT NULL,
+    school_acad_year_id INT NOT NULL,
     grade_level VARCHAR(50) NOT NULL,
     section VARCHAR(100) NOT NULL,
     adviser VARCHAR(100) NOT NULL,
@@ -15,31 +12,25 @@ CREATE TABLE IF NOT EXISTS record.student_list (
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_student_list PRIMARY KEY (student_list_id),
-    constraint uq_student_list UNIQUE (school_id, academic_year, grade_level, section, adviser)
+    constraint pk_student_list PRIMARY KEY (school_acad_year_id),
+    constraint uq_student_list UNIQUE (school_acad_year_id, grade_level, section, adviser)
 );
 
 -- section_list
-drop TABLE record.section_list;
 CREATE TABLE IF NOT EXISTS record.section_list (
-    section_list_id INT NOT NULL,
-    school_id INT NOT NULL,
-    school_name VARCHAR(100) NOT NULL,
-    academic_year VARCHAR(9) NOT NULL,
-    grade_level_section_detail JSONB NOT NULL,
+    school_acad_year_id INT NOT NULL,
+    grade_section_detail JSONB NOT NULL,
     is_available BOOLEAN DEFAULT TRUE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_section_list PRIMARY KEY (section_list_id),
-    constraint uq_section_list UNIQUE (school_id, academic_year)
+    constraint pk_section_list PRIMARY KEY (school_acad_year_id),
+    constraint uq_section_list UNIQUE (school_acad_year_id)
 );
 
+-- enrollment_management
 CREATE TABLE IF NOT EXISTS record.enrollment_management (
-    enrollment_id INT NOT NULL,
-    school_id INT NOT NULL,
-    school_name VARCHAR(100) NOT NULL,
-    academic_year VARCHAR(9) NOT NULL,
+    school_acad_year_id INT NOT NULL,
     staff_list JSONB NOT NULL,
     schedule_list JSONB NOT NULL,
     log_list JSONB NOT NULL,
@@ -47,8 +38,21 @@ CREATE TABLE IF NOT EXISTS record.enrollment_management (
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_enrollment PRIMARY KEY (enrollment_id),
-    constraint uq_enrollment UNIQUE (school_id, academic_year)
+    constraint pk_enrollment PRIMARY KEY (school_acad_year_id),
+    constraint uq_enrollment UNIQUE (school_acad_year_id)
+);
+
+-- school_acad_year
+CREATE TABLE IF NOT EXISTS record.school_acad_year (
+    school_acad_year_id INT NOT NULL,
+    school_id INT NOT NULL,
+    school_name VARCHAR(100) NOT NULL,
+    academic_year VARCHAR(9) NOT NULL,
+    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    archive_datetime TIMESTAMP, --timestamp of the original record's archive
+
+    constraint pk_school_acad_year PRIMARY KEY (school_acad_year_id),
+    constraint uq_school_acad_year UNIQUE (school_id, academic_year)
 );
 
 -- invoice

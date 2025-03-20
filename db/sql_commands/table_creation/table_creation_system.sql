@@ -40,9 +40,9 @@ CREATE TABLE IF NOT EXISTS system.system_setting (
 
 -- system_log
 CREATE TABLE IF NOT EXISTS system.system_log (
-    log_id INT GENERATED ALWAYS AS IDENTITY,
+    system_log_id INT GENERATED ALWAYS AS IDENTITY,
     initiator VARCHAR(100) NOT NULL,
-    action VARCHAR(100) NOT NULL,
+    system_action VARCHAR(100) NOT NULL,
     details JSONB,
     log_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS system.about_uppend (
     email_address VARCHAR(100) NOT NULL,
     contact_number CHAR(11) NOT NULL,
     website_url VARCHAR(255) NOT NULL,  
+    bir_accreditation_number VARCHAR(30) NOT NULL,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
