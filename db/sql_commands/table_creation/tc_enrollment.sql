@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS enrollment.permission (
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_permission PRIMARY KEY (permission_id),
-    constraint uq_permission UNIQUE (permission)
+    constraint uq_permission UNIQUE (name)
 );
 
 -- role
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS enrollment.role (
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_role PRIMARY KEY (role_code),
-    constraint uq_role UNIQUE (role)
+    constraint uq_role UNIQUE (name)
 );
 
 -- role_permission
@@ -194,7 +194,8 @@ CREATE TABLE IF NOT EXISTS enrollment.school (
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_school PRIMARY KEY (school_id)
+    constraint pk_school PRIMARY KEY (school_id),
+    constraint uq_school_name UNIQUE (name)
 );
 
 -- banner
@@ -242,7 +243,7 @@ CREATE TABLE IF NOT EXISTS enrollment.grade_section_type (
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_grade_section_type PRIMARY KEY (grade_section_type_id),
-    constraint uq_grade_section_type UNIQUE (grade_level_offered_id, section_type)
+    constraint uq_grade_section_type UNIQUE (grade_section_type_id, section_type)
 );
 
 -- grade_section
@@ -296,8 +297,8 @@ CREATE TABLE IF NOT EXISTS enrollment.enrollment_fee (
 
 -- school_subscription
 CREATE TABLE IF NOT EXISTS enrollment.school_subscription (
-    subscription_id INT NOT NULL,
-    plan_id INT NOT NULL,
+    subscription_id INT GENERATED ALWAYS AS IDENTITY,
+    plan_code VARCHAR(3) NOT NULL,
     school_id INT NOT NULL,
     duration_days INT NOT NULL,
     start_datetime TIMESTAMP NOT NULL,
@@ -311,4 +312,5 @@ CREATE TABLE IF NOT EXISTS enrollment.school_subscription (
     constraint ck_school_subscription CHECK (start_datetime < end_datetime),
     constraint ck_duration_days CHECK (duration_days > 0)
 );
+
 

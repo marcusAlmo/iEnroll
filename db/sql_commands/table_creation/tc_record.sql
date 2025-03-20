@@ -24,8 +24,7 @@ CREATE TABLE IF NOT EXISTS record.section_list (
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_section_list PRIMARY KEY (school_acad_year_id),
-    constraint uq_section_list UNIQUE (school_acad_year_id)
+    constraint pk_section_list PRIMARY KEY (school_acad_year_id)
 );
 
 -- enrollment_management

@@ -1,7 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS system;
 
 -- academic_level
-drop table system.academic_level;
 CREATE TABLE IF NOT EXISTS system.academic_level (
     academic_level_code CHAR(3) NOT NULL,
     academic_level VARCHAR(50) NOT NULL,
@@ -35,7 +34,7 @@ CREATE TABLE IF NOT EXISTS system.system_setting (
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_system_setting PRIMARY KEY (setting_id),
-    constraint uq_system_setting UNIQUE (setting_name)
+    constraint uq_system_setting UNIQUE (name)
 );
 
 -- system_log
@@ -86,7 +85,7 @@ CREATE TABLE IF NOT EXISTS system.enrollment_group_requirement (
 
 -- plan
 CREATE TABLE IF NOT EXISTS system.plan (
-    plan_id INT GENERATED ALWAYS AS IDENTITY,
+    plan_code CHAR(3) NOT NULL,
     name VARCHAR(30) NOT NULL,
     description VARCHAR(255) NOT NULL,
     duration_days INT NOT NULL,
@@ -101,7 +100,7 @@ CREATE TABLE IF NOT EXISTS system.plan (
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_plan PRIMARY KEY (plan_id),
+    constraint pk_plan PRIMARY KEY (plan_code),
     constraint uq_plan UNIQUE (name), 
     constraint ck_discount_percent CHECK (discount_percent BETWEEN 0 AND 100),
     constraint ck_duration_days CHECK (duration_days > 0),
