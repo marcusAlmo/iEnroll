@@ -1,7 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from './jwt-payload.interface';
+import * as dotenv from 'dotenv';
+
+const result = dotenv.config();
+
+if (result.error) {
+  throw new Error(`Failed to load environment variables: ${result.error.message}`);
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -13,7 +20,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<{ userId: number; username: string }> {
+  validate(payload: JwtPayload): { userId: number; username: string } {
+    if (!payload || !payload.sub || !payload.username) {
+      throw new UnauthorizedException();
+    }
     return { userId: payload.sub, username: payload.username };
   }
 }
