@@ -1,36 +1,30 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router";
+// SubNav.tsx
+import React from "react";
 
-const SubNav = ({ setActiveTab }: { setActiveTab: (tab: string) => void }) => {
-  const [activeTab, setActive] = useState("Enrollment Breakdown");
-  const navigate = useNavigate();
+interface SubNavItem {
+  label: string;
+  onClick: () => void;
+}
 
-  const navItems = [
-    { to: "enrollment-breakdown", label: "Enrollment Breakdown" },
-    { to: "enrollment-trend", label: "Enrollment Trend" },
-    { to: "enrollment-count", label: "Enrollment Count" },
-    { to: "plan-capacity", label: "Plan Capacity" },
-  ];  
+interface SubNavProps {
+  items: SubNavItem[];
+  activeItem: string;
+}
 
-  const handleTabClick = (label: string, to: string) => {
-    setActive(label);
-    setActiveTab(label);
-    navigate(to, { relative: "path" }); 
-  };
-
+const SubNav: React.FC<SubNavProps> = ({ items, activeItem }) => {
   return (
-    <div className="py-2 border-2 border-text-2 rounded-lg flex items-center justify-center mx-auto my-4 w-fit text-sm">
-      {navItems.map(({ to, label }) => (
+    <div className="flex gap-x-1 items-center justify-center text-center">
+      {items.map((item, index) => (
         <button
-          key={label}
-          onClick={() => handleTabClick(label, to)}
-          className={`py-2 px-4 mx-3 rounded-lg font-semibold font-inter transition duration-300 hover:cursor-pointer ${
-            activeTab === label
-              ? "bg-accent text-background"
-              : "bg-background text-primary hover:bg-accent hover:text-background"
+          key={index}
+          onClick={item.onClick}
+          className={`cursor-pointer rounded-[10px] px-6 py-3 transition ease-in-out duration-300 hover:bg-container-2 hover:text-text-2 ${
+            activeItem === item.label
+              ? "hover hover:text-2 bg-secondary font-semibold text-background transition ease-in-out hover:bg-container-2 hover:text-text-2"
+              : "bg-background text-text-2"
           }`}
         >
-          {label}
+          {item.label}
         </button>
       ))}
     </div>
