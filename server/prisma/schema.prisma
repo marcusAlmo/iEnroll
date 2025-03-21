@@ -615,6 +615,8 @@ model grade_level {
   academic_level      academic_level        @relation(fields: [academic_level_code], references: [academic_level_code], map: "fk_grade_level_academic_level_code")
 
   @@unique([academic_level_code, grade_level], map: "uq_grade_level")
+  @@index([academic_level_code], map: "idx_grade_level_academic_level_code")
+  @@index([grade_level], map: "idx_grade_level_grade_level")
   @@schema("system")
 }
 
@@ -658,6 +660,8 @@ model system_log {
   details       Json?
   log_datetime  DateTime? @default(now()) @db.Timestamp(6)
 
+  @@index([initiator], map: "idx_system_log_initiator")
+  @@index([log_datetime], map: "idx_system_log_log_datetime")
   @@schema("system")
 }
 
