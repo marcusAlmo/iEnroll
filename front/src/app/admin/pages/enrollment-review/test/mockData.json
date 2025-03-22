@@ -1,8 +1,18 @@
 {
   "gradeLevels": [
+    { "gradeId": 0, "gradeName": "Nursery" },
+    { "gradeId": 0.5, "gradeName": "Kinder" },
+    { "gradeId": 0.75, "gradeName": "Preparatory" },
     { "gradeId": 1, "gradeName": "Grade 1" },
-    { "gradeId": 2, "gradeName": "Grade 2" },
-    { "gradeId": 3, "gradeName": "Grade 3" }
+    { "gradeId": 4, "gradeName": "Grade 4" },
+    { "gradeId": 5, "gradeName": "Grade 5" },
+    { "gradeId": 6, "gradeName": "Grade 6" },
+    { "gradeId": 7, "gradeName": "Grade 7" },
+    { "gradeId": 8, "gradeName": "Grade 8" },
+    { "gradeId": 9, "gradeName": "Grade 9" },
+    { "gradeId": 10, "gradeName": "Grade 10" },
+    { "gradeId": 11, "gradeName": "Grade 11" },
+    { "gradeId": 12, "gradeName": "Grade 12" }
   ],
   "sections": {
     "1": [

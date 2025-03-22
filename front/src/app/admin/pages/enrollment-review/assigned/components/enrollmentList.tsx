@@ -120,6 +120,21 @@ const EnrollmentList: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Requirements */}
+      <div className="border-text-2 w-[460px] h-[530px] border bg-background p-2 shadow-md overflow-y-scroll">
+      <table className="table-auto w-full border-collapse">
+          {/* Table header */}
+          <thead className="text-text-2 text-left">
+            <tr>
+              <th className="pl-5">REQUIREMENT</th>
+              <th className="pl-2">STATUS</th>
+              <th className="pl-2">ACTION</th>
+            </tr>
+
+          </thead>
+        </table>
+      </div>
     </div>
   );
 };
