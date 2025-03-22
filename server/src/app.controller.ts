@@ -1,13 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service.js';
-import { user } from '@prisma/client';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getHello(): Promise<Pick<user, 'username' | 'user_id'>[]> {
+  getHello() {
     return this.appService.getHello();
   }
 }
