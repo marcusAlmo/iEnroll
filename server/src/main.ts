@@ -1,12 +1,23 @@
 import session from 'express-session';
 import * as Redis from 'ioredis'; // Corrected import
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
+import { LoggerService } from './logger/logger.service.js';
+import { AllExceptionsFilter } from './all-exceptions.filter.js';
 
 async function bootstrap() {
-  const { default: connectRedis } = await import('connect-redis');
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
 
-  const app = await NestFactory.create(AppModule);
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
+
+  app.useLogger(app.get(LoggerService));
+  app.setGlobalPrefix('/api');
+  app.enableCors();
+
+  const { default: connectRedis } = await import('connect-redis');
 
   // Proper Redis client initialization
   const redisClient = new (Redis as any).default({
@@ -31,10 +42,13 @@ async function bootstrap() {
         secure: process.env.NODE_ENV === 'production',
         maxAge: 1000 * 60 * 60 * 24,
       },
-    } as session.SessionOptions)
+    } as session.SessionOptions),
   );
 
   await app.listen(3000);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
