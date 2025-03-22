@@ -11,7 +11,7 @@ export class UsersController {
   @SkipThrottle({ default: false })
   @Get('/all')
   async findAll(@Ip() ip: string) {
-    this.logger.log(`Request for all Employees\t${ip}`);
+    this.logger.log(`Request for all Employees\t${ip}`, UsersController.name);
     return this.usersService.findAll();
   }
 }
