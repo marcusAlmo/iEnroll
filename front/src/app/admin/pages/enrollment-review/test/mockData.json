@@ -4,6 +4,8 @@
     { "gradeId": 0.5, "gradeName": "Kinder" },
     { "gradeId": 0.75, "gradeName": "Preparatory" },
     { "gradeId": 1, "gradeName": "Grade 1" },
+    { "gradeId": 2, "gradeName": "Grade 2" },
+    { "gradeId": 3, "gradeName": "Grade 3" },
     { "gradeId": 4, "gradeName": "Grade 4" },
     { "gradeId": 5, "gradeName": "Grade 5" },
     { "gradeId": 6, "gradeName": "Grade 6" },
@@ -34,22 +36,23 @@
         "middleName": "Bonifacio",
         "lastName": "Dela Cruz",
         "applicationStatus": "Pending",
-        "requirements": {
-          "fathersName": "Pedro Dela Cruz",
-          "mothersMaidenName": "Maria Bonifacio",
-          "psoBirthCertificate": {
-            "status": null,
+        "requirements": [
+          {
+            "requirementName": "psoBirthCertificate",
+            "requirementStatus": null,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
           },
-          "form138": {
-            "status": null,
+          {
+            "requirementName": "form138",
+            "requirementStatus": null,
             "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
           },
-          "certificateOfGoodMoral": {
-            "status": null,
+          {
+            "requirementName": "certificateOfGoodMoral",
+            "requirementStatus": null,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
           }
-        }
+        ]
       },
       {
         "studentId": 1002,
@@ -58,22 +61,23 @@
         "middleName": "Lopez",
         "lastName": "Santos",
         "applicationStatus": "Accepted",
-        "requirements": {
-          "fathersName": "Jose Santos",
-          "mothersMaidenName": "Ana Lopez",
-          "psoBirthCertificate": {
-            "status": true,
+        "requirements": [
+          {
+            "requirementName": "psoBirthCertificate",
+            "requirementStatus": true,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
           },
-          "form138": {
-            "status": true,
+          {
+            "requirementName": "form138",
+            "requirementStatus": true,
             "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
           },
-          "certificateOfGoodMoral": {
-            "status": true,
+          {
+            "requirementName": "certificateOfGoodMoral",
+            "requirementStatus": true,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
           }
-        }
+        ]
       }
     ],
     "999": [
@@ -84,22 +88,23 @@
         "middleName": "",
         "lastName": "Maganda",
         "applicationStatus": "Denied",
-        "requirements": {
-          "fathersName": "Juan Maganda",
-          "mothersMaidenName": "Carmen Cruz",
-          "psoBirthCertificate": {
-            "status": false,
+        "requirements": [
+          {
+            "requirementName": "psoBirthCertificate",
+            "requirementStatus": false,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
           },
-          "form138": {
-            "status": false,
+          {
+            "requirementName": "form138",
+            "requirementStatus": false,
             "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
           },
-          "certificateOfGoodMoral": {
-            "status": false,
+          {
+            "requirementName": "certificateOfGoodMoral",
+            "requirementStatus": false,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
           }
-        }
+        ]
       },
       {
         "studentId": 9002,
@@ -108,22 +113,23 @@
         "middleName": "",
         "lastName": "Rizal",
         "applicationStatus": "Invalid",
-        "requirements": {
-          "fathersName": "Francisco Rizal",
-          "mothersMaidenName": "Teodora Alonso",
-          "psoBirthCertificate": {
-            "status": false,
+        "requirements": [
+          {
+            "requirementName": "psoBirthCertificate",
+            "requirementStatus": false,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
           },
-          "form138": {
-            "status": false,
+          {
+            "requirementName": "form138",
+            "requirementStatus": false,
             "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
           },
-          "certificateOfGoodMoral": {
-            "status": false,
+          {
+            "requirementName": "certificateOfGoodMoral",
+            "requirementStatus": false,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
           }
-        }
+        ]
       }
     ]
   }
