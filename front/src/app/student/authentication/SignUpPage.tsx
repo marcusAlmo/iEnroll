@@ -64,6 +64,7 @@ const SignUpPage = () => {
       <div className="flex flex-col gap-y-5 mt-[30px] w-screen px-14">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <div className="text-base text-primary font-semibold">Account Information</div>
             <CustomInput
               control={form.control}
               name="username"
@@ -127,6 +128,7 @@ const SignUpPage = () => {
               />
             </div>
 
+            <div className="text-base text-primary font-semibold mt-10">Personal Information</div>
             <CustomInput
               control={form.control}
               name="firstName"
@@ -213,7 +215,7 @@ const SignUpPage = () => {
         </Form>
 
         <div className="text-sm text-center font-semibold text-text-2">
-          Already have an account? <a className="text-accent">Log in</a>
+          Already have an account? <a className="text-accent" href="/log-in">Log in</a>
         </div>
       </div>
 
