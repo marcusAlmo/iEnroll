@@ -1,79 +1,117 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import mockData from "../pages/enrollment-review/test/mockData.json";
 
-// Define Interfaces
+/**
+ * Represents a school grade level
+ */
 interface GradeLevel {
-  gradeId: number;
-  gradeName: string;
+  gradeId: number;      // Unique identifier for the grade
+  gradeName: string;    // Display name for the grade (e.g., "Grade 1", "Kindergarten")
 }
 
+/**
+ * Represents a section within a grade level
+ */
 interface Section {
-  sectionId: number;
-  sectionName: string;
+  sectionId: number;    // Unique identifier for the section
+  sectionName: string;  // Display name for the section (e.g., "Section A")
 }
 
+/**
+ * Represents an enrollment requirement for a student
+ */
+interface Requirement {
+  requirementName: string;    // Name of the requirement (e.g., "Birth Certificate")
+  requirementStatus: boolean; // Whether the requirement has been fulfilled
+  imageUrl: string;           // URL to the uploaded document/image for this requirement
+}
+
+/**
+ * Represents a student in the enrollment system
+ */
 interface Student {
-  studentId: number;
-  studentName: string;
-  firstName:  string;
-  middleName: string;
-  lastName: string;
-  applicationStatus: string[];
+  studentId: number;          // Unique identifier for the student
+  studentName: string;        // Full name of the student (for display purposes)
+  firstName: string;          // Student's first name
+  middleName: string;         // Student's middle name
+  lastName: string;           // Student's last name
+  applicationStatus: string;  // Current status of the enrollment application
+  requirements: Requirement[]; // List of enrollment requirements for this student
 }
 
+/**
+ * Props for the EnrollmentReviewContext
+ * Defines all state variables and setter functions available in the context
+ */
 interface EnrollmentReviewContextProps {
-  activeItem: string;
-  setActiveItem: (item: string) => void;
+  // Navigation state
+  activeItem: string;                         // Currently active navigation item
+  setActiveItem: (item: string) => void;      // Function to update active navigation item
 
-  gradeLevels: GradeLevel[];
-  selectedGradeLevel: number | null;
-  setSelectedGradeLevel: (gradeId: number | null) => void;
+  // Grade level state
+  gradeLevels: GradeLevel[];                  // Available grade levels
+  selectedGradeLevel: number | null;          // Currently selected grade level ID
+  setSelectedGradeLevel: (gradeId: number | null) => void; // Function to update selected grade level
 
-  sections: Section[];
-  selectedSection: number | null;
-  setSelectedSection: (sectionId: number | null) => void;
+  // Section state
+  sections: Section[];                        // Available sections for the selected grade
+  selectedSection: number | null;             // Currently selected section ID
+  setSelectedSection: (sectionId: number | null) => void; // Function to update selected section
 
-  students: Student[];
-  selectedStudent: Student | null;
-  setSelectedStudent: (student: Student | null) => void;
+  // Student state
+  students: Student[];                        // Available students for the selected section
+  selectedStudent: Student | null;            // Currently selected student
+  setSelectedStudent: (student: Student | null) => void; // Function to update selected student
 
-  requirements: string[];
-  selectedRequirement: string | null;
-  setSelectedRequirement: (requirement: string | null) => void;
+  // Requirement state
+  requirements: Requirement[];                // Requirements for the selected student
+  selectedRequirement: Requirement | null;    // Currently selected requirement
+  setSelectedRequirement: (requirement: Requirement | null) => void; // Function to update selected requirement
 
-  isModalOpen: boolean; 
-  setIsModalOpen: (isOpen: boolean) => void;
+  // Modal state
+  isModalOpen: boolean;                       // Controls visibility of the modal
+  setIsModalOpen: (isOpen: boolean) => void;  // Function to toggle modal visibility
 }
 
+// Create the context with undefined default value
 const EnrollmentReviewContext = createContext<
   EnrollmentReviewContextProps | undefined
 >(undefined);
 
+/**
+ * Provider component for the EnrollmentReview context
+ * 
+ * This component manages the state for the enrollment review process and provides
+ * access to that state via context to all child components.
+ * 
+ * @param children - React child components that will have access to this context
+ */
 export const EnrollmentReviewProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   // State Management
-  const [activeItem, setActiveItem] = useState("gradeLevels");
+  const [activeItem, setActiveItem] = useState("gradeLevels"); // Default active item is grade levels
   const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
-  const [selectedGradeLevel, setSelectedGradeLevel] = useState<number | null>(
-    null
-  );
+  const [selectedGradeLevel, setSelectedGradeLevel] = useState<number | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [selectedSection, setSelectedSection] = useState<number | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [requirements, setRequirements] = useState<string[]>([]);
-  const [selectedRequirement, setSelectedRequirement] = useState<string | null>(
-    null
-  ); // State for selected requirement
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [selectedRequirement, setSelectedRequirement] = useState<Requirement | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch Grade Levels
+  /**
+   * Load grade levels from mock data when component mounts
+   */
   useEffect(() => {
     setGradeLevels(mockData.gradeLevels);
   }, []);
 
-  // Fetch Sections when a Grade Level is Selected
+  /**
+   * Update sections when a grade level is selected
+   * Reset section selection, students list when grade level changes
+   */
   useEffect(() => {
     if (selectedGradeLevel) {
       const gradeKey = selectedGradeLevel.toString();
@@ -87,7 +125,10 @@ export const EnrollmentReviewProvider: React.FC<{
     }
   }, [selectedGradeLevel]);
 
-  // Fetch Students when a Section is Selected
+  /**
+   * Update students when a section is selected
+   * Reset student selection when section changes
+   */
   useEffect(() => {
     if (selectedSection) {
       const sectionKey = selectedSection.toString();
@@ -100,16 +141,21 @@ export const EnrollmentReviewProvider: React.FC<{
     }
   }, [selectedSection]);
 
-  // Fetch Requirements when a Student is Selected
+  /**
+   * Update requirements when a student is selected
+   */
   useEffect(() => {
     if (selectedStudent) {
-      setRequirements(selectedStudent.applicationStatus);
+      setRequirements(selectedStudent.requirements);
     } else {
       setRequirements([]);
     }
   }, [selectedStudent]);
 
-  // Memoized Value for Context
+  /**
+   * Memoized context value to prevent unnecessary re-renders
+   * Only recalculates when any of the dependency values change
+   */
   const value = useMemo(
     () => ({
       activeItem,
@@ -150,6 +196,15 @@ export const EnrollmentReviewProvider: React.FC<{
   );
 };
 
+/**
+ * Custom hook to use the EnrollmentReview context
+ * 
+ * This hook provides a convenient way to access the context in components
+ * and includes error handling to ensure it's used correctly.
+ * 
+ * @returns The EnrollmentReview context value
+ * @throws Error if used outside of EnrollmentReviewProvider
+ */
 export const useEnrollmentReview = () => {
   const context = React.useContext(EnrollmentReviewContext);
   if (!context) {
