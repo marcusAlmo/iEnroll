@@ -215,6 +215,7 @@ CREATE TABLE IF NOT EXISTS enrollment.grade_level_offered (
     grade_level_offered_id INT NOT NULL,
     school_id INT NOT NULL,
     grade_level_code CHAR(3) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
