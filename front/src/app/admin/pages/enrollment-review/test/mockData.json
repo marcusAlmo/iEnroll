@@ -1,0 +1,120 @@
+{
+  "gradeLevels": [
+    { "gradeId": 1, "gradeName": "Grade 1" },
+    { "gradeId": 2, "gradeName": "Grade 2" },
+    { "gradeId": 3, "gradeName": "Grade 3" }
+  ],
+  "sections": {
+    "1": [
+      { "sectionId": 101, "sectionName": "Section A" },
+      { "sectionId": 102, "sectionName": "Section B" },
+      { "sectionId": 999, "sectionName": "Unassigned" }
+    ],
+    "2": [
+      { "sectionId": 201, "sectionName": "Section C" },
+      { "sectionId": 999, "sectionName": "Unassigned" }
+    ]
+  },
+  "students": {
+    "101": [
+      {
+        "studentId": 1001,
+        "studentName": "Juan Dela Cruz",
+        "firstName": "Juan",
+        "middleName": "Bonifacio",
+        "lastName": "Dela Cruz",
+        "applicationStatus": "Pending",
+        "requirements": {
+          "fathersName": "Pedro Dela Cruz",
+          "mothersMaidenName": "Maria Bonifacio",
+          "psoBirthCertificate": {
+            "status": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
+          },
+          "form138": {
+            "status": null,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
+          },
+          "certificateOfGoodMoral": {
+            "status": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
+          }
+        }
+      },
+      {
+        "studentId": 1002,
+        "studentName": "Maria Santos",
+        "firstName": "Maria",
+        "middleName": "Lopez",
+        "lastName": "Santos",
+        "applicationStatus": "Accepted",
+        "requirements": {
+          "fathersName": "Jose Santos",
+          "mothersMaidenName": "Ana Lopez",
+          "psoBirthCertificate": {
+            "status": true,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
+          },
+          "form138": {
+            "status": true,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
+          },
+          "certificateOfGoodMoral": {
+            "status": true,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
+          }
+        }
+      }
+    ],
+    "999": [
+      {
+        "studentId": 9001,
+        "studentName": "Ana Maganda",
+        "firstName": "Ana",
+        "middleName": "",
+        "lastName": "Maganda",
+        "applicationStatus": "Denied",
+        "requirements": {
+          "fathersName": "Juan Maganda",
+          "mothersMaidenName": "Carmen Cruz",
+          "psoBirthCertificate": {
+            "status": false,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
+          },
+          "form138": {
+            "status": false,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
+          },
+          "certificateOfGoodMoral": {
+            "status": false,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
+          }
+        }
+      },
+      {
+        "studentId": 9002,
+        "studentName": "Jose Rizal",
+        "firstName": "Jose",
+        "middleName": "",
+        "lastName": "Rizal",
+        "applicationStatus": "Invalid",
+        "requirements": {
+          "fathersName": "Francisco Rizal",
+          "mothersMaidenName": "Teodora Alonso",
+          "psoBirthCertificate": {
+            "status": false,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
+          },
+          "form138": {
+            "status": false,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
+          },
+          "certificateOfGoodMoral": {
+            "status": false,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
+          }
+        }
+      }
+    ]
+  }
+}

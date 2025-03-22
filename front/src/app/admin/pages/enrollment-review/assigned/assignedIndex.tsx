@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import SubNav from "@/app/admin/components/SubNav";
+import EnrollmentList from "./components/enrollmentList";
 
 const AssignedIndex: React.FC = () => {
   const navigate = useNavigate();
@@ -33,6 +34,9 @@ const AssignedIndex: React.FC = () => {
         <div className="rounded-[10px] max-h-18 border border-text-2 bg-background p-2">
           <SubNav items={SubNavItem} activeItem={activeItem} />
         </div>
+      </div>
+      <div>
+        <EnrollmentList />
       </div>
     </div>
   );
