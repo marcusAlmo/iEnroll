@@ -1,5 +1,5 @@
 import { RouteObject } from "react-router";
-import PersonnelCenter from "../../admin/pages/PersonnelCenter";
+import PersonnelCenter from "../../admin/pages/personnel-center/PersonnelCenter";
 
 export const personnelManagementRoutes: RouteObject[] = [
   {
