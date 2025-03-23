@@ -21,28 +21,29 @@ RETURNS INTEGER AS $$
  * - Provides a dynamic count of active applications
  * - Can be used in various update and validation scenarios
  * 
- * @param NEW The current row being processed (implied context)
+ * @param p_grade_level_offered_id Unique identifier of the grade level
  * @returns INTEGER representing the count of active applications
  * 
  * @example
  * -- Usage in a trigger or update function
- * IF fn_count_active_applications() > 0 THEN
- *     RAISE EXCEPTION 'School has active applications';
+ * IF fn_count_active_applications(123) > 0 THEN
+ *     -- Handle case with active applications
  * END IF;
  * 
+ * @note Useful for validating grade level modifications
+ * @note Returns 0 if no active applications found
+ * 
  * @author almojuela_mj
- * @version 1.0.0
+ * @version 1.1.0
  * @date 2025-03-22
  */
 BEGIN
-    RETURN (
-        SELECT COUNT(*) 
-        FROM enrollment.enrollment_application 
-        WHERE grade_level_offered_id = p_grade_level_offered_id AND (
-            status = 'pending' OR 
-            status = 'accepted' OR 
-            status = 'invalid'
-        )
+    RETURN COALESCE(
+        (SELECT COUNT(*) 
+         FROM enrollment.enrollment_application ea
+         WHERE ea.grade_level_offered_id = p_grade_level_offered_id 
+           AND ea.status IN ('pending', 'accepted', 'invalid')),
+        0
     );
 END;
 $$ LANGUAGE plpgsql;

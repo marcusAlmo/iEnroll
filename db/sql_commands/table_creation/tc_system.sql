@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS system.plan (
     max_student_count INT NOT NULL,
     max_admin_count INT NOT NULL,
     max_form_field_count INT NOT NULL,
+    max_image_upload_count INT NOT NULL,
     is_most_popular BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -107,6 +108,7 @@ CREATE TABLE IF NOT EXISTS system.plan (
     constraint ck_max_student_count CHECK (max_student_count > 0),
     constraint ck_max_admin_count CHECK (max_admin_count > 0),
     constraint ck_max_form_field_count CHECK (max_form_field_count > 0),
+    constraint ck_max_image_upload_count CHECK (max_image_upload_count > 0),
     constraint ck_original_price CHECK (original_price > 0),
     constraint ck_discounted_price CHECK (discounted_price > 0),
     constraint ck_discounted_price_less_than_original_price CHECK (discounted_price <= original_price)

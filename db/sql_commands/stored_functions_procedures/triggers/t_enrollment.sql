@@ -79,18 +79,19 @@ CREATE TRIGGER t_update_enrollment_schedule
     BEFORE UPDATE ON enrollment.enrollment_schedule
     FOR EACH ROW EXECUTE FUNCTION fn_enrollment_schedule_update();
 
--- grade_level_section update trigger
-CREATE TRIGGER t_update_grade_level_section
-    BEFORE UPDATE ON enrollment.grade_level_section
-    FOR EACH ROW EXECUTE FUNCTION fn_update_datetime();
+-- grade_section update trigger
+CREATE TRIGGER t_update_grade_section
+    BEFORE UPDATE ON enrollment.grade_section
+    FOR EACH ROW EXECUTE FUNCTION fn_grade_section_update();
+
+-- enrollment_fee update trigger
+CREATE TRIGGER t_update_enrollment_fee
+    BEFORE UPDATE ON enrollment.enrollment_fee
+    FOR EACH ROW EXECUTE FUNCTION fn_restrict_update();
 
 -- school_subscription update trigger
 CREATE TRIGGER t_update_school_subscription
     BEFORE UPDATE ON enrollment.school_subscription
-    FOR EACH ROW EXECUTE FUNCTION fn_update_datetime();
+    FOR EACH ROW EXECUTE FUNCTION fn_school_subscription_update();
 
--- enrollment_requirement update trigger
-CREATE TRIGGER t_update_enrollment_requirement
-    BEFORE UPDATE ON enrollment.enrollment_requirement
-    FOR EACH ROW EXECUTE FUNCTION fn_update_datetime();
     
