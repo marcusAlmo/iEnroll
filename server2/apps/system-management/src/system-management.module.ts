@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SystemManagementController } from './system-management.controller';
-import { ConfigModule /**, ConfigService */ } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 
 @Module({
