@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/apps/api-gateway",
+    "module": "commonjs",
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["../../node_modules/@types"],
+    "types": ["node", "@nestjs/microservices"],
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+}
