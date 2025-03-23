@@ -4,7 +4,7 @@ import { Outlet } from "react-router";
 
 const ProtectedAdminRoute: React.FC = () => {
   return (
-    <div className='w-screen h-screen flex flex-col'>
+    <div className='w-full h-screen flex flex-col'>
       <NavBar />
         
       <Outlet /> 

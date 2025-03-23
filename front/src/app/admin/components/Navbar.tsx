@@ -1,50 +1,55 @@
-import React, { useEffect } from "react";
-import { Link, useLocation } from "react-router";
-import Settings from "../../../assets/images/Settings.svg";
-import Smiley from "../../../assets/images/Smiley.svg";
+import React, { useState, useMemo, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import SettingsIcon from "@/assets/images/Settings.svg";
+import SmileyIcon from "@/assets/images/Smiley.svg";
 
 const Navbar: React.FC = () => {
-  const location = useLocation(); 
-  
-  const navItems = [
-    { to: "/admin/dashboard", label: "Dashboard" },
-    { to: "/admin/enrollment-review", label: "Enrollment Review" },
-    { to: "/admin/enrollment-management", label: "Enrollment Management" },
-    { to: "/admin/personnel-center", label: "Personnel Center" },
-  ];
+  const location = useLocation();
+  const [activeItem, setActiveItem] = useState(location.pathname);
+
+  const navItems = useMemo(
+    () => [
+      { label: "Dashboard", to: "/admin/dashboard" },
+      { label: "Enrollment Review", to: "/admin/enrollment-review" },
+      { label: "Enrollment Management", to: "/admin/enrollment-management" },
+      { label: "Personnel Center", to: "/admin/personnel-center" },
+    ],
+    []
+  );
+
 
   useEffect(() => {
-    console.log(location.pathname)
+    setActiveItem(location.pathname);
   }, [location]);
 
   return (
-    <nav className="bg-white shadow-md py-3 px-8 flex justify-between items-center w-full font-inter">
+    <nav className="bg-white shadow-md py-3 px-8 flex justify-between items-center w-full font-inter sticky top-0 z-50">
+
+      {/* Logo Section */}
       <div className="flex items-center font-bold text-2xl">
         <span className="text-accent">i</span>
         <span className="text-primary">Enr</span>
-        <img className="w-4 h-5 mt-1" alt="Smiley" src={Smiley} />
+        <img className="w-4 h-5 mt-1" alt="Smiley" src={SmileyIcon} />
         <span className="text-primary">ll</span>
       </div>
 
+      {/* Navigation Links */}
       <div className="flex gap-x-8 text-md">
         {navItems.map((item) => (
           <Link
             key={item.to}
             to={item.to}
-            className={`font-semibold transition duration-300 
-              ${
-                location.pathname === item.to
-                  ? "bg-text-2 text-primary"
-                  : "text-primary hover:bg-gray-200"
-              }`}
+            className={`font-semibold transition duration-300 px-3 py-2 rounded-md 
+              ${activeItem === item.to ? "bg-primary text-white" : "text-primary hover:bg-gray-200"}`}
           >
             {item.label}
           </Link>
         ))}
       </div>
 
+      {/* Settings Button */}
       <button className="p-2 hover:bg-gray-200 rounded-md transition duration-300">
-        <img className="w-6 h-6" src={Settings} alt="settings" />
+        <img className="w-6 h-6" src={SettingsIcon} alt="settings" />
       </button>
     </nav>
   );
