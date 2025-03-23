@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { EnrollmentController } from './enrollment.controller';
-import { EnrollmentService } from './enrollment.service';
 import { ConfigModule /**, ConfigService */ } from '@nestjs/config';
 import configuration from './config/configuration';
 
@@ -12,6 +11,6 @@ import configuration from './config/configuration';
     }),
   ],
   controllers: [EnrollmentController],
-  providers: [EnrollmentService],
+  providers: [],
 })
 export class EnrollmentModule {}

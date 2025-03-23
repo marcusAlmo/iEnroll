@@ -4,6 +4,7 @@ import { ApiGatewayModule } from './api-gateway.module';
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
   await app.listen(3000);
+  app.setGlobalPrefix('/api');
   console.log('API Gateway is running on: http://localhost:3000');
 }
 bootstrap().catch((err) => {

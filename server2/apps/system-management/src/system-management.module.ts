@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { SystemManagementController } from './system-management.controller';
-import { SystemManagementService } from './system-management.service';
 import { ConfigModule /**, ConfigService */ } from '@nestjs/config';
 import configuration from './config/configuration';
 
@@ -12,6 +11,6 @@ import configuration from './config/configuration';
     }),
   ],
   controllers: [SystemManagementController],
-  providers: [SystemManagementService],
+  providers: [],
 })
 export class SystemManagementModule {}
