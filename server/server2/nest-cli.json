@@ -1,8 +1,68 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src",
+  "sourceRoot": "apps/server2/src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/server2/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/server2",
+  "projects": {
+    "api-gateway": {
+      "type": "application",
+      "root": "apps/api-gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/api-gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
+      }
+    },
+    "chat": {
+      "type": "application",
+      "root": "apps/chat",
+      "entryFile": "main",
+      "sourceRoot": "apps/chat/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/chat/tsconfig.app.json"
+      }
+    },
+    "enrollment": {
+      "type": "application",
+      "root": "apps/enrollment",
+      "entryFile": "main",
+      "sourceRoot": "apps/enrollment/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/enrollment/tsconfig.app.json"
+      }
+    },
+    "metrics": {
+      "type": "application",
+      "root": "apps/metrics",
+      "entryFile": "main",
+      "sourceRoot": "apps/metrics/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/metrics/tsconfig.app.json"
+      }
+    },
+    "server2": {
+      "type": "application",
+      "root": "apps/server2",
+      "entryFile": "main",
+      "sourceRoot": "apps/server2/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/server2/tsconfig.app.json"
+      }
+    },
+    "system-management": {
+      "type": "application",
+      "root": "apps/system-management",
+      "entryFile": "main",
+      "sourceRoot": "apps/system-management/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/system-management/tsconfig.app.json"
+      }
+    }
   }
 }
