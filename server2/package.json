@@ -25,8 +25,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/server2/test/jest-e2e.json",
     "prisma:schema": "npm run prisma:pull && npm run prisma:generate",
-    "prisma:generate": "npx prisma generate",
-    "prisma:pull": "npx prisma db pull"
+    "prisma:generate": "npx prisma generate --schema=libs/prisma/prisma/schema.prisma",
+    "prisma:pull": "npx prisma db pull --schema=libs/prisma/prisma/schema.prisma"
   },
   "dependencies": {
     "@godaddy/terminus": "^4.12.1",
