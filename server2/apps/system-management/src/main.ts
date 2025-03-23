@@ -5,6 +5,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 async function bootstrap() {
   // Create HTTP adapter for health checks
   const httpApp = await NestFactory.create(SystemManagementModule);
+  httpApp.setGlobalPrefix('/api/system-management');
 
   // Initialize microservice
   const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';

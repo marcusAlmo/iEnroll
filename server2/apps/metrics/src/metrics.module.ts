@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MetricsController } from './metrics.controller';
-import { MetricsService } from './metrics.service';
 import { ConfigModule /**, ConfigService */ } from '@nestjs/config';
 import configuration from './config/configuration';
 
@@ -12,6 +11,6 @@ import configuration from './config/configuration';
     }),
   ],
   controllers: [MetricsController],
-  providers: [MetricsService],
+  providers: [],
 })
 export class MetricsModule {}
