@@ -24,7 +24,9 @@ async function bootstrap() {
   // Start both services
   await httpApp.startAllMicroservices();
   // Number(process.env.SYSTEM_MANAGEMENT_API_PORT) ||
-  await httpApp.listen(3003);
+  await httpApp.listen(Number(process.env.SYSTEM_MANAGEMENT_API_PORT) || 3003, () => {
+    console.log(`System Management Service running on port ${Number(process.env.SYSTEM_MANAGEMENT_API_PORT) || 3003}`);
+  });
 }
 bootstrap().catch((err) => {
   console.error(err);

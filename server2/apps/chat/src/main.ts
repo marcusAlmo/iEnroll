@@ -21,18 +21,11 @@ async function bootstrap() {
     },
   });
 
-  console.log('ENV PORT VALUES:');
-  console.log({
-    API_GATEWAY_PORT: process.env.API_GATEWAY_PORT,
-    CHAT_API_PORT: process.env.CHAT_API_PORT,
-    NESTJS_PORT: process.env.PORT, // Some frameworks use generic PORT variable
-  });
-
   // Start both services
   await httpApp.startAllMicroservices();
   // Number(process.env.CHAT_API_PORT) ||
-  await httpApp.listen(3001, () => {
-    console.log(`Chat Service running on port ${3001}`);
+  await httpApp.listen(Number(process.env.CHAT_API_PORT) || 3001, () => {
+    console.log(`Chat Service running on port ${Number(process.env.CHAT_API_PORT) || 3001}`);
   });
 }
 bootstrap().catch((err) => {
