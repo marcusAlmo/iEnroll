@@ -1,4 +1,5 @@
 import React from "react";
+import DonutChart from "@/app/admin/components/EnrollmentBreakdownChart";
 
 const EnrollmentBreakdown: React.FC = () => {
   return (
@@ -9,6 +10,7 @@ const EnrollmentBreakdown: React.FC = () => {
                 This helps you understand the overall makeup of our student body.
             </p>
             <div className="w-2/3 flex justify-center">
+                <DonutChart />
             </div>
         </div>
     </div>
