@@ -10,11 +10,15 @@ import CustomInput from "@/components/CustomInput";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
+import CustomCarousel from "@/components/CustomCarousel";
+import announcements from "@/test/data/banner-items.json";
 
 const LoginPage = () => {
   const { mobile } = useScreenSize();
 
+  // States
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   // Define form default values
   const form = useForm<z.infer<typeof signInSchema>>({
@@ -38,11 +42,11 @@ const LoginPage = () => {
 
   // Else display the following TSX
   return (
-    <div className="py-8 flex flex-col items-center justify-center">
+    <div className="py-12 flex flex-col items-center justify-center">
       <h2 className="font-semibold text-accent text-3xl">Announcements</h2>
 
-      <div className="flex justify-center h-40">
-        ANNOUNCEMENTS CAROUSEL
+      <div className="flex justify-center w-screen mb-16 mt-8">
+        <CustomCarousel carouselItems={announcements} />
       </div>
 
       <div>
@@ -80,7 +84,7 @@ const LoginPage = () => {
                 </div>
                 <div 
                   className="text-xs font-semibold text-[#DD3545]/70 self-end"
-                  onClick={() => console.log("sup")}  
+                  onClick={() => setShowModal(true)}  
                 >
                   Forgot password?
                 </div>
