@@ -10,6 +10,7 @@
 import { ReactNode } from 'react';
 import { ScreenSizeProvider } from '../contexts/ScreenSizeContext';
 import { AuthProvider } from '../contexts/AuthContext';
+import { EnrollmentReviewProvider } from './admin/context/enrollmentReviewContext';
 
 interface AppProviderProps {
   children: ReactNode
@@ -20,9 +21,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   return (
     <ScreenSizeProvider>
       <AuthProvider>
-        {/* <NavigationGuardProvider> */}
+        <EnrollmentReviewProvider>
+          {/* <NavigationGuardProvider> */}
           {children}
-        {/* </NavigationGuardProvider> */}
+          {/* </NavigationGuardProvider> */}
+        </EnrollmentReviewProvider>
       </AuthProvider>
     </ScreenSizeProvider>
   )
