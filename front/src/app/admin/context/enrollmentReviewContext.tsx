@@ -23,7 +23,9 @@ interface Section {
 interface Requirement {
   requirementName: string;    // Name of the requirement (e.g., "Birth Certificate")
   requirementStatus: boolean; // Requirement Status if approved or denied
-  imageUrl: string;           // URL to the uploaded document/image for this requirement
+  imageUrl?: string;           // URL to the uploaded document/image for this requirement
+  userInput?: string;         // Optional user input field for additional information
+  requirementType: string;   // Type of requirement (e.g., "Document", "Input", "Image")
 }
 
 /**

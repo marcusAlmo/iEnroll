@@ -40,11 +40,34 @@ export const RequirementsCarouselModal: React.FC = () => {
         />
         {/* Requirement */}
         <div className='flex w-full flex-row items-center justify-center p-10'>
-          <img
+          {requirements[currentIndex].requirementType === "image" ? (
+            <img
             src={requirements[currentIndex].imageUrl}
             alt={requirements[currentIndex].requirementName}
             className="mb-4 h-[600px] w-[500px]"
-          />
+            />
+          ) : (
+            <div className='ml-4 flex h-auto w-xl flex-col justify-between rounded-[10px] bg-white p-4'>
+              <h2 className='font-semibold text-primary'>Requirements</h2>
+              {requirements
+                .filter(req => req.requirementType === "input")
+                .map((req, index) => (
+                  <div key={index} className="mb-4 w-full">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {req.requirementName}
+                    </label>
+                    <TextField
+                      fullWidth
+                      defaultValue={req.userInput || ""}
+                      margin="normal"
+                      onChange={(e) => {
+                        console.log(`Input for ${req.requirementName}:`, e.target.value);
+                      }}
+                    />
+                  </div>
+                ))}
+            </div>
+          )}
           {/* Approve or Deny Requirement */}
           <div className='ml-4 flex h-auto w-2xl flex-col items-center justify-center rounded-[10px] bg-white p-4'>
             <div className='flex flex-row items-center justify-center gap-x-5 font-semibold text-center'>

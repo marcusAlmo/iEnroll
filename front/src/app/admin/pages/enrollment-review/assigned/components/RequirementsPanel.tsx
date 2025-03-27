@@ -62,16 +62,16 @@ export const RequirementsPanel:React.FC = () => {
                 
                 {/* View action - only visible if requirement has an imageUrl */}
                 <td className="w-1/4 border-b p-1">
-                  {requirement.imageUrl && (
-                    <button
-                      className="text-accent underline font-semibold cursor-pointer hover:scale-110 transition-all ease-in-out duration-300 hover:text-primary"
-                      onClick={() => {
-                        setSelectedRequirement(requirement);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      View
-                    </button>
+                  {(requirement.imageUrl || requirement.userInput) && (
+                  <button
+                    className="text-accent underline font-semibold cursor-pointer hover:scale-110 transition-all ease-in-out duration-300 hover:text-primary"
+                    onClick={() => {
+                    setSelectedRequirement(requirement);
+                    setIsModalOpen(true);
+                    }}
+                  >
+                    View
+                  </button>
                   )}
                 </td>
               </tr>
