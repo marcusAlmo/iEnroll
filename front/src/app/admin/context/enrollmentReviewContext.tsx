@@ -22,7 +22,7 @@ interface Section {
  */
 interface Requirement {
   requirementName: string;    // Name of the requirement (e.g., "Birth Certificate")
-  requirementStatus: boolean; // Whether the requirement has been fulfilled
+  requirementStatus: boolean; // Requirement Status if approved or denied
   imageUrl: string;           // URL to the uploaded document/image for this requirement
 }
 
@@ -47,6 +47,10 @@ interface EnrollmentReviewContextProps {
   // Navigation state
   activeItem: string;                         // Currently active navigation item
   setActiveItem: (item: string) => void;      // Function to update active navigation item
+  currentIndex: number;
+  handleNext: () => void;
+  handlePrevious: () => void;
+  handleRequirementStatus: (status: boolean) => void;
 
   // Grade level state
   gradeLevels: GradeLevel[];                  // Available grade levels
@@ -71,6 +75,10 @@ interface EnrollmentReviewContextProps {
   // Modal state
   isModalOpen: boolean;                       // Controls visibility of the modal
   setIsModalOpen: (isOpen: boolean) => void;  // Function to toggle modal visibility
+
+  // Deny state
+  isDenied: boolean;                          // Controls visibility of the deny text field
+  setIsDenied: (isDenied: boolean) => void;    // Function to toggle deny text field visibility
 }
 
 // Create the context with undefined default value
@@ -100,6 +108,29 @@ export const EnrollmentReviewProvider: React.FC<{
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [selectedRequirement, setSelectedRequirement] = useState<Requirement | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isDenied, setIsDenied] = useState(false);
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % requirements.length);
+  };
+
+  const handlePrevious = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? requirements.length - 1 : prevIndex - 1
+    );
+  };
+
+  const handleRequirementStatus = (status: boolean) => {
+    if (selectedRequirement) {
+      setSelectedRequirement({
+        ...selectedRequirement,
+        requirementStatus: status,
+      });
+    }
+
+    console.log("Requirement status updated:", status);
+  }
 
   /**
    * Load grade levels from mock data when component mounts
@@ -160,6 +191,10 @@ export const EnrollmentReviewProvider: React.FC<{
     () => ({
       activeItem,
       setActiveItem,
+      currentIndex,
+      handleNext,
+      handlePrevious,
+      handleRequirementStatus,
       gradeLevels,
       selectedGradeLevel,
       setSelectedGradeLevel,
@@ -174,9 +209,12 @@ export const EnrollmentReviewProvider: React.FC<{
       setSelectedRequirement,
       isModalOpen,
       setIsModalOpen,
+      isDenied,
+      setIsDenied
     }),
     [
       activeItem,
+      currentIndex,
       gradeLevels,
       selectedGradeLevel,
       sections,
