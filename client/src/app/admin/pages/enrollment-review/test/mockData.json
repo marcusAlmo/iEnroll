@@ -38,19 +38,40 @@
         "applicationStatus": "Pending",
         "requirements": [
           {
-            "requirementName": "psoBirthCertificate",
+            "requirementName": "First Name",
             "requirementStatus": null,
-            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
+            "userInput": "Juan",
+            "requirementType": "input"
           },
           {
-            "requirementName": "form138",
+            "requirementName": "Middle Name",
             "requirementStatus": null,
-            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
+            "userInput": "Bonifacio",
+            "requirementType": "input"
           },
           {
-            "requirementName": "certificateOfGoodMoral",
+            "requirementName": "Last Name",
             "requirementStatus": null,
-            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
+            "userInput": "Dela Cruz",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "PSA Birth Certificate",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Form 138",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Certificate of Good Moral",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+            "requirementType": "image"
           }
         ]
       },
@@ -63,19 +84,40 @@
         "applicationStatus": "Accepted",
         "requirements": [
           {
-            "requirementName": "psoBirthCertificate",
-            "requirementStatus": true,
-            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
+            "requirementName": "First Name",
+            "requirementStatus": null,
+            "userInput": "Juan",
+            "requirementType": "input"
           },
           {
-            "requirementName": "form138",
-            "requirementStatus": true,
-            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
+            "requirementName": "Middle Name",
+            "requirementStatus": null,
+            "userInput": "Bonifacio",
+            "requirementType": "input"
           },
           {
-            "requirementName": "certificateOfGoodMoral",
-            "requirementStatus": true,
-            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
+            "requirementName": "Last Name",
+            "requirementStatus": null,
+            "userInput": "Dela Cruz",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "PSA Birth Certificate",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Form 138",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Certificate of Good Moral",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+            "requirementType": "image"
           }
         ]
       }
@@ -90,44 +132,86 @@
         "applicationStatus": "Denied",
         "requirements": [
           {
-            "requirementName": "psoBirthCertificate",
-            "requirementStatus": false,
-            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
+            "requirementName": "First Name",
+            "requirementStatus": null,
+            "userInput": "Ana",
+            "requirementType": "input"
           },
           {
-            "requirementName": "form138",
-            "requirementStatus": false,
-            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
+            "requirementName": "Middle Name",
+            "requirementStatus": null,
+            "userInput": null,
+            "requirementType": "input"
           },
           {
-            "requirementName": "certificateOfGoodMoral",
-            "requirementStatus": false,
-            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
+            "requirementName": "Last Name",
+            "requirementStatus": null,
+            "userInput": "Maganda",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "PSA Birth Certificate",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Form 138",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Certificate of Good Moral",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+            "requirementType": "image"
           }
         ]
       },
       {
         "studentId": 9002,
-        "studentName": "Jose Rizal",
+        "studentName": "Jose Y Rizal",
         "firstName": "Jose",
         "middleName": "",
         "lastName": "Rizal",
         "applicationStatus": "Invalid",
         "requirements": [
           {
-            "requirementName": "psoBirthCertificate",
-            "requirementStatus": false,
-            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1"
+            "requirementName": "First Name",
+            "requirementStatus": null,
+            "userInput": "Jose",
+            "requirementType": "input"
           },
           {
-            "requirementName": "form138",
-            "requirementStatus": false,
-            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1"
+            "requirementName": "Middle Name",
+            "requirementStatus": null,
+            "userInput": "Y",
+            "requirementType": "input"
           },
           {
-            "requirementName": "certificateOfGoodMoral",
-            "requirementStatus": false,
-            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1"
+            "requirementName": "Last Name",
+            "requirementStatus": null,
+            "userInput": "Rizal",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "PSA Birth Certificate",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Form 138",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Certificate of Good Moral",
+            "requirementStatus": null,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+            "requirementType": "image"
           }
         ]
       }
