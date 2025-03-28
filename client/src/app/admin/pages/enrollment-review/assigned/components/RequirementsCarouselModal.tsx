@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@headlessui/react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleArrowLeft, faCircleArrowRight, faCheckSquare, faSquareXmark } from "@fortawesome/free-solid-svg-icons";
@@ -11,8 +11,6 @@ import { useEnrollmentReview } from '../../../../context/enrollmentReviewContext
  * - Navigate between requirements using left/right arrows.
  * - Approve or deny a requirement.
  * - Provide a reason for denial if the requirement is denied.
- * 
- * The modal is conditionally rendered based on the `isModalOpen` state and the presence of requirements.
  */
 export const RequirementsCarouselModal: React.FC = () => {
   // Extract required state and functions from the EnrollmentReview context
@@ -24,9 +22,10 @@ export const RequirementsCarouselModal: React.FC = () => {
     handleRequirementStatus,   // Function to update the status (approved/denied) of a requirement
     isModalOpen,               // Boolean indicating whether the modal is open
     setIsModalOpen,            // Function to toggle the modal's visibility
-    isDenied,                  // Boolean indicating whether the requirement is denied
-    setIsDenied,               // Function to toggle the denial state
   } = useEnrollmentReview();
+
+  // Local state to control the visibility of the denial reason input field
+  const [showDenialReason, setShowDenialReason] = useState(false);
 
   // If the modal is not open, there are no requirements, or no requirement is selected, return null
   if (!isModalOpen || !requirements.length || !selectedRequirement) return null;
@@ -48,7 +47,10 @@ export const RequirementsCarouselModal: React.FC = () => {
         {/* Left Arrow for Navigation */}
         <FontAwesomeIcon
           icon={faCircleArrowLeft}
-          onClick={handlePrevious} // Navigate to the previous requirement
+          onClick={() => {
+            handlePrevious(); // Navigate to the previous requirement
+            setShowDenialReason(false); // Ensure the denial reason input is hidden when navigating
+          }} // Navigate to the previous requirement
           className="cursor-pointer text-7xl text-white transition-all duration-300 ease-in-out hover:scale-115 hover:text-accent"
         />
 
@@ -103,9 +105,7 @@ export const RequirementsCarouselModal: React.FC = () => {
               <button
                 onClick={() => {
                   handleRequirementStatus(true); // Mark the requirement as approved
-                  if (isDenied) {
-                    setIsDenied(false); // Reset denial state if applicable
-                  }
+                  setShowDenialReason(false); // Ensure the denial reason input is hidden
                 }}
                 className="flex cursor-pointer items-center rounded-[10px] border-2 border-success px-4 py-2 text-base font-semibold text-success transition-all duration-300 ease-in-out hover:scale-115 hover:bg-success hover:text-white"
               >
@@ -115,12 +115,7 @@ export const RequirementsCarouselModal: React.FC = () => {
 
               {/* Deny Button */}
               <button
-                onClick={() => {
-                  handleRequirementStatus(false); // Mark the requirement as denied
-                  if (isDenied) {
-                    setIsDenied(false); // Reset denial state if applicable
-                  }
-                }}
+                onClick={() => setShowDenialReason(true)} // Show the denial reason input field
                 className="flex cursor-pointer items-center rounded-[10px] border-2 border-danger px-9 py-2 text-base font-semibold text-danger transition-all duration-300 ease-in-out hover:scale-115 hover:bg-danger hover:text-white"
               >
                 DENY
@@ -129,7 +124,7 @@ export const RequirementsCarouselModal: React.FC = () => {
             </div>
 
             {/* Denial Reason Input */}
-            {isDenied && (
+            {showDenialReason && (
               <>
                 <Input
                   type="text"
@@ -140,13 +135,11 @@ export const RequirementsCarouselModal: React.FC = () => {
                   }}
                 />
                 <button
-                  className="mt-5 cursor-pointer rounded-[10px] bg-accent px-4 py-2 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:bg-primary"
                   onClick={() => {
-                    console.log(
-                      "Denial reason:",
-                      document.querySelector('input[placeholder="Please state the reason for the denial."]')?.value
-                    ); // Log the denial reason from the input field
+                    handleRequirementStatus(false); // Mark the requirement as denied
+                    setShowDenialReason(false); // Hide the denial reason input field
                   }}
+                  className="mt-5 cursor-pointer rounded-[10px] bg-accent px-4 py-2 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:bg-primary"
                 >
                   I confirm, deny requirement
                 </button>
@@ -161,7 +154,10 @@ export const RequirementsCarouselModal: React.FC = () => {
         {/* Right Arrow for Navigation */}
         <FontAwesomeIcon
           icon={faCircleArrowRight}
-          onClick={handleNext} // Navigate to the next requirement
+          onClick={() => {
+            handleNext(); // Navigate to the next requirement
+            setShowDenialReason(false); // Ensure the denial reason input is hidden when navigating 
+          }} // Navigate to the next requirement
           className="cursor-pointer text-7xl text-white transition-all duration-300 ease-in-out hover:scale-115 hover:text-accent"
         />
       </div>
