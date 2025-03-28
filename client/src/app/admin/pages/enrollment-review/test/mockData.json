@@ -85,37 +85,37 @@
         "requirements": [
           {
             "requirementName": "First Name",
-            "requirementStatus": null,
+            "requirementStatus": true,
             "userInput": "Juan",
             "requirementType": "input"
           },
           {
             "requirementName": "Middle Name",
-            "requirementStatus": null,
+            "requirementStatus": true,
             "userInput": "Bonifacio",
             "requirementType": "input"
           },
           {
             "requirementName": "Last Name",
-            "requirementStatus": null,
+            "requirementStatus": true,
             "userInput": "Dela Cruz",
             "requirementType": "input"
           },
           {
             "requirementName": "PSA Birth Certificate",
-            "requirementStatus": null,
+            "requirementStatus": true,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
             "requirementType": "image"
           },
           {
             "requirementName": "Form 138",
-            "requirementStatus": null,
+            "requirementStatus": true,
             "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1",
             "requirementType": "image"
           },
           {
             "requirementName": "Certificate of Good Moral",
-            "requirementStatus": null,
+            "requirementStatus": true,
             "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
             "requirementType": "image"
           }
