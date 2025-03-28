@@ -3,7 +3,7 @@ import PersonnelCenter from "../../admin/pages/personnel-center/PersonnelCenter"
 
 export const personnelManagementRoutes: RouteObject[] = [
   {
-    path: "personnel-management",
+    path: "personnel-center",
     element: <PersonnelCenter />
   }
 ];
