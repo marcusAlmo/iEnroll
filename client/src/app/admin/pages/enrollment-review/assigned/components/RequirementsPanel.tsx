@@ -47,20 +47,20 @@ export const RequirementsPanel: React.FC = () => {
                 {/* Requirement status - displayed as check/x icons */}
                 <td className="w-1/4 border-b py-1">
                   <span
-                    className="cursor-pointer rounded px-2 py-1 text-xl font-semibold transition-all duration-300 ease-in-out"
+                    className="cursor-pointer items-start rounded px-2 py-1 text-start text-xl font-semibold transition-all duration-300 ease-in-out"
                   >
                     {/* Conditional rendering of status icons based on requirement status */}
                     {requirement.requirementStatus === true ? (
                       <>
                         {/* Green check for approved requirements */}
-                        <FontAwesomeIcon icon={faSquareCheck} className="text-success" />
+                        <FontAwesomeIcon icon={faSquareCheck} className="text-success mr-2" />
                         {/* Gray X for the inactive state */}
-                        <FontAwesomeIcon icon={faSquareXmark} className="text-gray-400 mx-2" />
+                        <FontAwesomeIcon icon={faSquareXmark} className="text-gray-400" />
                       </>
                     ) : requirement.requirementStatus === false ? (
                       <>
                         {/* Gray check for the inactive state */}
-                        <FontAwesomeIcon icon={faSquareCheck} className="text-gray-400 mx-2" />
+                        <FontAwesomeIcon icon={faSquareCheck} className="text-gray-400 mr-2" />
                         {/* Red X for rejected requirements */}
                         <FontAwesomeIcon icon={faSquareXmark} className="text-danger" />
                       </>
@@ -78,7 +78,7 @@ export const RequirementsPanel: React.FC = () => {
                 <td className="w-1/4 border-b p-1">
                   {(requirement.imageUrl || requirement.userInput) && (
                     <button
-                      className="text-accent underline font-semibold cursor-pointer hover:scale-110 transition-all ease-in-out duration-300 hover:text-primary"
+                      className="cursor-pointer font-semibold text-accent underline transition-all duration-300 ease-in-out hover:scale-110 hover:text-primary"
                       onClick={() => {
                         // Find the index of the current requirement in the requirements array
                         const index = requirements.findIndex(
