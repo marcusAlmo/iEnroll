@@ -129,6 +129,10 @@ export const EnrollmentReviewProvider: React.FC<{
     });
   };
 
+  const handleOpenDenialReson = () => {
+    setIsDenied(true);
+  }
+
   const handleRequirementStatus = (status: boolean, reason?: string) => {
     if (!selectedRequirement) return;
   
@@ -245,6 +249,7 @@ export const EnrollmentReviewProvider: React.FC<{
       handleNext,
       handlePrevious,
       handleRequirementStatus,
+      handleOpenDenialReson,
       gradeLevels,
       selectedGradeLevel,
       setSelectedGradeLevel,
