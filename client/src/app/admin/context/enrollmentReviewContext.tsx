@@ -112,6 +112,7 @@ export const EnrollmentReviewProvider: React.FC<{
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDenied, setIsDenied] = useState(false);
+  const [denialReason, setDenialReason] = useState(''); // State to store the denial reason
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => {
@@ -265,7 +266,9 @@ export const EnrollmentReviewProvider: React.FC<{
       isModalOpen,
       setIsModalOpen,
       isDenied,
-      setIsDenied
+      setIsDenied,
+      denialReason,
+      setDenialReason,
     }),
     [
       activeItem,
