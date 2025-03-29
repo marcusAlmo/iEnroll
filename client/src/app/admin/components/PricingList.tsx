@@ -31,7 +31,7 @@ function PricingList() {
       ];
   return (
     <div>
-        <div className="w-full grid grid-cols-1 md:grid-cols-4 p-4 gap-x-3 mt-10 h-screen font-inter text-primary">
+        <div className="w-full grid grid-cols-1 md:grid-cols-4 p-4 gap-x-3 mt-10 h-screen font-inter text-primary overflow-x-hidden">
             <div className="bg-card rounded-xl shadow-md border-2 h-[537px] max-h-auto mt-10">
                 <h1 className=" mt-5 -mb-5 font-bold font-inter text-5xl">
                 FREE TRIAL
