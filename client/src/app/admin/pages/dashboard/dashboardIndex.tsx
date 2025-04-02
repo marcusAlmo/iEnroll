@@ -31,7 +31,7 @@ const Dashboard: React.FC = () => {
   // Handle the refresh button click with animation
   const handleRefreshClick = async () => {
     setIsRefreshing(true);
-    await fetchEnrollmentData(); // Fetch fresh data for both cards and tab content
+    await fetchEnrollmentData();
     setIsRefreshing(false); 
   };
 
@@ -51,34 +51,32 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-container-1 flex flex-col">
-      <div
-        className={`absolute left-20 mt-5 cursor-pointer ${isRefreshing ? 'animate-spin' : ''}`}
-        onClick={handleRefreshClick}
-      >
-        <img
-          src={Refresh} 
-          alt="refresh"
-          className="w-5"
-        />
+    <div className="w-full h-screen bg-container-1 flex flex-col overflow-hidden">
+      {/* Refresh Button - Now Fixed */}
+      <div className="fixed top-20 left-10 z-50">
+        <button
+          onClick={handleRefreshClick}
+          className={`transition-transform ${isRefreshing ? 'animate-spin' : ''}`}
+        >
+          <img src={Refresh} alt="refresh" className="w-6 h-6" />
+        </button>
       </div>
 
-      <div className="p-4 mx-36 flex flex-col flex-grow">
-        <div className="flex items-center gap-3 mb-4 relative">
-          {/* Enrollment Data Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full ">
-            <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-8">
-              <h2 className="text-5xl font-bold text-primary">{enrollmentData.totalEnrollments}</h2>
-              <p className="text-primary font-semibold mt-2">Enrollment Total</p>
-            </div>
-            <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-8">
-              <h2 className="text-5xl font-bold text-primary">{enrollmentData.successfulEnrollments}</h2>
-              <p className="text-primary font-semibold mt-2">Successful Enrollment</p>
-            </div>
-            <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-8">
-              <h2 className="text-5xl font-bold text-primary">{enrollmentData.failedEnrollments}</h2>
-              <p className="text-primary font-semibold">Failed Enrollment</p>
-            </div>
+      {/* Main Content */}
+      <div className="p-4 mx-36 flex flex-col flex-grow overflow-hidden">
+        {/* Enrollment Data Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+          <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-6">
+            <h2 className="text-5xl font-bold text-primary">{enrollmentData.totalEnrollments}</h2>
+            <p className="text-primary font-semibold mt-2">Enrollment Total</p>
+          </div>
+          <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-6">
+            <h2 className="text-5xl font-bold text-primary">{enrollmentData.successfulEnrollments}</h2>
+            <p className="text-primary font-semibold mt-2">Successful Enrollment</p>
+          </div>
+          <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-6">
+            <h2 className="text-5xl font-bold text-primary">{enrollmentData.failedEnrollments}</h2>
+            <p className="text-primary font-semibold">Failed Enrollment</p>
           </div>
         </div>
 
@@ -86,7 +84,7 @@ const Dashboard: React.FC = () => {
         <SubNavIndex activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Tab Content */}
-        <div className="">{renderTabContent()}</div>
+        <div className="flex-grow overflow-hidden">{renderTabContent()}</div>
       </div>
     </div>
   );
