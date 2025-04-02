@@ -1,9 +1,9 @@
 import React from 'react';
-import UppendLogo from '@/assets/images/uppend-logo.svg';
+import UppendLogo from '@/assets/images/uppend-logo 1.svg';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="w-full bg-border_1 py-2">
+    <footer className="w-full py-2 bg-border-1">
         <div className="max-w-6xl mx-auto px-6 flex flex-col items-center">
             <p>Design & Developed by</p>
             <div className="flex items-center space-x-3">
