@@ -34,7 +34,7 @@ const renderTabContent = () => {
     }
   };
 return (
-  <div className="w-full min-h-screen bg-container-1">
+  <div className="h-screen bg-container-1 ">
     <div>{renderTabContent()}</div>  
       <SubNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
