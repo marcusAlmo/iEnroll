@@ -19,7 +19,7 @@ const COLORS = ['#8884d8', '#f98b9e', '#82ca9d', '#ffbb28', '#8884d8', '#0088FE'
 
 const DonutChart = () => {
   return (
-    <PieChart width={400} height={400}>
+    <PieChart width={348} height={348}>
       <Pie data={data} cx="50%" cy="50%" innerRadius={80} outerRadius={120} fill="#8884d8" dataKey="value">
         {data.map((entry, index) => (
           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
