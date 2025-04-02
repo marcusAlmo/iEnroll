@@ -43,8 +43,8 @@ const SubNavIndex: React.FC<{ activeTab: string; setActiveTab: (tab: string) => 
   ];
 
   return (
-      <div className="flex justify-center items-center">
-        <div className="rounded-[10px] max-h-18 border border-text-2 bg-background p-2 mt-8">
+      <div className="flex justify-center items-center mt-10">
+        <div className="rounded-[10px] max-h-18 border border-text-2 bg-background p-2 ">
           <SubNav items={subNavItems} activeItem={activeTab} setActiveItem={setActiveTab} />
         </div>
       </div>
