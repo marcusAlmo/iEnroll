@@ -1,13 +1,13 @@
 import React from "react";
 import Smiley from "../../../assets/images/Smiley.svg";
 import Forms from "../components/CredentialsForm";
-import CredentialsIllustration from "@/assets/images/2.svg"
+import CredentialsIllustration from "@/assets/images/enrolle.svg"
 import UppendLogo from "@/assets/images/uppend-logo-white 1.svg";
 
 export default function CredentialsPage() {
   return (
-    <div className="bg-primary min-h-screen flex w-screen">
-      <img src={CredentialsIllustration} alt="Credentials Illustration" className="absolute left-4/13 transform -translate-x-72 lg:top-9 md:top-9 w-[38rem]"/>
+    <div className="bg-primary min-h-screen flex w-full overflow-hidden">
+      <img src={CredentialsIllustration} alt="Credentials Illustration" className="absolute left-4/13 transform -translate-x-72 lg:top-50 md:top-9 w-[40rem]"/>
       <div className="flex gap-16 w-full">
         <div className="bg-background w-[60rem] h-[250px] mt-18 rounded-r-xl items-center flex justify-center">
           <div className="flex font-bold text-8xl ">
@@ -24,7 +24,7 @@ export default function CredentialsPage() {
           <p className="mt-4 text-white text-center">
             Don't have an account yet? <span className="text-accent font-semibold">Contact us</span>
           </p>
-          <div className="flex flex-col items-center my-32">
+          <div className="flex flex-col items-center mt-32">
             <p className="text-background opacity-50">Designed & Developed by </p>
             <img src={UppendLogo} alt="Uppend Logo" className="w-32" />
           </div>
