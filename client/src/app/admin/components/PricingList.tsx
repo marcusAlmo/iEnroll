@@ -51,7 +51,7 @@ interface PricingListProps {
                     Explore the platform with limited features. Perfect for getting started and experiencing the basics.
                 </div>
             
-                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg shadow-lg mt-16 w-full cursor-pointer"
+                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg mt-16 w-full cursor-pointer"
                     onClick={scrollToContact}
                 >
                     Claim Free Trial
@@ -61,7 +61,7 @@ interface PricingListProps {
                     <span className="border w-full my-8"></span>
                 </div>
                 <div>
-                    <ul className="flex flex-col text-sm font-medium mx-9 gap-2 my-2">
+                    <ul className="flex flex-col text-sm font-medium gap-2 my-2">
                         {Perks.map((item) => (
                             <li key={item.label} className="flex items-center gap-3 w-full lg:w-auto">
                                 <img src={item.icon} alt={item.label} />
@@ -113,9 +113,9 @@ interface PricingListProps {
                         <span className="border w-full my-8"></span>
                     </div>
                     <div>
-                        <ul className="flex flex-wrap text-sm font-medium mx-9 gap-2 my-2">
+                        <ul className="flex flex-col text-sm font-medium gap-2 my-2">
                             {Perks_1.map((item) => (
-                                <li key={item.label} className="flex items-center gap-3 w-full lg:w-auto">
+                                <li className="flex items-center gap-3">
                                 <><img src={item.icon} alt={item.label} /><span>{item.label}</span></>
                                 </li>
                                 )
@@ -151,7 +151,7 @@ interface PricingListProps {
                     </h1>
                 </div>
 
-                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg shadow-lg mt-11 w-full cursor-pointer"
+                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg mt-11 w-full cursor-pointer"
                     onClick={scrollToContact}
                 >
                     Choose Plan
@@ -161,7 +161,7 @@ interface PricingListProps {
                     <span className="border w-full my-8"></span>
                 </div>
                 <div>
-                    <ul className="flex flex-wrap text-sm font-medium mx-9 space-y-2 my-2">
+                    <ul className="flex flex-col text-sm font-medium space-y-2 my-2">
                         {Perks_2.map((item) => (
                             <li className="flex items-center gap-3">
                             <><img src={item.icon} alt={item.label} /><span>{item.label}</span></>
@@ -196,7 +196,7 @@ interface PricingListProps {
                     </h1>
                 </div>
                
-                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg shadow-lg w-full mt-12 cursor-pointer"
+                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg w-full mt-12 cursor-pointer"
                     onClick={scrollToContact}
                 >
                     Choose Plan
@@ -206,7 +206,7 @@ interface PricingListProps {
                     <span className="border w-full my-8"></span>
                 </div>
                 <div>
-                    <ul className="flex flex-wrap text-sm font-medium mx-9 space-y-2 my-2">
+                    <ul className="flex flex-col text-sm font-medium space-y-2 my-2">
 
                         {Perks_3.map((item) => (
                             <li key={item.label} className="flex items-center gap-3 w-full lg:w-auto">
