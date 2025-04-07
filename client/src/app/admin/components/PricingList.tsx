@@ -1,8 +1,14 @@
-import React, { ReactNode } from 'react';
-import Vector from "../../../assets/images/Vector.svg";
+import React, { ReactNode, useRef } from 'react';
+import Vector from "@/assets/images/Vector.svg";
 import { Link } from 'react-router';
 
-function PricingList() {
+interface PricingListProps {
+    scrollToContact: () => void;
+  }
+  
+
+  const PricingList: React.FC<PricingListProps> = ({ scrollToContact }) => {
+   
     const Perks = [
         {label: "10 Student", icon: Vector},
         {label: "1 Admin", icon: Vector},
@@ -18,7 +24,7 @@ function PricingList() {
       const Perks_2 = [
         {label: "3000 Students", icon: Vector},
         {label: "5 Admin", icon: Vector},
-        {label: "10,000 Image Uploads", icon: Vector},
+        {label: "15,000 Image Uploads", icon: Vector},
         {label: "100 Form Fields", icon: Vector},
         {label: "30 Days Duration", icon: Vector},
       ];
@@ -30,90 +36,97 @@ function PricingList() {
         {label: "30 Days Duration", icon: Vector},
       ];
   return (
-    <div>
-        <div className="w-full grid grid-cols-1 md:grid-cols-4 p-4 gap-x-3 mt-10 h-screen font-inter text-primary overflow-x-hidden">
-            <div className="bg-card rounded-xl shadow-md border-2 h-[537px] max-h-auto mt-10">
-                <h1 className=" mt-5 -mb-5 font-bold font-inter text-5xl">
-                FREE TRIAL
-                </h1>
-            <div className=" mt-8 inline-flex items-center box-content rounded-full bg-badge1 text-xs font-inter font-bold text-primary1">
-                <span className="p-1 px-3 ">
-                For 1 Month
-                </span>
-            </div>
-            <div className="text-sm font-regular  text-center inline-block px-12 py-8 p-2 mt-7 ">
-                Explore the platform with limited features. Perfect for getting started and experiencing the basics.
-            </div>
-            <div>
-                <Link className=" text-accent border-2 border-accent text-base py-2 px-16 rounded-lg shadow-lg" to={'ContactSection'}>
+    <div className="p-4 sm:p-6 lg:p-8">
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-10 font-inter text-primary ">
+            <div className="bg-container-1 rounded-xl shadow-md border-2 min-h-[537px] mt-10 px-10 ">
+                <h1 className="mt-5 font-bold text-2xl md:text-4xl text-center">FREE TRIAL</h1>
+                <div className=" inline-flex items-center rounded-full text-xs font-inter font-bold px-3 py-1 relative">
+                    <div className="absolute inset-0 bg-accent opacity-50 rounded-full"></div>
+                    <p className="text-primary relative">
+                        For 1 Month
+                    </p>
+                </div>
+
+                <div className="text-sm font-regular  text-center inline-block p-2 mt-8">
+                    Explore the platform with limited features. Perfect for getting started and experiencing the basics.
+                </div>
+            
+                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg mt-16 w-full cursor-pointer"
+                    onClick={scrollToContact}
+                >
                     Claim Free Trial
-                </Link>
-            </div>
-            <div className="flex justify-center">
-                <span className="border w-full mx-12 my-8"></span>
-            </div>
-            <div>
-                <ul className="text-sm font-medium flex-col mx-9 space-y-2 my-2">
-                    {Perks.map((item) => (
-                        <li className="flex items-center gap-3">
-                        <><img src={item.icon} alt={item.label} /><span>{item.label}</span></>
-                        </li>
-                        )
-                    )}
-                </ul>
-            </div>
-            </div>
-            <div className="bg-card rounded-xl shadow-lg border-2 box-border h-[590px] w-full">
-                <div className="bg-accent rounded-full  m-4">
-                    <h1 className="text-sm p-1 text-background ">
-                        MOST POPULAR
-                    </h1>
-                </div>
-                <div className=" mt-4 mx-10 text-left w-full">
-                    <h1 className="font-semibold text-xl">
-                        Center Plan
-                    </h1>
-                    <h1 className= "text-xs font-regular ">
-                        Ideal for individual centers.
-                    </h1>
-                </div>
-                <div className="flex mx-10 text-sm gap-6 mt-16">
-                  <h1 className="line-through font-normal">
-                      ₱ 3,500.00
-                   </h1>
-                   <h1 className="rounded-full bg-badge1 text-primary px-3">
-                      SAVE 15%
-                   </h1> 
-                </div>
-                <div className="flex mx-9 mt-4">
-                    <h1 className="font-bold text-5xl ">
-                        ₱ 3,000
-                    </h1> 
-                    <h1 className="font-normal text-lg mt-4">
-                        /mo
-                    </h1>
-                </div>
-                <div className="my-11">
-                    <button className=" text-background bg-accent text-base px-20 py-2 rounded-lg">
-                        Choose Plan
-                    </button>
+                </button> 
+        
+                <div className="flex justify-center">
+                    <span className="border w-full my-8"></span>
                 </div>
                 <div>
-                    <ul className="text-sm font-medium flex-col mx-12 space-y-2 -mt-4">
-                        {Perks_1.map((item) => (
-                            <li className="flex items-center gap-3">
-                            <><img src={item.icon} alt={item.label} /><span>{item.label}</span></>
+                    <ul className="flex flex-col text-sm font-medium gap-2 my-2">
+                        {Perks.map((item) => (
+                            <li key={item.label} className="flex items-center gap-3 w-full lg:w-auto">
+                                <img src={item.icon} alt={item.label} />
+                                <span>{item.label}</span>
                             </li>
-                            )
-                        )}
+                        ))}
                     </ul>
                 </div>
-                <div className="flex justify-center">
-                    <span className="border w-full mx-12 my-8"></span>
-                </div>
+
             </div>
-            <div className="bg-card rounded-xl shadow-md border-2 h-[537px] max-h-auto mt-10">
-                <div className=" mt-4 mx-10 text-left w-full">
+            <div className="bg-container-1 rounded-xl shadow-lg border-2 box-border min-h-[577.5px] ">          
+                <h1 className="text-sm p-1 text-background bg-accent rounded-full m-3">
+                    MOST POPULAR
+                </h1>
+                <div className="w-full px-10">
+                    <div className=" mt-4  text-left w-full">
+                        <h1 className="font-semibold text-xl">
+                            Center Plan
+                        </h1>
+                        <h1 className= "text-xs font-regular ">
+                            Ideal for individual centers.
+                        </h1>
+                    </div>
+                    <div className="flex  text-sm gap-4 mt-[68px] items-center">
+                        <h1 className="line-through font-normal text-gray-500">₱ 3,500.00</h1>
+                        <div className="relative inline-flex items-center rounded-full text-xs font-inter font-bold px-3 py-1">
+                            <div className="absolute inset-0 bg-accent opacity-50 rounded-full"></div>
+                            <p className="text-primary relative z-10">Save 15%</p>
+                        </div> 
+                    </div>
+
+                    <div className="flex mt-4">
+                        <h1 className="font-bold text-5xl ">
+                            ₱ 3,000
+                        </h1> 
+                        <h1 className="font-normal text-lg mt-4">
+                            /mo
+                        </h1>
+                    </div>
+
+                    <button className=" text-background bg-accent text-base w-full py-2 rounded-lg mt-11 cursor-pointer"
+                        onClick={scrollToContact}
+                    >
+                        Choose Plan
+                    </button>
+            
+                    
+                    <div className="flex justify-center">
+                        <span className="border w-full my-8"></span>
+                    </div>
+                    <div>
+                        <ul className="flex flex-col text-sm font-medium gap-2 my-2">
+                            {Perks_1.map((item) => (
+                                <li className="flex items-center gap-3">
+                                <><img src={item.icon} alt={item.label} /><span>{item.label}</span></>
+                                </li>
+                                )
+                            )}
+                        </ul>
+                    </div>                
+                </div>
+ 
+            </div>
+            <div className="bg-container-1 rounded-xl shadow-md border-2 min-h-[537px] max-h-auto mt-10 px-10 w-full">
+                <div className="mt-4 text-left w-full">
                     <h1 className="font-semibold text-xl">
                         School Plan
                     </h1>
@@ -121,15 +134,15 @@ function PricingList() {
                         Designed for Schools.
                     </h1>
                 </div>
-                <div className="flex mx-12 text-sm gap-6 mt-16">
-                  <h1 className="line-through font-normal">
-                      ₱ 10,000.00
-                   </h1>
-                   <h1 className="rounded-full bg-badge1 text-primary px-3">
-                      SAVE 25%
-                   </h1> 
+                <div className="flex text-sm gap-4 mt-[68px] items-center">
+                    <h1 className="line-through font-normal text-gray-500">₱ 10,000.00</h1>
+                    <div className="relative inline-flex items-center rounded-full text-xs font-inter font-bold px-3 py-1">
+                        <div className="absolute inset-0 bg-accent opacity-50 rounded-full"></div>
+                        <p className="text-primary relative z-10">Save 25%</p>
+                    </div> 
                 </div>
-                <div className="flex mx-11 mt-4">
+
+                <div className="flex mt-4">
                     <h1 className="font-bold text-5xl ">
                         ₱ 7,500
                     </h1> 
@@ -137,16 +150,18 @@ function PricingList() {
                         /mo
                     </h1>
                 </div>
-                <div className="mt-12">
-                    <button className=" text-accent border-2 border-accent text-base py-2 px-20 rounded-lg shadow-lg">
-                        Choose Plan
-                    </button>
-                </div>
+
+                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg mt-11 w-full cursor-pointer"
+                    onClick={scrollToContact}
+                >
+                    Choose Plan
+                </button>
+              
                 <div className="flex justify-center">
-                    <span className="border w-full mx-12 my-8"></span>
+                    <span className="border w-full my-8"></span>
                 </div>
                 <div>
-                    <ul className="text-sm font-medium flex-col mx-12 space-y-2 -mt-4">
+                    <ul className="flex flex-col text-sm font-medium space-y-2 my-2">
                         {Perks_2.map((item) => (
                             <li className="flex items-center gap-3">
                             <><img src={item.icon} alt={item.label} /><span>{item.label}</span></>
@@ -156,24 +171,23 @@ function PricingList() {
                     </ul>
                 </div>
             </div>
-            <div className="bg-card rounded-xl shadow-md border-2 h-[537px] max-h-auto mt-10">
-                <div className=" mt-4 mx-10 text-left w-full">
+            <div className="bg-container-1 rounded-xl shadow-md border-2 min-h-[537px] max-h-auto mt-10 px-10 w-full">
+                <div className="mt-4 text-left w-full">
                     <h1 className="font-semibold text-xl">
                         Institutional Plan
                     </h1>
-                    <h1 className= "text-xs font-regular mr-10">
+                    <h1 className="text-xs font-regular mr-10">
                         Unlock all features, maximum capacity, and dedicated support
                     </h1>
                 </div>
-                <div className="flex mx-8 text-sm gap-6 mt-12">
-                  <h1 className="line-through font-normal">
-                      ₱ 20,000.00
-                   </h1>
-                   <h1 className="rounded-full bg-badge1 text-primary px-3">
-                      SAVE 25%
-                   </h1> 
+                <div className="flex  text-sm gap-4 mt-[48px] items-center">
+                    <h1 className="line-through font-normal text-gray-500">₱ 20,000.00</h1>
+                    <div className="relative inline-flex items-center rounded-full text-xs font-inter font-bold px-3 py-1">
+                        <div className="absolute inset-0 bg-accent opacity-50 rounded-full"></div>
+                        <p className="text-primary relative z-10">Save 25%</p>
+                    </div> 
                 </div>
-                <div className="flex mx-8 mt-4">
+                <div className="flex mt-4">
                     <h1 className="font-bold text-5xl ">
                         ₱ 15,000
                     </h1> 
@@ -181,18 +195,21 @@ function PricingList() {
                         /mo
                     </h1>
                 </div>
-                <div className="mt-12">
-                    <button className=" text-accent border-2 border-accent text-base py-2 px-20 rounded-lg shadow-lg">
-                        Choose Plan
-                    </button>
-                </div>
+               
+                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg w-full mt-12 cursor-pointer"
+                    onClick={scrollToContact}
+                >
+                    Choose Plan
+                </button>
+             
                 <div className="flex justify-center">
-                    <span className="border w-full mx-12 my-8"></span>
+                    <span className="border w-full my-8"></span>
                 </div>
                 <div>
-                    <ul className="text-sm font-medium flex-col mx-12 space-y-2 -mt-4">
+                    <ul className="flex flex-col text-sm font-medium space-y-2 my-2">
+
                         {Perks_3.map((item) => (
-                            <li className="flex items-center gap-3">
+                            <li key={item.label} className="flex items-center gap-3 w-full lg:w-auto">
                             <><img src={item.icon} alt={item.label} /><span>{item.label}</span></>
                             </li>
                             )

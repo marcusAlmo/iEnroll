@@ -4,7 +4,7 @@ import Smiley from "../../../assets/images/Smiley.svg";
 
 const MainNav: React.FC = () => {
   return (
-    <nav className="bg-white shadow-md py-2 px-6 flex justify-between items-center fixed top-0 w-full z-50">
+    <nav className="bg-background shadow-md py-2 px-6 flex justify-between items-center fixed top-0 w-full z-50">
       <div className="flex items-center font-bold text-2xl">
         <span className="text-accent">i</span>
         <span className="text-primary">Enr</span>
