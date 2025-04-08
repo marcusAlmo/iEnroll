@@ -25,7 +25,9 @@ async function bootstrap() {
   await httpApp.startAllMicroservices();
   // Number(process.env.ENROLLMENT_API_PORT) ||
   await httpApp.listen(Number(process.env.ENROLLMENT_API_PORT) || 3002, () => {
-    console.log(`Enrollment Service running on port ${Number(process.env.ENROLLMENT_API_PORT) || 3002}`);
+    console.log(
+      `Enrollment Service running on port ${Number(process.env.ENROLLMENT_API_PORT) || 3002}`,
+    );
   });
 }
 bootstrap().catch((err) => {
