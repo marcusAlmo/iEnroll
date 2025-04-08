@@ -20,7 +20,11 @@
     "paths": {
       "@app/api-gateway": ["apps/api-gateway/src"],
       "@app/chat": ["apps/chat/src"],
+<<<<<<< HEAD
       "@libs/*": ["libs/*"]
+=======
+      "@lib/*": ["libs/*"]
+>>>>>>> dev-front-merge
     }
   }
 }
