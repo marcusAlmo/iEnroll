@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import mockData from "../pages/enrollment-review/test/mockData.json";
+import { set } from "react-hook-form";
 
 /**
  * Represents a school grade level
@@ -81,6 +82,10 @@ interface EnrollmentReviewContextProps {
   // Deny state
   isDenied: boolean;                          // Controls visibility of the deny text field
   setIsDenied: (isDenied: boolean) => void;    // Function to toggle deny text field visibility
+
+  isSectionModalOpen: boolean;                // Controls visibility of the section modal
+  setIsSectionModalOpen: (isOpen: boolean) => void; // Function to toggle section modal visibility
+  
 }
 
 // Create the context with undefined default value
@@ -113,6 +118,7 @@ export const EnrollmentReviewProvider: React.FC<{
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDenied, setIsDenied] = useState(false);
   const [denialReason, setDenialReason] = useState(''); // State to store the denial reason
+  const [isSectionModalOpen, setIsSectionModalOpen] = useState(false); // State to control section modal visibility
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => {
@@ -121,6 +127,8 @@ export const EnrollmentReviewProvider: React.FC<{
       return newIndex;
     });
   };
+
+  console.log("Section Modal", isSectionModalOpen);
 
   const handlePrevious = () => {
     setCurrentIndex((prevIndex) => {
@@ -269,6 +277,8 @@ export const EnrollmentReviewProvider: React.FC<{
       setIsDenied,
       denialReason,
       setDenialReason,
+      isSectionModalOpen,
+      setIsSectionModalOpen,
     }),
     [
       activeItem,
@@ -282,6 +292,7 @@ export const EnrollmentReviewProvider: React.FC<{
       requirements,
       selectedRequirement,
       isModalOpen,
+      isSectionModalOpen,
     ]
   );
 
