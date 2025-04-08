@@ -26,6 +26,15 @@ export const StudentsPanel: React.FC = () => {
     setIsSectionModalOpen,
   } = useEnrollmentReview();
 
+  // Check if the current section is "Unassigned"
+  const isUnassignedSection = selectedSection === 999;
+
+  // Function to handle button click
+  const handleSectionButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSectionModalOpen(true);
+  };
+
   return (
     <div className="border-text-2 w-[600px] h-[530px] border bg-background p-2 shadow-md overflow-y-scroll">
       {/* Student Table */}
@@ -38,10 +47,10 @@ export const StudentsPanel: React.FC = () => {
             <th className="pl-1">STATUS</th>         {/* Column for application status */}
             <th className="pl-1">
             <button 
-              onClick={(e) => {e.stopPropagation();
-                setIsSectionModalOpen(true)
-              }}
-              className='bg-text-2 text-text font-semibold px-4 py-1 rounded-[5px] text-xs my-1 cursor-pointer button-transition hover:scale-105'>Reassign Section</button>  
+              onClick={handleSectionButtonClick}
+              className='bg-text-2 text-text font-semibold px-4 py-1 rounded-[5px] text-xs my-1 cursor-pointer button-transition hover:scale-105'>
+              {isUnassignedSection ? 'Assign Section' : 'Reassign Section'}
+            </button>  
             </th> 
           </tr>
         </thead>

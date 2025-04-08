@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import mockData from "../pages/enrollment-review/test/mockData.json";
-import { set } from "react-hook-form";
 
 /**
  * Represents a school grade level
@@ -86,6 +85,9 @@ interface EnrollmentReviewContextProps {
   isSectionModalOpen: boolean;                // Controls visibility of the section modal
   setIsSectionModalOpen: (isOpen: boolean) => void; // Function to toggle section modal visibility
   
+  // Section modal type
+  sectionModalType: 'assign' | 'reassign';    // Type of section modal to display
+  setSectionModalType: (type: 'assign' | 'reassign') => void; // Function to set section modal type
 }
 
 // Create the context with undefined default value
@@ -119,6 +121,16 @@ export const EnrollmentReviewProvider: React.FC<{
   const [isDenied, setIsDenied] = useState(false);
   const [denialReason, setDenialReason] = useState(''); // State to store the denial reason
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false); // State to control section modal visibility
+  const [sectionModalType, setSectionModalType] = useState<'assign' | 'reassign'>('reassign'); // Default to reassign modal
+
+  // Function to handle section modal opening with type
+  const handleSetSectionModalOpen = (isOpen: boolean) => {
+    setIsSectionModalOpen(isOpen);
+    if (isOpen) {
+      // Set the modal type based on the selected section
+      setSectionModalType(selectedSection === 999 ? 'assign' : 'reassign');
+    }
+  };
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => {
@@ -278,7 +290,9 @@ export const EnrollmentReviewProvider: React.FC<{
       denialReason,
       setDenialReason,
       isSectionModalOpen,
-      setIsSectionModalOpen,
+      setIsSectionModalOpen: handleSetSectionModalOpen,
+      sectionModalType,
+      setSectionModalType,
     }),
     [
       activeItem,
@@ -293,6 +307,7 @@ export const EnrollmentReviewProvider: React.FC<{
       selectedRequirement,
       isModalOpen,
       isSectionModalOpen,
+      sectionModalType,
     ]
   );
 
