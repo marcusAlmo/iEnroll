@@ -5,6 +5,7 @@ import { SectionsPanel } from "./SectionsPanel";
 import { StudentsPanel } from "./StudentsPanel";
 import { RequirementsPanel } from "./RequirementsPanel";
 import { RequirementsCarouselModal } from "./RequirementsCarouselModal";
+import ReassignSectionModal from "./ReassignSectionModal";
 
 /**
  * EnrollmentList Component
@@ -63,6 +64,7 @@ const EnrollmentList: React.FC = () => {
         - Controlled by internal state or props (e.g., `isModalOpen`).
       */}
       <RequirementsCarouselModal />
+      <ReassignSectionModal />
     </div>
   );
 };
