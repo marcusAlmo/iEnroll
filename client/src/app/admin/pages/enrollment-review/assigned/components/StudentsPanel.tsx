@@ -1,5 +1,7 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { useEnrollmentReview } from '../../../../context/enrollmentReviewContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSquare, faSquareCheck } from '@fortawesome/free-solid-svg-icons';
 
 /**
  * StudentsPanel Component
@@ -21,6 +23,7 @@ export const StudentsPanel: React.FC = () => {
     students,                 // List of students in the selected section
     selectedStudent,          // Object representing the currently selected student
     setSelectedStudent,       // Function to update the selected student
+    setIsSectionModalOpen,
   } = useEnrollmentReview();
 
   return (
@@ -28,22 +31,29 @@ export const StudentsPanel: React.FC = () => {
       {/* Student Table */}
       <table className="table-auto w-full border-collapse">
         {/* Table Header */}
-        <thead className="text-text-2 text-left">
+        <thead className="text-text-2 text-left justify-between w-full">
           <tr>
             <th className="">#</th>                  {/* Column for student number */}
             <th className="pl-1">STUDENT</th>        {/* Column for student names */}
             <th className="pl-1">STATUS</th>         {/* Column for application status */}
+            <th className="pl-1">
+            <button 
+              onClick={(e) => {e.stopPropagation();
+                setIsSectionModalOpen(true)
+              }}
+              className='bg-text-2 text-text font-semibold px-4 py-1 rounded-[5px] text-xs my-1 cursor-pointer button-transition hover:scale-105'>Reassign Section</button>  
+            </th> 
           </tr>
         </thead>
 
         {/* Table Body */}
-        <tbody className="text-sm text-left">
+        <tbody className="text-sm text-left w-full">
           {/* Student Rows - Only shown if a section is selected */}
           {selectedSection &&
             students.map((student, index) => (
               <tr
                 key={student.studentId} // Unique identifier for each student
-                className={`cursor-pointer hover:bg-accent/50 rounded-[10px] ${
+                className={`cursor-pointer hover:bg-accent/50 rounded-[10px] w-full ${
                   selectedStudent?.studentId === student.studentId
                     ? "bg-accent" // Highlight the selected student
                     : ""
@@ -54,7 +64,7 @@ export const StudentsPanel: React.FC = () => {
                 <td className="border-b text-center">{index + 1}</td>
 
                 {/* Student Name - Formatted as LASTNAME, FirstName MiddleName */}
-                <td className="border-b p-1">
+                <td className="border-b p-">
                   <span className="font-semibold">
                     {student.lastName.toLocaleUpperCase()}
                   </span>, {student.firstName} {student.middleName}
@@ -77,6 +87,12 @@ export const StudentsPanel: React.FC = () => {
                   >
                     {student.applicationStatus}
                   </span>
+                </td>
+                <td>
+                  <FontAwesomeIcon 
+                    icon={faSquareCheck} 
+                    className="text-background ml-2 cursor-pointer text-[20px] transition-all duration-500 ease-in-out hover:text-accent" 
+                  />
                 </td>
               </tr>
             ))}
