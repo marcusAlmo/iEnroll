@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CreateUserDto } from './create-account.dto';
 import { CreateAccountService } from './create-account.service';
