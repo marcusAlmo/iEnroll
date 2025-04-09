@@ -25,7 +25,9 @@ async function bootstrap() {
   await httpApp.startAllMicroservices();
   // Number(process.env.CHAT_API_PORT) ||
   await httpApp.listen(Number(process.env.CHAT_API_PORT) || 3001, () => {
-    console.log(`Chat Service running on port ${Number(process.env.CHAT_API_PORT) || 3001}`);
+    console.log(
+      `Chat Service running on port ${Number(process.env.CHAT_API_PORT) || 3001}`,
+    );
   });
 }
 bootstrap().catch((err) => {

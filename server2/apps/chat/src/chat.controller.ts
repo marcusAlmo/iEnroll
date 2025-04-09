@@ -4,7 +4,10 @@ import { PrismaService } from 'libs/prisma/src/prisma.service';
 
 @Controller()
 export class ChatController {
-  constructor(private readonly chatService: ChatService, private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Get()
   getHello(): string {
