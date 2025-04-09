@@ -32,9 +32,9 @@ async function bootstrap() {
   // Start both services
   await app.startAllMicroservices();
   // Number(process.env.ENROLLMENT_API_PORT) ||
-  await app.listen(Number(process.env.ENROLLMENT_API_PORT) || 3002, () => {
+  await app.listen(Number(process.env.AUTH_API_PORT) || 3005, () => {
     console.log(
-      `Enrollment Service running on port ${Number(process.env.ENROLLMENT_API_PORT) || 3002}`,
+      `Enrollment Service running on port ${Number(process.env.ENROLLMENT_API_PORT) || 3005}`,
     );
   });
 }
