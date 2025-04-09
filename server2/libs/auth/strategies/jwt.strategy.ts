@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { AuthService } from '../auth.service';
@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // You can fetch the user from the database or cache here
     const user = await this.authService.validateUserById(payload.sub);
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
     return user; // This will be added to the request object
   }
