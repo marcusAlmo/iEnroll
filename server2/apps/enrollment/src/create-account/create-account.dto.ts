@@ -9,6 +9,7 @@ import {
   IsDateString,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsPastDate } from './validators/is-past-date.decorator';
 
 export class CreateUserDto {
   @IsString()
@@ -47,6 +48,9 @@ export class CreateUserDto {
     typeof value === 'string' ? new Date(value) : value,
   )
   @IsDateString()
+  @IsPastDate(false, {
+    message: 'Date of birth cannot be today or in the future.',
+  })
   dateOfBirth: string | Date;
 
   @IsEnum(['M', 'F', 'O'])
@@ -69,7 +73,7 @@ export class CreateUserDto {
   street: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   district: string;
 
   @IsString()

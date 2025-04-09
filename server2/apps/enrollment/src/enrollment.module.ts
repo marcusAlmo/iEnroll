@@ -3,6 +3,7 @@ import { EnrollmentController } from './enrollment.controller';
 import { ConfigModule } from '@nestjs/config';
 import { CreateAccountModule } from './create-account/create-account.module';
 import { PrismaModule } from 'libs/prisma/src/prisma.module';
+import { EnrollModule } from './enroll/enroll.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -13,6 +14,7 @@ import configuration from './config/configuration';
     }),
     CreateAccountModule,
     PrismaModule,
+    EnrollModule,
   ],
   controllers: [EnrollmentController],
   providers: [],
