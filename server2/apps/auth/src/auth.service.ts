@@ -1,4 +1,4 @@
-import { PrismaService } from 'libs/prisma/src/prisma.service';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';

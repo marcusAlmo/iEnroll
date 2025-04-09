@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { PrismaService } from 'libs/prisma/src/prisma.service';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
 
 @Controller()
 export class ChatController {

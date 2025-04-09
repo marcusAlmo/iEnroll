@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './create-account.dto';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { $Enums } from '@prisma/client';
-import { AuthService } from 'libs/auth/auth.service';
+import { AuthService } from '@lib/auth/auth.service';
 
 @Injectable()
 export class CreateAccountService {

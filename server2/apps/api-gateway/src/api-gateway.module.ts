@@ -3,7 +3,7 @@ import { ApiGatewayController } from './api-gateway.controller';
 import { ApiGatewayService } from './api-gateway.service';
 import { Transport } from '@nestjs/microservices';
 import { ClientsModule } from '@nestjs/microservices';
-
+import { GoogleStrategyModule } from '@lib/google-strategy/google.module';
 @Module({
   imports: [
     ClientsModule.register([
@@ -32,6 +32,7 @@ import { ClientsModule } from '@nestjs/microservices';
         },
       },
     ]),
+    GoogleStrategyModule,
   ],
   controllers: [ApiGatewayController],
   providers: [ApiGatewayService],
