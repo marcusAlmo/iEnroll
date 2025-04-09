@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { EnrollmentModule } from './enrollment.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   // Create HTTP adapter for health checks
@@ -21,11 +22,20 @@ async function bootstrap() {
     },
   });
 
+  httpApp.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
   // Start both services
   await httpApp.startAllMicroservices();
   // Number(process.env.ENROLLMENT_API_PORT) ||
   await httpApp.listen(Number(process.env.ENROLLMENT_API_PORT) || 3002, () => {
-    console.log(`Enrollment Service running on port ${Number(process.env.ENROLLMENT_API_PORT) || 3002}`);
+    console.log(
+      `Enrollment Service running on port ${Number(process.env.ENROLLMENT_API_PORT) || 3002}`,
+    );
   });
 }
 bootstrap().catch((err) => {
