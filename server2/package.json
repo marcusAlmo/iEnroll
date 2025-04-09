@@ -98,6 +98,10 @@
     "testEnvironment": "node",
     "roots": [
       "<rootDir>/apps/"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^libs/(.*)$": "<rootDir>/libs/$1",
+      "^@lib/(.*)$": "<rootDir>/libs/$1"
+    }
   }
 }
