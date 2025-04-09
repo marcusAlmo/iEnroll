@@ -11,7 +11,9 @@ describe('SystemManagementController', () => {
       providers: [SystemManagementService],
     }).compile();
 
-    systemManagementController = app.get<SystemManagementController>(SystemManagementController);
+    systemManagementController = app.get<SystemManagementController>(
+      SystemManagementController,
+    );
   });
 
   describe('root', () => {

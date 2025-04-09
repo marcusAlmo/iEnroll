@@ -25,7 +25,9 @@ async function bootstrap() {
   await httpApp.startAllMicroservices();
   // Number(process.env.METRICS_API_PORT) ||
   await httpApp.listen(Number(process.env.METRICS_API_PORT) || 3004, () => {
-    console.log(`Metrics Service running on port ${Number(process.env.METRICS_API_PORT) || 3004}`);
+    console.log(
+      `Metrics Service running on port ${Number(process.env.METRICS_API_PORT) || 3004}`,
+    );
   });
 }
 bootstrap().catch((err) => {
