@@ -36,16 +36,16 @@ export const StudentsPanel: React.FC = () => {
   };
 
   return (
-    <div className="border-text-2 w-[600px] h-[530px] border bg-background p-2 shadow-md overflow-y-scroll">
+    <div className="border-text-2 w-[600px] h-[530px] border bg-background px-2 shadow-md overflow-y-scroll">
       {/* Student Table */}
       <table className="table-auto w-full border-collapse">
         {/* Table Header */}
         <thead className="text-text-2 text-left justify-between w-full">
           <tr>
-            <th className="">#</th>                  {/* Column for student number */}
-            <th className="pl-1">STUDENT</th>        {/* Column for student names */}
-            <th className="pl-1">STATUS</th>         {/* Column for application status */}
-            <th className="pl-1">
+            <th className="pl-4 w-1/12">#</th>                  {/* Column for student number */}
+            <th className="pl-1 w-8/12">STUDENT</th>        {/* Column for student names */}
+            <th className="pl-1 w-1/12">STATUS</th>         {/* Column for application status */}
+            <th className="pl-1 w-2/12">
             <button 
               onClick={handleSectionButtonClick}
               className='bg-text-2 text-text font-semibold px-4 py-1 rounded-[5px] text-xs my-1 cursor-pointer button-transition hover:scale-105'>
@@ -70,17 +70,17 @@ export const StudentsPanel: React.FC = () => {
                 onClick={() => setSelectedStudent(student)} // Update the selected student on click
               >
                 {/* Student Number */}
-                <td className="border-b text-center">{index + 1}</td>
+                <td className="border-b text-center w-1/12">{index + 1}</td>
 
                 {/* Student Name - Formatted as LASTNAME, FirstName MiddleName */}
-                <td className="border-b p-">
+                <td className="border-b p-3 w-8/12">
                   <span className="font-semibold">
                     {student.lastName.toLocaleUpperCase()}
                   </span>, {student.firstName} {student.middleName}
                 </td>
 
                 {/* Application Status - Color-coded based on status value */}
-                <td className="border-b p-1 text-xs">
+                <td className="border-b p-1 text-xs w-1/12">
                   <span
                     className={`cursor-pointer rounded px-2 py-1 font-semibold transition-all duration-300 ease-in-out ${
                       student.applicationStatus.toLocaleLowerCase().includes("pending")
@@ -97,7 +97,7 @@ export const StudentsPanel: React.FC = () => {
                     {student.applicationStatus}
                   </span>
                 </td>
-                <td>
+                <td className="w-2/12">
                   <FontAwesomeIcon 
                     icon={faSquareCheck} 
                     className="text-background ml-2 cursor-pointer text-[20px] transition-all duration-500 ease-in-out hover:text-accent" 
