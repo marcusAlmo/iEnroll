@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
 
 describe('ChatController', () => {
   let chatController: ChatController;
@@ -8,7 +9,7 @@ describe('ChatController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [ChatController],
-      providers: [ChatService],
+      providers: [ChatService, PrismaService],
     }).compile();
 
     chatController = app.get<ChatController>(ChatController);
