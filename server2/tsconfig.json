@@ -20,7 +20,7 @@
     "paths": {
       "@app/api-gateway": ["apps/api-gateway/src"],
       "@app/chat": ["apps/chat/src"],
-      "@libs/*": ["libs/*"]
+      "@lib/*": ["libs/*"]
     }
   }
 }

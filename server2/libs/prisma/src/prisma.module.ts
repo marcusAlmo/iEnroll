@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+// server/server2/apps/chat/src/prisma/prisma.module.ts
+import { Global, Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
-import { PrismaHealthIndicator } from './prisma.health';
 
+@Global()
 @Module({
-  providers: [PrismaService, PrismaHealthIndicator],
-  exports: [PrismaService, PrismaHealthIndicator],
+  providers: [PrismaService],
+  exports: [PrismaService],
 })
 export class PrismaModule {}
