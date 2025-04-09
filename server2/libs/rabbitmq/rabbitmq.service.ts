@@ -24,7 +24,7 @@ export class RabbitMQService {
       }, // eslint-disable-line
     ); // eslint-disable-line
 
-    return breaker.fire(); // eslint-disable-line
+    return breaker.fire();
   }
 
   async close() {

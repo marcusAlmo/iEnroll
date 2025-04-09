@@ -20,27 +20,25 @@ export class CircuitBreakerService {
   ): CircuitBreakerType<T> {
     if (!this.breakers.has(name)) {
       // We need to use type assertions here because the opossum types aren't perfect
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+
       const breaker = new CircuitBreaker(action, options);
 
       // Add event listeners with proper typings
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
       breaker.on('open', (): void => {
         console.warn(`${name} circuit breaker is OPEN`);
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       breaker.on('halfOpen', (): void => {
         console.warn(`${name} circuit breaker is HALF-OPEN`);
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       breaker.on('close', (): void => {
         console.warn(`${name} circuit breaker is CLOSED`);
       });
 
       // Error event handler
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
       breaker.on('error', (error: Error): void => {
         console.error(`${name} circuit breaker error:`, error);
       });
@@ -49,7 +47,7 @@ export class CircuitBreakerService {
     }
 
     // Get the existing breaker and cast it to the correct type
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const breaker = this.breakers.get(name);
 
     // Safe to use type assertion here since we're enforcing type safety at runtime
