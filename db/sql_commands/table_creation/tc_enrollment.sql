@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS enrollment.address (
     street VARCHAR(100) NOT NULL,
     district VARCHAR(100) NOT NULL,
     municipality VARCHAR(100) NOT NULL,
+    province VARCHAR(100) NOT NULL,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_address PRIMARY KEY (address_id)
@@ -274,6 +275,7 @@ CREATE TABLE IF NOT EXISTS enrollment.enrollment_requirement (
     type enrollment.requirement_type NOT NULL,
     accepted_data_type enrollment.accepted_data_type NOT NULL,
     is_required BOOLEAN DEFAULT TRUE,
+    description VARCHAR(255),
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

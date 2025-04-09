@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS system.common_enrollment_requirement (
     type enrollment.requirement_type NOT NULL,
     accepted_data_type enrollment.accepted_data_type NOT NULL,
     is_required BOOLEAN DEFAULT TRUE,
+    description VARCHAR(255),
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -109,14 +110,14 @@ CREATE TABLE IF NOT EXISTS system.plan (
     constraint ck_max_admin_count CHECK (max_admin_count > 0),
     constraint ck_max_form_field_count CHECK (max_form_field_count > 0),
     constraint ck_max_image_upload_count CHECK (max_image_upload_count > 0),
-    constraint ck_original_price CHECK (original_price > 0),
-    constraint ck_discounted_price CHECK (discounted_price > 0),
+    constraint ck_original_price CHECK (original_price >= 0),
+    constraint ck_discounted_price CHECK (discounted_price >= 0),
     constraint ck_discounted_price_less_than_original_price CHECK (discounted_price <= original_price)
 );
 
 -- about_uppend
 CREATE TABLE IF NOT EXISTS system.about_uppend (
-    email_address VARCHAR(100) NOT NULL,
+    email_address VARCHAR(100) NOT NULL PRIMARY KEY,
     contact_number CHAR(11) NOT NULL,
     website_url VARCHAR(255) NOT NULL,  
     bir_accreditation_number VARCHAR(30) NOT NULL,

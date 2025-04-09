@@ -128,4 +128,50 @@ Contains database triggers that automatically execute in response to specific ev
 <li style="padding: 8px; margin: 5px 0;">⚠️ Some scripts may need to be modified based on your specific database configuration</li>
 <li style="padding: 8px; margin: 5px 0;">⚠️ Always check for dependencies before executing any script</li>
 </ul>
-</div> 
+</div>
+
+# Environment Setup
+
+## Database Configuration
+
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Update the `.env` file with your PostgreSQL credentials:
+   ```env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=ienroll
+   DB_USER=your_username
+   DB_PASSWORD=your_password
+   DB_SCHEMA=enrollment
+   ```
+
+3. Make sure the `.env` file is in your `.gitignore` to prevent committing sensitive information.
+
+## Security Notes
+
+- Never commit the `.env` file to version control
+- Keep your database credentials secure
+- Use different credentials for development and production
+- Regularly rotate passwords
+- Use SSL for database connections in production
+
+## Database Connection
+
+The application will use these environment variables to connect to the PostgreSQL database. Make sure:
+- The database server is running
+- The specified user has appropriate permissions
+- The database and schema exist
+- Network access is properly configured
+
+## Troubleshooting
+
+If you encounter connection issues:
+1. Verify the credentials in `.env`
+2. Check if PostgreSQL is running
+3. Confirm network connectivity
+4. Verify user permissions
+5. Check firewall settings 

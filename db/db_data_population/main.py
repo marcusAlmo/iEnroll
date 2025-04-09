@@ -1,19 +1,26 @@
 import psycopg2
 import os
 import school_generator
-import user_generator
-import system_logs_generator
+import system_data
+import re
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 def connect_db():
     try:
         # Database connection parameters
         connection_params = {
-            'host': os.getenv('POSTGRES_HOST', 'rt8-2.h.filess.io'),
-            'port': os.getenv('POSTGRES_PORT', '5433'),
-            'database': os.getenv('POSTGRES_DB', 'iEnroll_ballthembe'),
-            'user': os.getenv('POSTGRES_USER', 'iEnroll_ballthembe'),
-            'password': os.getenv('POSTGRES_PASSWORD', '93652d9b0bf99fbb20612e3388db3e95c9abad22')
+            'host': os.getenv('DB_HOST'),
+            'port': os.getenv('DB_PORT'),
+            'database': os.getenv('DB_NAME'),
+            'user': os.getenv('DB_USER'),
+            'password': os.getenv('DB_PASSWORD')
         }
+        
+        # Print connection parameters for debugging (remove in production)
+        print("Attempting to connect with parameters:", {k: v for k, v in connection_params.items() if k != 'password'})
         
         # Establish connection
         conn = psycopg2.connect(**connection_params)
@@ -32,18 +39,14 @@ def connect_db():
         else:
             print("Failed to retrieve PostgreSQL version.")
         
-        # Close cursor and connection
-        cur.close()
-        conn.close()
-        
-        return cur
+        return conn, cur
     
     except psycopg2.Error as e:
         print(f"Error connecting to PostgreSQL: {e}")
-        return None
+        return None, None
 
 class Menu:
-    def action_menu():
+    def action_menu(self):
         action = int(input("""Enter action:
             [1] Insert new instance
             [2] Update existing instance
@@ -52,7 +55,7 @@ class Menu:
         Choice: """))
         return action
 
-    def entity_menu():
+    def entity_menu(self):
         entity = int(input("""Choose entity:
             [1] School
             [2] User
@@ -64,24 +67,54 @@ class Menu:
         Choice: """))
         return entity
 
+def validate_school_data(school_name, email, contact):
+    if not school_name.strip():
+        raise ValueError("School name cannot be empty")
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        raise ValueError("Invalid email format")
+    if not re.match(r'^\+?1?\d{9,15}$', contact):
+        raise ValueError("Invalid contact number format")
 
 if __name__ == '__main__':
-    cursor = connect_db()
+    conn, cursor = connect_db()
+    if not cursor:
+        print("Failed to connect to database. Exiting...")
+        exit(1)
 
     menu = Menu()
-    action = menu.action_menu()
-    entity = menu.entity_menu()
+    action = 1
+    # action = menu.action_menu()
+    # entity = menu.entity_menu()
+    entity = 1
 
-    if action == 1:
-        if entity == 1:
-            school_generator.generate_school(cursor)
-        elif entity == 2:
-            user_generator.generate_user(cursor)
-        elif entity == 3:
-            user_generator.generate_user_log(cursor)
-        elif entity == 4:
-            system_logs_generator.generate_system_log(cursor)
-        elif entity == 5:
-            system_data.generate_system_initial_setup(cursor)
-        elif entity == 6:
-            user_generator.generate_chat(cursor)
+    try:
+        if action == 1:
+            if entity == 1:
+                school_id = school_generator.generate_school(cursor)
+                school_generator.generate_school_subscription(cursor, school_id)
+                school_generator.generate_grade_level_offered(cursor, school_id)
+                school_generator.generate_enrollment_fee(cursor, school_id)
+                school_generator.generate_enrollment_requirement(cursor, school_id)
+                school_generator.generate_enrollment_schedule(cursor, school_id)
+                print(f"School {school_id} created successfully")
+            elif entity == 2:
+                # 1.generate_user(cursor)
+                pass
+            elif entity == 3:
+                # user_generator.generate_user_log(cursor)
+                pass
+            elif entity == 4:
+                # system_logs_generator.generate_system_log(cursor)
+                pass
+            elif entity == 5:
+                system_data.generate_system_initial_setup(cursor)
+            elif entity == 6:
+                # user_generator.generate_chat(cursor)
+                pass
+    except Exception as e:
+        print(f"Error: {str(e)}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
