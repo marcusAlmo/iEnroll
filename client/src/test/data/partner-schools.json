@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Greenwood High School" },
+  { "id": 2, "name": "Riverside Academy" },
+  { "id": 3, "name": "Hilltop Elementary" },
+  { "id": 4, "name": "Sunnydale High" },
+  { "id": 5, "name": "Maplewood Middle School" },
+  { "id": 6, "name": "Lakeside School" },
+  { "id": 7, "name": "Pinecrest Academy" },
+  { "id": 8, "name": "Cedar Valley High" },
+  { "id": 9, "name": "Oakridge Elementary" },
+  { "id": 10, "name": "Springfield High School" }
+]
