@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 import { Injectable } from '@nestjs/common';
 // Import the types directly from the module
 import CircuitBreaker from 'opossum';
