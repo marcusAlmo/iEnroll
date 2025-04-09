@@ -30,7 +30,7 @@ const AssignedIndex: React.FC = () => {
         label: "Assigned", // Label for the "Assigned" navigation item
         onClick: () => {
           setActiveItem("Assigned"); // Update active state to "Assigned"
-          navigate("admin/enrollment-review"); // Navigate to the "Assigned" route
+          navigate("/admin/enrollment-review"); // Navigate to the "Assigned" route
         },
       },
       {

@@ -1,0 +1,195 @@
+{
+  "gradeLevels": [
+    { "gradeId": 0, "gradeName": "Nursery" },
+    { "gradeId": 0.5, "gradeName": "Kinder" },
+    { "gradeId": 0.75, "gradeName": "Preparatory" },
+    { "gradeId": 1, "gradeName": "Grade 1" },
+    { "gradeId": 2, "gradeName": "Grade 2" },
+    { "gradeId": 3, "gradeName": "Grade 3" },
+    { "gradeId": 4, "gradeName": "Grade 4" },
+    { "gradeId": 5, "gradeName": "Grade 5" },
+    { "gradeId": 6, "gradeName": "Grade 6" },
+    { "gradeId": 7, "gradeName": "Grade 7" },
+    { "gradeId": 8, "gradeName": "Grade 8" },
+    { "gradeId": 9, "gradeName": "Grade 9" },
+    { "gradeId": 10, "gradeName": "Grade 10" },
+    { "gradeId": 11, "gradeName": "Grade 11" },
+    { "gradeId": 12, "gradeName": "Grade 12" }
+  ],
+  "sections": {
+    "1": [
+      { "sectionId": 101, "sectionName": "Section A" },
+      { "sectionId": 102, "sectionName": "Section B" },
+      { "sectionId": 999, "sectionName": "Unassigned" }
+    ],
+    "2": [
+      { "sectionId": 201, "sectionName": "Section C" },
+      { "sectionId": 999, "sectionName": "Unassigned" }
+    ]
+  },
+  "students": {
+    "101": [
+      {
+        "studentId": 1003,
+        "studentName": "Pedro Penduko",
+        "firstName": "Pedro",
+        "middleName": "Santos",
+        "lastName": "Penduko",
+        "applicationStatus": "Denied",
+        "denialReason": "Incomplete requirements",
+        "denialDate": "2024-03-20",
+        "reviewedBy": "Dr. Sarah Johnson",
+        "requirements": [
+          {
+            "requirementName": "First Name",
+            "requirementStatus": true,
+            "userInput": "Pedro",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "Middle Name",
+            "requirementStatus": true,
+            "userInput": "Santos",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "Last Name",
+            "requirementStatus": true,
+            "userInput": "Penduko",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "PSA Birth Certificate",
+            "requirementStatus": false,
+            "imageUrl": null,
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Form 138",
+            "requirementStatus": true,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Certificate of Good Moral",
+            "requirementStatus": false,
+            "imageUrl": null,
+            "requirementType": "image"
+          }
+        ]
+      }
+    ],
+    "999": [
+      {
+        "studentId": 9003,
+        "studentName": "Maria Clara",
+        "firstName": "Maria",
+        "middleName": "",
+        "lastName": "Clara",
+        "applicationStatus": "Denied",
+        "denialReason": "Low academic performance",
+        "denialDate": "2024-03-19",
+        "reviewedBy": "Prof. Michael Brown",
+        "requirements": [
+          {
+            "requirementName": "First Name",
+            "requirementStatus": true,
+            "userInput": "Maria",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "Middle Name",
+            "requirementStatus": true,
+            "userInput": "",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "Last Name",
+            "requirementStatus": true,
+            "userInput": "Clara",
+            "requirementType": "input"
+          },
+          {
+            "requirementName": "PSA Birth Certificate",
+            "requirementStatus": true,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Form 138",
+            "requirementStatus": true,
+            "imageUrl": "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1",
+            "requirementType": "image"
+          },
+          {
+            "requirementName": "Certificate of Good Moral",
+            "requirementStatus": true,
+            "imageUrl": "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+            "requirementType": "image"
+          }
+        ]
+      }
+    ]
+  },
+  "deniedApplications": [
+    {
+      "id": "DEN001",
+      "studentId": "STU2024001",
+      "firstName": "John",
+      "lastName": "Smith",
+      "email": "john.smith@example.com",
+      "phoneNumber": "+1-555-0123",
+      "applicationDate": "2024-03-15",
+      "denialDate": "2024-03-20",
+      "denialReason": "Incomplete academic requirements",
+      "programApplied": "Computer Science",
+      "semester": "Fall 2024",
+      "status": "DENIED",
+      "reviewedBy": "Dr. Sarah Johnson",
+      "comments": "Missing prerequisite courses in Mathematics",
+      "appealDeadline": "2024-04-20",
+      "hasAppealed": false
+    },
+    {
+      "id": "DEN002",
+      "studentId": "STU2024002",
+      "firstName": "Maria",
+      "lastName": "Garcia",
+      "email": "maria.garcia@example.com",
+      "phoneNumber": "+1-555-0124",
+      "applicationDate": "2024-03-10",
+      "denialDate": "2024-03-18",
+      "denialReason": "Low GPA",
+      "programApplied": "Business Administration",
+      "semester": "Fall 2024",
+      "status": "DENIED",
+      "reviewedBy": "Prof. Michael Brown",
+      "comments": "GPA below minimum requirement of 3.0",
+      "appealDeadline": "2024-04-18",
+      "hasAppealed": true
+    },
+    {
+      "id": "DEN003",
+      "studentId": "STU2024003",
+      "firstName": "David",
+      "lastName": "Chen",
+      "email": "david.chen@example.com",
+      "phoneNumber": "+1-555-0125",
+      "applicationDate": "2024-03-12",
+      "denialDate": "2024-03-19",
+      "denialReason": "Missing documentation",
+      "programApplied": "Engineering",
+      "semester": "Fall 2024",
+      "status": "DENIED",
+      "reviewedBy": "Dr. Emily Wilson",
+      "comments": "Official transcripts not received by deadline",
+      "appealDeadline": "2024-04-19",
+      "hasAppealed": false
+    }
+  ],
+  "metadata": {
+    "totalDenied": 3,
+    "lastUpdated": "2024-03-20",
+    "version": "1.0"
+  }
+}
