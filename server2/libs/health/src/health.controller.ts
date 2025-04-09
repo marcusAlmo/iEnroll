@@ -2,7 +2,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { HealthCheckService, HealthCheck } from '@nestjs/terminus';
 import { RabbitMQHealthIndicator } from './rabbitmq.health';
-import { PrismaService } from 'libs/prisma/src/prisma.service';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
 
 @Controller('health')
 export class HealthController {

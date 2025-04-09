@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { CircuitBreakerService } from 'libs/circuit-breaker/circuit-breaker.service';
+import { CircuitBreakerService } from '@lib/circuit-breaker/circuit-breaker.service';
 import type CircuitBreaker from 'opossum';
 
 @Injectable()
