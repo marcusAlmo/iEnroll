@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DashboardController } from './dashboard.controller';
-import { DashboardService } from './dashboard.service';
+import { LandingController } from './landing.controller';
+import { LandingService } from './landing.service';
 
 describe('DashboardController', () => {
-  let controller: DashboardController;
+  let controller: LandingController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [DashboardController],
+      controllers: [LandingController],
       providers: [
         {
-          provide: DashboardService,
+          provide: LandingService,
           useValue: {
             getPartnerSchools: jest.fn(),
             getAnnouncements: jest.fn(),
@@ -19,7 +19,7 @@ describe('DashboardController', () => {
       ],
     }).compile();
 
-    controller = module.get<DashboardController>(DashboardController);
+    controller = module.get<LandingController>(LandingController);
   });
 
   it('should be defined', () => {

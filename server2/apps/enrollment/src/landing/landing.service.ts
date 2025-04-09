@@ -2,7 +2,7 @@ import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class DashboardService {
+export class LandingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getPartnerSchools() {
