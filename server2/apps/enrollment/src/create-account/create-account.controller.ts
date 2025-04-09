@@ -14,4 +14,9 @@ export class CreateAccountController {
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
+
+  @Get('/schools')
+  async getAllSchools() {
+    return this.usersService.getAllSchools();
+  }
 }
