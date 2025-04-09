@@ -16,7 +16,7 @@
     "start:dev:system-management": "cross-env SYSTEM_MANAGEMENT_API_PORT=3003 RABBITMQ_URL=amqp://localhost:5672 nest start --watch system-management",
     "start:dev:metrics": "cross-env METRICS_API_PORT=3004 RABBITMQ_URL=amqp://localhost:5672 nest start --watch metrics",
     "start:dev:auth": "cross-env AUTH_API_PORT=3005 RABBITMQ_URL=amqp://localhost:5672 nest start --watch auth",
-    "start:dev:all": "concurrently \"npm:start:dev:api-gateway\" \"npm:start:dev:chat\" \"npm:start:dev:enrollment\" \"npm:start:dev:system-management\" \"npm:start:dev:metrics\"",
+    "start:dev:all": "concurrently \"npm:start:dev:api-gateway\" \"npm:start:dev:chat\" \"npm:start:dev:enrollment\" \"npm:start:dev:system-management\" \"npm:start:dev:metrics\" \"npm:start:dev:auth\"",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/server2/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
