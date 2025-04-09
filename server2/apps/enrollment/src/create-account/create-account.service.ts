@@ -112,6 +112,9 @@ export class CreateAccountService {
         },
         contact_number: true,
       },
+      where: {
+        is_active: true,
+      },
     });
   }
 
