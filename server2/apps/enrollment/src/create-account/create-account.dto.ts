@@ -49,8 +49,8 @@ export class CreateUserDto {
   @IsDateString()
   dateOfBirth: string | Date;
 
-  @IsEnum(['M', 'F'])
-  gender: 'M' | 'F';
+  @IsEnum(['M', 'F', 'O'])
+  gender: 'M' | 'F' | 'O';
 
   // @IsString()
   // @IsNotEmpty()
@@ -60,9 +60,21 @@ export class CreateUserDto {
   @IsNotEmpty()
   schoolId: number;
 
-  @IsNumber()
+  // @IsNumber()
+  // @IsNotEmpty()
+  // addressId: number;
+
+  @IsString()
   @IsNotEmpty()
-  addressId: number;
+  street: string;
+
+  @IsString()
+  @IsOptional()
+  district: string;
+
+  @IsString()
+  @IsNotEmpty()
+  municipality: string;
 
   @IsNumber()
   @IsOptional()

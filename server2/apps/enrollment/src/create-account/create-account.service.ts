@@ -3,44 +3,57 @@ import { CreateUserDto } from './create-account.dto';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { $Enums } from '@prisma/client';
 import { AuthService } from 'libs/auth/auth.service';
+
 @Injectable()
 export class CreateAccountService {
+  private genders = $Enums.gender;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    if (this.checkIfSchoolExists(createUserDto.schoolId)) {
-      throw new BadRequestException({
-        statusCode: 404,
-        error: 'ERR_SCHOOL_NOT_FOUND',
-        message: 'School does not exist',
-      });
+    // prettier-ignore
+    const [userExists, schoolExists /* addressExists */ 
+      , enrollerExists] =
+      await Promise.all([
+        this.checkIfUserExists(createUserDto.email, createUserDto.username),
+        this.checkIfSchoolExists(createUserDto.schoolId),
+        // this.checkIfAddressExists(createUserDto.addressId),
+        this.checkIfEnrollerExists(createUserDto.enrollerId),
+      ]);
+
+    if (userExists === 1) {
+      throw this.createError(
+        409,
+        'ERR_USERNAME_EXISTS',
+        'Username already exists',
+      );
     }
-    if (this.checkIfAddressExists(createUserDto.addressId)) {
-      throw new BadRequestException({
-        statusCode: 404,
-        error: 'ERR_ADDRESS_NOT_FOUND',
-        message: 'Address does not exist',
-      });
+    if (userExists === 2) {
+      throw this.createError(409, 'ERR_EMAIL_EXISTS', 'Email already exists');
     }
-    if (this.checkIfUserExists(createUserDto.email, createUserDto.username)) {
-      throw new BadRequestException({
-        statusCode: 404,
-        error: 'ERR_USER_ALREADY_EXISTS',
-        message: 'User already exists',
-      });
+    if (!schoolExists) {
+      throw this.createError(
+        404,
+        'ERR_SCHOOL_NOT_FOUND',
+        'School does not exist',
+      );
     }
-    if (
-      createUserDto.enrollerId &&
-      this.checkIfEnrollerExists(createUserDto.enrollerId)
-    ) {
-      throw new BadRequestException({
-        statusCode: 404,
-        error: 'ERR_ENROLLEE_NOT_FOUND',
-        message: 'Enrollee does not exist',
-      });
+    // if (!addressExists) {
+    //   throw this.createError(
+    //     404,
+    //     'ERR_ADDRESS_NOT_FOUND',
+    //     'Address does not exist',
+    //   );
+    // }
+    if (createUserDto.enrollerId && !enrollerExists) {
+      throw this.createError(
+        404,
+        'ERR_ENROLLEE_NOT_FOUND',
+        'Enrollee does not exist',
+      );
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -61,66 +74,91 @@ export class CreateAccountService {
         },
       });
 
+      const createdAddress = await tx.address.create({
+        data: {
+          street: createUserDto.street,
+          district: createUserDto.district,
+          municipality: createUserDto.municipality,
+        },
+      });
+
       await tx.student.create({
         data: {
           birthdate: createUserDto.dateOfBirth,
-          address_id: createUserDto.addressId,
+          address_id: createdAddress.address_id,
           student_id: createdUser.user_id,
-          enroller_id: createUserDto.enrollerId
-            ? createUserDto.enrollerId
-            : createdUser.user_id,
+          enroller_id: createUserDto.enrollerId ?? createdUser.user_id,
         },
       });
     });
   }
 
-  private parseGender(gender: 'M' | 'F') {
+  async getAllSchools() {
+    return this.prisma.school.findMany({
+      select: {
+        school_id: true,
+        name: true,
+        address: {
+          select: {
+            street: true,
+            district: true,
+            municipality: true,
+          },
+        },
+        contact_number: true,
+      },
+    });
+  }
+
+  private parseGender(gender: 'M' | 'F' | 'O') {
     switch (gender) {
-      case 'F':
-        return $Enums.gender.Female;
       case 'M':
-        return $Enums.gender.Male;
+        return this.genders.Male;
+      case 'F':
+        return this.genders.Female;
+      case 'O':
+        return this.genders.Other;
     }
   }
 
-  private checkIfUserExists(email: string, username: string) {
-    return Boolean(
-      this.prisma.user.findFirst({
-        where: {
-          email_address: email,
-          username,
-        },
-      }),
-    );
+  private async checkIfUserExists(email: string, username: string) {
+    const [usernameExists, emailExists] = await Promise.all([
+      this.prisma.user.findFirst({ where: { username } }),
+      this.prisma.user.findFirst({ where: { email_address: email } }),
+    ]);
+
+    if (usernameExists) return 1;
+    if (emailExists) return 2;
+    return 0;
   }
 
-  private checkIfSchoolExists(schoolId: number) {
-    return Boolean(
-      this.prisma.school.findFirst({
-        where: {
-          school_id: schoolId,
-        },
-      }),
-    );
+  private async checkIfSchoolExists(schoolId: number) {
+    const school = await this.prisma.school.findFirst({
+      where: { school_id: schoolId },
+    });
+    return Boolean(school);
   }
 
-  private checkIfAddressExists(addressId: number) {
-    return Boolean(
-      this.prisma.address.findFirst({
-        where: {
-          address_id: addressId,
-        },
-      }),
-    );
+  // private async checkIfAddressExists(addressId: number) {
+  //   const address = await this.prisma.address.findFirst({
+  //     where: { address_id: addressId },
+  //   });
+  //   return Boolean(address);
+  // }
+
+  private async checkIfEnrollerExists(enrollerId?: number) {
+    if (!enrollerId) return true; // No enrollerId to check
+    const enroller = await this.prisma.user.findFirst({
+      where: { user_id: enrollerId },
+    });
+    return Boolean(enroller);
   }
 
-  private checkIfEnrollerExists(enrollerId: number) {
-    return Boolean(
-      this.prisma.user.findFirst({
-        where: {
-          user_id: enrollerId,
-        },
-      }),
-    );
+  private createError(statusCode: number, errorCode: string, message: string) {
+    return new BadRequestException({
+      statusCode,
+      error: errorCode,
+      message,
+    });
   }
 }
