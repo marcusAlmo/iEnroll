@@ -2,14 +2,13 @@ import {
   IsString,
   IsEmail,
   IsOptional,
-  IsDate,
   IsEnum,
   IsNotEmpty,
   IsPhoneNumber,
   IsNumber,
   IsDateString,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
