@@ -1,20 +1,23 @@
-// libs/auth/strategies/jwt.strategy.ts
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-
+import { Strategy, ExtractJwt } from 'passport-jwt';
+import { AuthService } from '../auth.service';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly authService: AuthService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'supersecret',
+      secretOrKey: process.env.JWT_SECRET_KEY || 'supersecret',
     });
   }
 
-  async validate(payload: any) {
-    // Attach the user to request.user
-    return { userId: payload.sub, username: payload.username };
+  async validate(payload: JwtPayload) {
+    // You can fetch the user from the database or cache here
+    const user = await this.authService.validateUserById(payload.sub);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user; // This will be added to the request object
   }
 }

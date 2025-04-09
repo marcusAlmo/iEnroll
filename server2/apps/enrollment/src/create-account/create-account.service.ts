@@ -91,6 +91,11 @@ export class CreateAccountService {
         },
       });
     });
+
+    return {
+      statusCode: 201,
+      message: 'User created successfully',
+    };
   }
 
   async getAllSchools() {

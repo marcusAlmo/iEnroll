@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthService } from './auth.service';
 // import { JwtAuthGuard } from './guards/jwt-auth.guard';
 // import { AuthService } from './auth.service';
 
@@ -12,7 +13,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [JwtStrategy],
+  providers: [JwtStrategy, AuthService],
   exports: [JwtModule, JwtStrategy],
 })
 export class AuthModule {}

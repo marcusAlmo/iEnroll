@@ -2,6 +2,7 @@ import { PrismaService } from 'libs/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { JwtPayload } from '@lib/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -39,9 +40,13 @@ export class AuthService {
   }
 
   async login(user: { userId: number; username: string }) {
+    console.debug('Login user:', user);
     const payload = { sub: user.userId, username: user.username };
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload as JwtPayload, {
+        secret: process.env.JWT_SECRET ?? 'supersecret',
+        expiresIn: process.env.JWT_EXPIRATION ?? '7d',
+      }),
     };
   }
 }
