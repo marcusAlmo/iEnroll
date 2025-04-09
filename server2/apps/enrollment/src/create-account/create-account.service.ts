@@ -139,7 +139,7 @@ export class CreateAccountService {
 
   private async checkIfSchoolExists(schoolId: number) {
     const school = await this.prisma.school.findFirst({
-      where: { school_id: schoolId },
+      where: { school_id: schoolId, is_active: true },
     });
     return Boolean(school);
   }
