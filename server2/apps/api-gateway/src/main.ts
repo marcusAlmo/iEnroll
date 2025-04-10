@@ -5,6 +5,12 @@ import * as dotenv from 'dotenv';
 async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(ApiGatewayModule);
+
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  });
+
   await app.listen(3000);
   app.setGlobalPrefix('/api');
   console.log('API Gateway is running on: http://localhost:3000');

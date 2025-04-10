@@ -4,6 +4,14 @@ import { ApiGatewayService } from './api-gateway.service';
 import { Transport } from '@nestjs/microservices';
 import { ClientsModule } from '@nestjs/microservices';
 import { GoogleStrategyModule } from '@lib/google-strategy/google.module';
+import { MetricsController } from './metrics/metrics.controller';
+import { MetricsService } from './metrics/metrics.service';
+import { SystemManagementController } from './system-management/system-management.controller';
+import { SystemManagementService } from './system-management/system-management.service';
+import { ChatController } from './chat/chat.controller';
+import { ChatService } from './chat/chat.service';
+import { EnrollmentController } from './enrollment/enrollment.controller';
+import { EnrollmentService } from './enrollment/enrollment.service';
 @Module({
   imports: [
     ClientsModule.register([
@@ -23,8 +31,32 @@ import { GoogleStrategyModule } from '@lib/google-strategy/google.module';
         name: 'ENROLLMENT_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+          urls: ['amqp://localhost:5672'],
           queue: 'enrollment_queue',
+          queueOptions: {
+            durable: true,
+            persistent: true,
+          },
+        },
+      },
+      {
+        name: 'METRICS_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'metrics_queue',
+          queueOptions: {
+            durable: true,
+            persistent: true,
+          },
+        },
+      },
+      {
+        name: 'SYSTEM_MANAGEMENT_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'system_management_queue',
           queueOptions: {
             durable: true,
             persistent: true,
@@ -34,7 +66,19 @@ import { GoogleStrategyModule } from '@lib/google-strategy/google.module';
     ]),
     GoogleStrategyModule,
   ],
-  controllers: [ApiGatewayController],
-  providers: [ApiGatewayService],
+  controllers: [
+    ApiGatewayController,
+    MetricsController,
+    SystemManagementController,
+    ChatController,
+    EnrollmentController,
+  ],
+  providers: [
+    ApiGatewayService,
+    MetricsService,
+    SystemManagementService,
+    ChatService,
+    EnrollmentService,
+  ],
 })
 export class ApiGatewayModule {}
