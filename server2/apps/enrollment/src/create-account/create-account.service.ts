@@ -3,6 +3,7 @@ import { CreateUserDto } from './create-account.dto';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { $Enums } from '@prisma/client';
 import { AuthService } from '@lib/auth/auth.service';
+import { UserExists } from './enums/user-exists.enum';
 
 @Injectable()
 export class CreateAccountService {
@@ -24,14 +25,14 @@ export class CreateAccountService {
         this.checkIfEnrollerExists(createUserDto.enrollerId),
       ]);
 
-    if (userExists === 1) {
+    if (userExists === UserExists.USERNAME_EXISTS) {
       throw this.createError(
         409,
         'ERR_USERNAME_EXISTS',
         'Username already exists',
       );
     }
-    if (userExists === 2) {
+    if (userExists === UserExists.EMAIL_EXISTS) {
       throw this.createError(409, 'ERR_EMAIL_EXISTS', 'Email already exists');
     }
     if (!schoolExists) {
@@ -135,8 +136,8 @@ export class CreateAccountService {
       this.prisma.user.findFirst({ where: { email_address: email } }),
     ]);
 
-    if (usernameExists) return 1;
-    if (emailExists) return 2;
+    if (usernameExists) return UserExists.USERNAME_EXISTS;
+    if (emailExists) return UserExists.EMAIL_EXISTS;
     return 0;
   }
 
