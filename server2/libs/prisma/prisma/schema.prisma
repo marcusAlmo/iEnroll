@@ -47,6 +47,7 @@ model address {
   district        String    @db.VarChar(100)
   municipality    String    @db.VarChar(100)
   update_datetime DateTime? @default(now()) @db.Timestamp(6)
+  province        String    @db.VarChar(100)
   school          school[]
   student         student[]
 
@@ -102,7 +103,7 @@ model enrollment_application {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model enrollment_fee {
-  fee_id                Int                @id(map: "pk_enrollment_fee")
+  fee_id                Int                @id(map: "pk_enrollment_fee") @default(autoincrement())
   grade_section_type_id Int
   name                  String             @db.VarChar(30)
   amount                Decimal            @db.Decimal(10, 2)
@@ -117,7 +118,7 @@ model enrollment_fee {
 }
 
 model enrollment_requirement {
-  requirement_id         Int                      @id(map: "pk_enrollment_requirement")
+  requirement_id         Int                      @id(map: "pk_enrollment_requirement") @default(autoincrement())
   grade_section_type_id  Int
   name                   String                   @db.VarChar(50)
   type                   requirement_type
@@ -125,6 +126,7 @@ model enrollment_requirement {
   is_required            Boolean?                 @default(true)
   creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
+  description            String?                  @db.VarChar(255)
   application_attachment application_attachment[]
   grade_section_type     grade_section_type       @relation(fields: [grade_section_type_id], references: [grade_section_type_id], map: "fk_enrollment_requirement_grade_section_type_id")
 
@@ -134,7 +136,7 @@ model enrollment_requirement {
 }
 
 model enrollment_schedule {
-  schedule_id            Int                 @id(map: "pk_enrollment_schedule")
+  schedule_id            Int                 @id(map: "pk_enrollment_schedule") @default(autoincrement())
   grade_level_offered_id Int
   start_datetime         DateTime            @db.Timestamp(6)
   end_datetime           DateTime            @db.Timestamp(6)
@@ -147,7 +149,7 @@ model enrollment_schedule {
 }
 
 model grade_level_offered {
-  grade_level_offered_id Int                      @id(map: "pk_grade_level_offered")
+  grade_level_offered_id Int                      @id(map: "pk_grade_level_offered") @default(autoincrement())
   school_id              Int
   grade_level_code       String                   @db.Char(3)
   creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
@@ -167,7 +169,7 @@ model grade_level_offered {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model grade_section {
-  grade_section_id      Int                  @id(map: "pk_grade_section")
+  grade_section_id      Int                  @id(map: "pk_grade_section") @default(autoincrement())
   grade_section_type_id Int
   section_name          String               @db.VarChar(100)
   adviser               String               @db.VarChar(100)
@@ -184,7 +186,7 @@ model grade_section {
 }
 
 model grade_section_type {
-  grade_section_type_id  Int                      @id(map: "pk_grade_section_type")
+  grade_section_type_id  Int                      @id(map: "pk_grade_section_type") @default(autoincrement())
   grade_level_offered_id Int
   section_type           section_type
   update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
@@ -360,6 +362,7 @@ model user {
   for_deletion                                  Boolean                  @default(false)
   registration_datetime                         DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime                               DateTime?                @default(now()) @db.Timestamp(6)
+  password_visible                              String?                  @db.VarChar(255)
   conversation_conversation_participant_1Touser conversation[]           @relation("conversation_participant_1Touser")
   conversation_conversation_participant_2Touser conversation[]           @relation("conversation_participant_2Touser")
   message                                       message[]
@@ -561,7 +564,7 @@ model student_list {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model about_uppend {
-  email_address            String    @db.VarChar(100)
+  email_address            String    @id(map: "pk_about_uppend") @db.VarChar(100)
   contact_number           String    @db.Char(11)
   website_url              String    @db.VarChar(255)
   bir_accreditation_number String    @db.VarChar(30)
@@ -590,6 +593,7 @@ model common_enrollment_requirement {
   is_required                  Boolean?                       @default(true)
   creation_datetime            DateTime?                      @default(now()) @db.Timestamp(6)
   update_datetime              DateTime?                      @default(now()) @db.Timestamp(6)
+  description                  String?                        @db.VarChar(255)
   enrollment_group_requirement enrollment_group_requirement[]
 
   @@schema("system")
