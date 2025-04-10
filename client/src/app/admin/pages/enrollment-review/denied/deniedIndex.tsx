@@ -133,7 +133,7 @@ const DeniedIndex: React.FC = () => {
         label: "Enrolled", // Label for the "Enrolled" navigation item
         onClick: () => {
           setActiveItem("Enrolled"); // Update active state to "Enrolled"
-          navigate("enrolled"); // Navigate to the "Enrolled" route
+          navigate("/admin/enrollment-review/enrolled"); // Navigate to the "Enrolled" route
         },
       },
     ],
