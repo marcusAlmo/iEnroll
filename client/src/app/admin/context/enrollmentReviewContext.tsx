@@ -1,6 +1,9 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import mockData from "../pages/enrollment-review/test/mockData.json";
 
+// Constants
+export const UNASSIGNED_SECTION_ID = 999;
+
 /**
  * Represents a school grade level
  */
@@ -52,7 +55,7 @@ interface EnrollmentReviewContextProps {
   currentIndex: number;
   handleNext: () => void;
   handlePrevious: () => void;
-  handleRequirementStatus: (status: boolean) => void;
+  handleRequirementStatus: (status: boolean, reason?: string) => void;
 
   // Grade level state
   gradeLevels: GradeLevel[];                  // Available grade levels
@@ -127,8 +130,11 @@ export const EnrollmentReviewProvider: React.FC<{
   const handleSetSectionModalOpen = (isOpen: boolean) => {
     setIsSectionModalOpen(isOpen);
     if (isOpen) {
-      // Set the modal type based on the selected section
-      setSectionModalType(selectedSection === 999 ? 'assign' : 'reassign');
+      // Only set the modal type if it needs to change
+      const newType = selectedSection === UNASSIGNED_SECTION_ID ? 'assign' : 'reassign';
+      if (newType !== sectionModalType) {
+        setSectionModalType(newType);
+      }
     }
   };
 
@@ -139,8 +145,6 @@ export const EnrollmentReviewProvider: React.FC<{
       return newIndex;
     });
   };
-
-  console.log("Section Modal", isSectionModalOpen);
 
   const handlePrevious = () => {
     setCurrentIndex((prevIndex) => {
