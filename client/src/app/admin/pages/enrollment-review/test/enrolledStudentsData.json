@@ -1,0 +1,360 @@
+{
+  "gradeLevels": [
+    { "gradeId": 0, "gradeName": "Nursery" },
+    { "gradeId": 0.5, "gradeName": "Kinder" },
+    { "gradeId": 0.75, "gradeName": "Preparatory" },
+    { "gradeId": 1, "gradeName": "Grade 1" },
+    { "gradeId": 2, "gradeName": "Grade 2" },
+    { "gradeId": 3, "gradeName": "Grade 3" },
+    { "gradeId": 4, "gradeName": "Grade 4" },
+    { "gradeId": 5, "gradeName": "Grade 5" },
+    { "gradeId": 6, "gradeName": "Grade 6" },
+    { "gradeId": 7, "gradeName": "Grade 7" },
+    { "gradeId": 8, "gradeName": "Grade 8" },
+    { "gradeId": 9, "gradeName": "Grade 9" },
+    { "gradeId": 10, "gradeName": "Grade 10" },
+    { "gradeId": 11, "gradeName": "Grade 11" },
+    { "gradeId": 12, "gradeName": "Grade 12" }
+  ],
+  "sections": {
+    "0": [
+      { "sectionId": 1, "sectionName": "Nursery A" },
+      { "sectionId": 2, "sectionName": "Nursery B" }
+    ],
+    "0.5": [
+      { "sectionId": 3, "sectionName": "Kinder A" },
+      { "sectionId": 4, "sectionName": "Kinder B" }
+    ],
+    "1": [
+      { "sectionId": 101, "sectionName": "Section A" },
+      { "sectionId": 102, "sectionName": "Section B" },
+      { "sectionId": 103, "sectionName": "Section C" }
+    ],
+    "2": [
+      { "sectionId": 201, "sectionName": "Section A" },
+      { "sectionId": 202, "sectionName": "Section B" }
+    ],
+    "3": [
+      { "sectionId": 301, "sectionName": "Section A" },
+      { "sectionId": 302, "sectionName": "Section B" }
+    ],
+    "4": [
+      { "sectionId": 401, "sectionName": "Section A" },
+      { "sectionId": 402, "sectionName": "Section B" }
+    ],
+    "5": [
+      { "sectionId": 501, "sectionName": "Section A" },
+      { "sectionId": 502, "sectionName": "Section B" }
+    ],
+    "6": [
+      { "sectionId": 601, "sectionName": "Section A" },
+      { "sectionId": 602, "sectionName": "Section B" }
+    ],
+    "7": [
+      { "sectionId": 701, "sectionName": "Section A" },
+      { "sectionId": 702, "sectionName": "Section B" }
+    ],
+    "8": [
+      { "sectionId": 801, "sectionName": "Section A" },
+      { "sectionId": 802, "sectionName": "Section B" }
+    ],
+    "9": [
+      { "sectionId": 901, "sectionName": "Section A" },
+      { "sectionId": 902, "sectionName": "Section B" }
+    ],
+    "10": [
+      { "sectionId": 1001, "sectionName": "Section A" },
+      { "sectionId": 1002, "sectionName": "Section B" }
+    ],
+    "11": [
+      { "sectionId": 1101, "sectionName": "STEM A" },
+      { "sectionId": 1102, "sectionName": "STEM B" },
+      { "sectionId": 1103, "sectionName": "ABM A" },
+      { "sectionId": 1104, "sectionName": "ABM B" },
+      { "sectionId": 1105, "sectionName": "HUMSS A" },
+      { "sectionId": 1106, "sectionName": "HUMSS B" }
+    ],
+    "12": [
+      { "sectionId": 1201, "sectionName": "STEM A" },
+      { "sectionId": 1202, "sectionName": "STEM B" },
+      { "sectionId": 1203, "sectionName": "ABM A" },
+      { "sectionId": 1204, "sectionName": "ABM B" },
+      { "sectionId": 1205, "sectionName": "HUMSS A" },
+      { "sectionId": 1206, "sectionName": "HUMSS B" }
+    ]
+  },
+  "students": {
+    "1": [
+      {
+        "studentId": 1001,
+        "studentName": "Juan Miguel Antonio Dela Cruz",
+        "firstName": "Juan Miguel Antonio",
+        "middleName": "Bonifacio",
+        "lastName": "Dela Cruz",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 0,
+        "section": 1
+      },
+      {
+        "studentId": 1002,
+        "studentName": "Maria Santos",
+        "firstName": "Maria",
+        "middleName": "Lopez",
+        "lastName": "Santos",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 0,
+        "section": 1
+      }
+    ],
+    "2": [
+      {
+        "studentId": 2001,
+        "studentName": "Ana Maganda",
+        "firstName": "Ana",
+        "middleName": "",
+        "lastName": "Maganda",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 0,
+        "section": 2
+      },
+      {
+        "studentId": 2002,
+        "studentName": "Jose Y Rizal",
+        "firstName": "Jose",
+        "middleName": "",
+        "lastName": "Rizal",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 0,
+        "section": 2
+      }
+    ],
+    "3": [
+      {
+        "studentId": 3001,
+        "studentName": "Pedro Penduko",
+        "firstName": "Pedro",
+        "middleName": "Santos",
+        "lastName": "Penduko",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 0.5,
+        "section": 3
+      }
+    ],
+    "4": [
+      {
+        "studentId": 4001,
+        "studentName": "Maria Clara",
+        "firstName": "Maria",
+        "middleName": "Clara",
+        "lastName": "Ibarra",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 0.5,
+        "section": 4
+      }
+    ],
+    "101": [
+      {
+        "studentId": 10101,
+        "studentName": "Crisostomo Ibarra",
+        "firstName": "Crisostomo",
+        "middleName": "Elias",
+        "lastName": "Ibarra",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 1,
+        "section": 101
+      },
+      {
+        "studentId": 10102,
+        "studentName": "Sisa",
+        "firstName": "Sisa",
+        "middleName": "",
+        "lastName": "Basilio",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 1,
+        "section": 101
+      },
+      {
+        "studentId": 10103,
+        "studentName": "Basilio",
+        "firstName": "Basilio",
+        "middleName": "",
+        "lastName": "Sisa",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 1,
+        "section": 101
+      }
+    ],
+    "102": [
+      {
+        "studentId": 10201,
+        "studentName": "Elias",
+        "firstName": "Elias",
+        "middleName": "",
+        "lastName": "Ibarra",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 1,
+        "section": 102
+      },
+      {
+        "studentId": 10202,
+        "studentName": "Pilosopo Tasyo",
+        "firstName": "Pilosopo",
+        "middleName": "",
+        "lastName": "Tasyo",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 1,
+        "section": 102
+      }
+    ],
+    "103": [
+      {
+        "studentId": 10301,
+        "studentName": "Padre Damaso",
+        "firstName": "Padre",
+        "middleName": "",
+        "lastName": "Damaso",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 1,
+        "section": 103
+      }
+    ],
+    "201": [
+      {
+        "studentId": 20101,
+        "studentName": "Padre Salvi",
+        "firstName": "Padre",
+        "middleName": "",
+        "lastName": "Salvi",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 2,
+        "section": 201
+      },
+      {
+        "studentId": 20102,
+        "studentName": "Dona Victorina",
+        "firstName": "Dona",
+        "middleName": "",
+        "lastName": "Victorina",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 2,
+        "section": 201
+      }
+    ],
+    "202": [
+      {
+        "studentId": 20201,
+        "studentName": "Don Tiburcio",
+        "firstName": "Don",
+        "middleName": "",
+        "lastName": "Tiburcio",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 2,
+        "section": 202
+      }
+    ],
+    "1101": [
+      {
+        "studentId": 110101,
+        "studentName": "Isagani",
+        "firstName": "Isagani",
+        "middleName": "",
+        "lastName": "Crisostomo",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 11,
+        "section": 1101
+      },
+      {
+        "studentId": 110102,
+        "studentName": "Paulita Gomez",
+        "firstName": "Paulita",
+        "middleName": "",
+        "lastName": "Gomez",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 11,
+        "section": 1101
+      }
+    ],
+    "1103": [
+      {
+        "studentId": 110301,
+        "studentName": "Ben Zayb",
+        "firstName": "Ben",
+        "middleName": "",
+        "lastName": "Zayb",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 11,
+        "section": 1103
+      }
+    ],
+    "1105": [
+      {
+        "studentId": 110501,
+        "studentName": "Placido Penitente",
+        "firstName": "Placido",
+        "middleName": "",
+        "lastName": "Penitente",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 11,
+        "section": 1105
+      }
+    ],
+    "1201": [
+      {
+        "studentId": 120101,
+        "studentName": "Simoun",
+        "firstName": "Simoun",
+        "middleName": "",
+        "lastName": "Ibarra",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 12,
+        "section": 1201
+      }
+    ],
+    "1203": [
+      {
+        "studentId": 120301,
+        "studentName": "Kabesang Tales",
+        "firstName": "Kabesang",
+        "middleName": "",
+        "lastName": "Tales",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 12,
+        "section": 1203
+      }
+    ],
+    "1205": [
+      {
+        "studentId": 120501,
+        "studentName": "Tandang Selo",
+        "firstName": "Tandang",
+        "middleName": "",
+        "lastName": "Selo",
+        "applicationStatus": "Enrolled",
+        "enrollmentDate": "2023-06-15",
+        "gradeLevel": 12,
+        "section": 1205
+      }
+    ]
+  }
+} 
