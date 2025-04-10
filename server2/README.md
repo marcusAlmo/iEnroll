@@ -1,98 +1,142 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="./docs/face-smile-wink-solid.svg" width="120" alt="IEnroll Logo" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<h1 align="center">
+  IEnroll Backend
+</h1>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+By Uppend
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<p align="center">
+  Welcome to the <strong>IEnroll Backend</strong>! This project is powered by <strong>NestJS</strong> and serves as the core backend for the IEnroll application. It exposes a robust and scalable RESTful API that handles enrollment processes, user management, and other core features.
+  <br />
+  This backend also supports a microservices architecture using <strong>RabbitMQ</strong> as a message broker, enabling efficient asynchronous communication across services.
+</p>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites
 
-## Project setup
+Before setting up the project, make sure the following software is installed on your machine:
 
-```bash
-$ npm install
-```
+- **Erlang** – Required by RabbitMQ  
+  👉 [Download Erlang](https://www.erlang.org/downloads)
 
-## Compile and run the project
+- **RabbitMQ** – Message broker used for microservices communication  
+  👉 [Install RabbitMQ (Windows Guide)](https://www.rabbitmq.com/docs/install-windows#installer)
 
-```bash
-# development
-$ npm run start
+> ⚠️ Make sure to install Erlang **before** RabbitMQ to avoid setup issues.
 
-# watch mode
-$ npm run start:dev
+## Installation
 
-# production mode
-$ npm run start:prod
-```
+To get started, you'll need to have Node.js (v14 or above) and npm installed.
 
-## Run tests
+1. **Install dependencies:**
 
-```bash
-# unit tests
-$ npm run test
+   ```bash
+    npm i
+   ```
 
-# e2e tests
-$ npm run test:e2e
+2. **Start the Development Server**:
 
-# test coverage
-$ npm run test:cov
-```
+   ```bash
+     npm run start:dev
+   ```
 
-## Deployment
+3. **Running Individual Services**:
+   Chat service
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+   ```bash
+     npm run start:dev:chat
+   ```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+   Enrollment service
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+   ```bash
+     npm run start:dev:enrollment
+   ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+   System management service
 
-## Resources
+   ```bash
+     npm run start:dev:system-management
+   ```
 
-Check out a few resources that may come in handy when working with NestJS:
+   Metrics service
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+   ```bash
+     npm run start:dev:metrics
+   ```
 
-## Support
+   Auth service
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+   ```bash
+     npm run start:dev:auth
+   ```
 
-## Stay in touch
+4. **Running All Services**:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+   ```bash
+     npm run start:dev:all
+   ```
 
-## License
+5. **Running All Tests**:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+   ```bash
+     npm run test
+   ```
+
+6. **Running all E2E Tests**:
+
+   ```bash
+     npm run test:e2e
+   ```
+
+7. **Prettier Format**:
+
+   ```bash
+     npm run format
+   ```
+
+8. **Start the Deployment Server**:
+
+   ```bash
+     npm run build; npm run start:prod
+   ```
+
+## Configuration
+
+You can customize the app behavior by editing the `.env` file. Below are the key environment variables:
+
+| Variable Name                | Description                        | Example           |
+| ---------------------------- | ---------------------------------- | ----------------- |
+| `DATABASE_URL`               | Database connection string         | `postgres://...`  |
+| `API_GATEWAY_PORT`           | Port for the API gateway           | `3000`            |
+| `CHAT_API_PORT`              | Port for the Chat service          | `3001`            |
+| `ENROLLMENT_API_PORT`        | Port for the Enrollment service    | `3002`            |
+| `SYSTEM_MANAGEMENT_API_PORT` | Port for System Management service | `3003`            |
+| `METRICS_API_PORT`           | Port for the Metrics service       | `3004`            |
+| `AUTH_API_PORT`              | Port for the Auth service          | `3005`            |
+| `JWT_SECRET_KEY`             | Secret for signing JWTs            | `your_jwt_secret` |
+
+> 🛡️ Keep sensitive values like `JWT_SECRET_KEY` secure and never commit them to version control.
+
+## Contributors
+
+This project is proudly built and maintained by:
+
+- **[@kntgio-z](https://github.com/kntgio-z)** – Backend Lead
+- **[@Mark-cyber-lab](https://github.com/Mark-cyber-lab)** – System Architect & Microservices Lead
+
+---
+
+### Additional Tips
+
+- Ensure you have the latest version of Node.js and npm.
+
+---
+
+### Getting Help
+
+For any questions or issues, feel free to open a new issue on our GitHub repository or reach out to our community forum.
