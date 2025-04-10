@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Input } from '@headlessui/react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleArrowLeft, faCircleArrowRight, faCheckSquare, faSquareXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCircleArrowLeft, faCircleArrowRight, faCheckSquare, faSquareXmark, faDownload, faMagnifyingGlassPlus, faMagnifyingGlassMinus } from "@fortawesome/free-solid-svg-icons";
 import { useEnrollmentReview } from '../../../../context/enrollmentReviewContext';
 
 export const RequirementsCarouselModal: React.FC = () => {
@@ -17,6 +17,59 @@ export const RequirementsCarouselModal: React.FC = () => {
   // local declaration here kasi nagkakaproblema sa context nagstastale
   const [showDenialReason, setShowDenialReason] = useState(false);
   const [denialReason, setDenialReason] = useState(''); // State to store the denial reason
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleDownload = () => {
+    if (selectedRequirement?.imageUrl) {
+      window.open(selectedRequirement.imageUrl, '_blank');
+    }
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3));
+    setPosition({ x: 0, y: 0 }); // Reset position when zooming
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
+    setPosition({ x: 0, y: 0 }); // Reset position when zooming
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel > 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoomLevel > 1) {
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+      
+      // Calculate bounds based on zoom level
+      const maxOffset = (zoomLevel - 1) * 250; // 250 is half of the image width
+      const boundedX = Math.max(Math.min(newX, maxOffset), -maxOffset);
+      const boundedY = Math.max(Math.min(newY, maxOffset), -maxOffset);
+      
+      setPosition({ x: boundedX, y: boundedY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
 
   if (!isModalOpen || !requirements.length || !selectedRequirement) return null;
 
@@ -43,11 +96,49 @@ export const RequirementsCarouselModal: React.FC = () => {
 
         <div className="flex w-full flex-row items-center justify-center p-10">
           {selectedRequirement.requirementType === "image" ? (
-            <img
-              src={selectedRequirement.imageUrl}
-              alt={selectedRequirement.requirementName}
-              className="mb-4 h-[600px] w-[500px]"
-            />
+            <div className="relative overflow-hidden" ref={imageContainerRef}>
+              <div className="absolute top-5 right-0 z-10 flex flex-col gap-2">
+                <button
+                  onClick={handleDownload}
+                  className="button-transition cursor-pointer rounded-full bg-white px-[7px] py-[5px] text-accent hover:bg-accent hover:text-white"
+                  title="Download Image"
+                >
+                  <FontAwesomeIcon icon={faDownload} className="text-base" />
+                </button>
+                <button
+                  onClick={handleZoomIn}
+                  className="button-transition cursor-pointer rounded-full bg-white px-[7px] py-[5px] text-accent hover:bg-accent hover:text-white"
+                  title="Zoom In"
+                >
+                  <FontAwesomeIcon icon={faMagnifyingGlassPlus} className="text-xl" />
+                </button>
+                <button
+                  onClick={handleZoomOut}
+                  className="button-transition cursor-pointer rounded-full bg-white px-[7px] py-[5px] text-accent hover:bg-accent hover:text-white"
+                  title="Zoom Out"
+                >
+                  <FontAwesomeIcon icon={faMagnifyingGlassMinus} className="text-xl" />
+                </button>
+              </div>
+              <div 
+                className="mt-5 h-[700px] w-[600px] cursor-grab active:cursor-grabbing rounded-[10px]"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
+              >
+                <img
+                  src={selectedRequirement.imageUrl}
+                  alt={selectedRequirement.requirementName}
+                  className="h-full w-full object-contain transition-transform duration-300"
+                  style={{ 
+                    transform: `scale(${zoomLevel}) translate(${position.x / zoomLevel}px, ${position.y / zoomLevel}px)`,
+                    transformOrigin: 'center center'
+                  }}
+                  draggable="false"
+                />
+              </div>
+            </div>
           ) : (
             <div className="ml-4 flex h-auto w-xl flex-col justify-between rounded-[10px] bg-white p-10">
               <label htmlFor="requirementType" className="font-semibold text-primary mb-2">
