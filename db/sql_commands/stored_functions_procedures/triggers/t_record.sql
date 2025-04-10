@@ -20,9 +20,9 @@ CREATE TRIGGER t_update_section_list
 -- invoice trigger
 CREATE TRIGGER t_update_invoice
     BEFORE UPDATE ON record.invoice
-    FOR EACH ROW EXECUTE FUNCTION fn_update_datetime();
+    FOR EACH ROW EXECUTE FUNCTION record.fn_restrict_update();
 
 -- invoice_plan trigger
 CREATE TRIGGER t_update_invoice_plan
     BEFORE UPDATE ON record.invoice_plan
-    FOR EACH ROW EXECUTE FUNCTION fn_update_datetime();
+    FOR EACH ROW EXECUTE FUNCTION record.fn_restrict_update();

@@ -18,6 +18,13 @@ def generate_invoice_id(cursor):
     Generates a random invoice ID
     """
     try:
+        cursor.execute("""
+            SELECT MAX(invoice_id) FROM record.invoice
+        """)
+        max_invoice_id = cursor.fetchone()[0]
+        if max_invoice_id is None:
+            max_invoice_id = 100000
+
         created_by = 'Uppend IT Admin'
         payer_name = fake.name()
         payer_address = fake.address()
@@ -27,17 +34,28 @@ def generate_invoice_id(cursor):
         amount_paid = random.randint(1000, 100000)
         issuer = 'Uppend IT'
         creation_date = datetime.now()
-
+        invoice_id = max_invoice_id + 1
+        bir_accreditation_number = random.randint(100000000000, 999999999999)
         cursor.execute("""
             INSERT INTO record.invoice(
-            created_by, payer_name, payer_address, payer_contact_number, payer_email_address, 
-            seller_name, amount_paid, issuer, creation_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING invoice_id
-        """, (created_by, payer_name, payer_address, payer_contact_number, payer_email_address, 
-              seller_name, amount_paid, issuer, creation_date))
+            invoice_id, created_by, payer_name, payer_address, payer_contact_number, payer_email_address, 
+            seller_name, bir_accreditation_number, amount_paid, issuer, creation_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (invoice_id, created_by, payer_name, payer_address, payer_contact_number, payer_email_address, 
+              seller_name, bir_accreditation_number, amount_paid, issuer, creation_date))
+        print(f"Invoice generated - ID: {invoice_id}")
 
-        invoice_id = cursor.fetchone()[0]
+        plan_name = random.choice(['FRE', 'BAS', 'PRO', 'ENT'])
+        quantity = random.randint(1, 10)
+        amount_each = random.randint(1000, 100000)
+
+        cursor.execute("""
+            INSERT INTO record.invoice_plan(
+                invoice_id, plan_name, quantity, amount_each)
+            VALUES (%s, %s, %s, %s)
+        """, (invoice_id, plan_name, quantity, amount_each))
+
+        print(f"Invoice plan generated.")
         return invoice_id
     except Exception as e:
         print(f"Error generating invoice: {str(e)}")
@@ -48,6 +66,7 @@ def generate_school_subscription(cursor, school_id):
     Generates a new school subscription with the current academic year
     """
     try:
+        print(school_id)
         invoice_id = generate_invoice_id(cursor)
         if not invoice_id:
             raise Exception("Failed to generate invoice")
@@ -85,6 +104,9 @@ def generate_school(cursor):
         int: The generated school_id if successful, None if failed
     """
     try:
+        # Start transaction
+        cursor.execute("BEGIN")
+        
         # Generate address first
         address_id = generate_address(cursor)
         if not address_id:
@@ -116,6 +138,7 @@ def generate_school(cursor):
                 address_id,
                 is_active
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
+            ON CONFLICT (school_id) DO NOTHING
             RETURNING school_id
         """, (
             school_id,
@@ -130,16 +153,31 @@ def generate_school(cursor):
         ))
         
         school_id = cursor.fetchone()[0]
+        
+        # Generate subscription
+        subscription_id = generate_school_subscription(cursor, school_id)
+        if not subscription_id:
+            raise Exception("Failed to generate school subscription")
+            
+        # Generate grade levels
+        grade_level_ids = generate_grade_level_offered(cursor, school_id)
+        if not grade_level_ids:
+            raise Exception("Failed to generate grade levels")
+            
+        # If all operations succeed, commit the transaction
         cursor.connection.commit()
+        
         print(f"School '{school_name}' generated with ID: {school_id}")
         print(f"Academic Year: {academic_year}")
         print(f"Contact: {contact_number}")
         print(f"Email: {email_address}")
         print(f"Website: {website_url}")
+        print(f"Generated {len(grade_level_ids)} grade levels")
         
         return school_id
         
     except Exception as e:
+        # Rollback the transaction on any error
         cursor.connection.rollback()
         print(f"Error generating school: {str(e)}")
         return None
@@ -162,17 +200,25 @@ def generate_grade_level_offered(cursor, school_id):
 
         for grade_level in grade_levels:
             cursor.execute("""
-                INSERT INTO enrollment.grade_level_offered (school_id, grade_level_code)
+                INSERT INTO enrollment.grade_level_offered 
+                (school_id, grade_level_code)
                 VALUES (%s, %s)
+                ON CONFLICT (school_id, grade_level_code) DO NOTHING
                 RETURNING grade_level_offered_id
             """, (school_id, grade_level[0]))
             
             grade_level_offered_id = cursor.fetchone()[0]
+            print(f"Generated grade level offered - ID: {grade_level_offered_id}")
             grade_level_offered_ids.append(grade_level_offered_id)
             
             # Generate related records
-            generate_enrollment_schedule(cursor, grade_level_offered_id)
-            generate_grade_section_type(cursor, grade_level_offered_id)
+            schedule_id = generate_enrollment_schedule(cursor, grade_level_offered_id)
+            if not schedule_id:
+                raise Exception("Failed to generate enrollment schedule")
+                
+            section_type_id = generate_grade_section_type(cursor, grade_level_offered_id)
+            if not section_type_id:
+                raise Exception("Failed to generate grade section type")
 
         print(f"Generated {len(grade_level_offered_ids)} grade levels for school {school_id}")
         return grade_level_offered_ids
@@ -186,21 +232,31 @@ def generate_grade_section_type(cursor, grade_level_offered_id):
     Generates grade section types for a new school
     """
     try:
-        section_types = ['Science-Oriented', 'Regular']
+        section_types = ['special', 'regular']
         chosen_section_type = random.choice(section_types)
         
         cursor.execute("""
-            INSERT INTO enrollment.grade_section_type (grade_level_offered_id, section_type)
+            INSERT INTO enrollment.grade_section_type 
+            (grade_level_offered_id, section_type)
             VALUES (%s, %s)
+            ON CONFLICT (grade_level_offered_id, section_type) DO NOTHING
             RETURNING grade_section_type_id
         """, (grade_level_offered_id, chosen_section_type))
         
         grade_section_type_id = cursor.fetchone()[0]
         
         # Generate related records
-        generate_enrollment_fee(cursor, grade_section_type_id)
-        generate_enrollment_requirement(cursor, grade_section_type_id)
-        generate_grade_section(cursor, grade_section_type_id)
+        fee_ids = generate_enrollment_fee(cursor, grade_section_type_id)
+        if not fee_ids:
+            raise Exception("Failed to generate enrollment fees")
+            
+        requirement_ids = generate_enrollment_requirement(cursor, grade_section_type_id)
+        if not requirement_ids:
+            raise Exception("Failed to generate enrollment requirements")
+            
+        section_id = generate_grade_section(cursor, grade_section_type_id)
+        if not section_id:
+            raise Exception("Failed to generate grade section")
 
         print(f"Generated section type '{chosen_section_type}' - ID: {grade_section_type_id}")
         return grade_section_type_id
@@ -223,6 +279,7 @@ def generate_grade_section(cursor, grade_section_type_id):
             INSERT INTO enrollment.grade_section 
             (grade_section_type_id, section_name, adviser, slot, max_application_slot)
             VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (grade_section_type_id, section_name) DO NOTHING
             RETURNING grade_section_id
         """, (grade_section_type_id, section_name, adviser, slot_count, max_application_slot))
         
@@ -253,7 +310,8 @@ def generate_enrollment_fee(cursor, grade_section_type_id):
                 INSERT INTO enrollment.enrollment_fee 
                 (grade_section_type_id, name, amount, description)
                 VALUES (%s, %s, %s, %s)
-                RETURNING enrollment_fee_id
+                ON CONFLICT (grade_section_type_id, name) DO NOTHING
+                RETURNING fee_id
             """, (grade_section_type_id, name, amount, description))
             
             fee_ids.append(cursor.fetchone()[0])
@@ -271,22 +329,25 @@ def generate_enrollment_requirement(cursor, grade_section_type_id):
     """
     try:
         cursor.execute("""
-            SELECT requirement_code, name, description 
+            SELECT requirement_id, name, type, accepted_data_type, is_required, description 
             FROM system.common_enrollment_requirement
-            WHERE is_active = TRUE
             ORDER BY RANDOM()
             LIMIT 3
         """)
         requirements = cursor.fetchall()
         
+        if not requirements:
+            raise Exception("No active requirements found in system.common_enrollment_requirement")
+            
         requirement_ids = []
-        for req_code, name, description in requirements:
+        for requirement_id, name, type, accepted_data_type, is_required, description in requirements:
             cursor.execute("""
                 INSERT INTO enrollment.enrollment_requirement 
-                (grade_section_type_id, requirement_code, name, description, is_required)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING enrollment_requirement_id
-            """, (grade_section_type_id, req_code, name, description, True))
+                (grade_section_type_id, name, type, accepted_data_type, is_required, description)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (requirement_id) DO NOTHING
+                RETURNING requirement_id
+            """, (grade_section_type_id, name, type, accepted_data_type, is_required, description))
             
             requirement_ids.append(cursor.fetchone()[0])
 
@@ -309,7 +370,8 @@ def generate_enrollment_schedule(cursor, grade_level_offered_id):
             INSERT INTO enrollment.enrollment_schedule 
             (grade_level_offered_id, start_datetime, end_datetime)
             VALUES (%s, %s, %s)
-            RETURNING enrollment_schedule_id
+            ON CONFLICT (schedule_id) DO NOTHING
+            RETURNING schedule_id
         """, (grade_level_offered_id, start_datetime, end_datetime))
         
         schedule_id = cursor.fetchone()[0]

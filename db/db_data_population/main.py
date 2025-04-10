@@ -1,7 +1,7 @@
 import psycopg2
 import os
 import school_generator
-import system_data
+import system_data_generator
 import re
 from dotenv import load_dotenv
 
@@ -85,21 +85,23 @@ if __name__ == '__main__':
     action = 1
     # action = menu.action_menu()
     # entity = menu.entity_menu()
-    entity = 1
+    entity = 2
 
     try:
         if action == 1:
             if entity == 1:
                 school_id = school_generator.generate_school(cursor)
-                school_generator.generate_school_subscription(cursor, school_id)
-                school_generator.generate_grade_level_offered(cursor, school_id)
-                school_generator.generate_enrollment_fee(cursor, school_id)
-                school_generator.generate_enrollment_requirement(cursor, school_id)
-                school_generator.generate_enrollment_schedule(cursor, school_id)
                 print(f"School {school_id} created successfully")
             elif entity == 2:
-                # 1.generate_user(cursor)
-                pass
+                user_type = int(input("""Choose user type:
+                    [1] Admin
+                    [2] Student
+                Choice: """))
+                user_count = int(input("Enter number of users to generate: "))
+                if user_type == 1:
+                    user_generator.generate_admin_user(cursor, user_count)
+                elif user_type == 2:
+                    user_generator.generate_student_user(cursor, user_count)
             elif entity == 3:
                 # user_generator.generate_user_log(cursor)
                 pass
@@ -107,7 +109,7 @@ if __name__ == '__main__':
                 # system_logs_generator.generate_system_log(cursor)
                 pass
             elif entity == 5:
-                system_data.generate_system_initial_setup(cursor)
+                system_data_generator.generate_system_initial_setup(cursor)
             elif entity == 6:
                 # user_generator.generate_chat(cursor)
                 pass

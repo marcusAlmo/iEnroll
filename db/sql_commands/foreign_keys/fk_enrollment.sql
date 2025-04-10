@@ -66,13 +66,13 @@ ALTER TABLE enrollment.student_enrollment
 ALTER TABLE enrollment.student_enrollment
     ADD CONSTRAINT fk_student_enrollment_approver_id FOREIGN KEY (approver_id) REFERENCES enrollment.user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
--- grade_section_type 
-ALTER TABLE enrollment.grade_section_type
-    ADD CONSTRAINT fk_grade_section_type_grade_level_offered_id FOREIGN KEY (grade_level_offered_id) REFERENCES enrollment.grade_level_offered(grade_level_offered_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+-- grade_section_program
+ALTER TABLE enrollment.grade_section_program
+    ADD CONSTRAINT fk_grade_section_program_academic_program_id FOREIGN KEY (academic_program_id) REFERENCES system.academic_program(academic_program_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 -- enrollment_requirement
 ALTER TABLE enrollment.enrollment_requirement
-    ADD CONSTRAINT fk_enrollment_requirement_grade_section_type_id FOREIGN KEY (grade_section_type_id) REFERENCES enrollment.grade_section_type(grade_section_type_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT fk_enrollment_requirement_grade_section_program_id FOREIGN KEY (grade_section_program_id) REFERENCES enrollment.grade_section_program(grade_section_program_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 -- banner
 ALTER TABLE enrollment.banner
@@ -90,14 +90,21 @@ ALTER TABLE enrollment.enrollment_schedule
 
 -- grade_section
 ALTER TABLE enrollment.grade_section
-    ADD CONSTRAINT fk_grade_section_grade_section_type_id FOREIGN KEY (grade_section_type_id) REFERENCES enrollment.grade_section_type(grade_section_type_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT fk_grade_section_grade_section_program_id FOREIGN KEY (grade_section_program_id) REFERENCES enrollment.grade_section_program(grade_section_program_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 -- enrollment_fee
 ALTER TABLE enrollment.enrollment_fee
-    ADD CONSTRAINT fk_enrollment_fee_grade_section_type_id FOREIGN KEY (grade_section_type_id) REFERENCES enrollment.grade_section_type(grade_section_type_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT fk_enrollment_fee_grade_section_program_id FOREIGN KEY (grade_section_program_id) REFERENCES enrollment.grade_section_program(grade_section_program_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 -- school_subscription
 ALTER TABLE enrollment.school_subscription
     ADD CONSTRAINT fk_school_subscription_school_id FOREIGN KEY (school_id) REFERENCES enrollment.school(school_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 ALTER TABLE enrollment.school_subscription
-    ADD CONSTRAINT fk_school_subscription_plan_code FOREIGN KEY (plan_code) REFERENCES system.plan(plan_code) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT fk_school_subscription_plan_code FOREIGN KEY (plan_code) REFERENCES system.subscription_plan(plan_code) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+-- enrollment_fee_payment
+ALTER TABLE enrollment.enrollment_fee_payment
+    ADD CONSTRAINT fk_enrollment_fee_payment_fee_id FOREIGN KEY (fee_id) REFERENCES enrollment.enrollment_fee(fee_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE enrollment.enrollment_fee_payment
+    ADD CONSTRAINT fk_enrollment_fee_payment_student_id FOREIGN KEY (student_id) REFERENCES enrollment.student(student_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+

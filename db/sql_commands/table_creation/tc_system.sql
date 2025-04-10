@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS system.system_log (
 CREATE TABLE IF NOT EXISTS system.common_enrollment_requirement (
     requirement_id INT GENERATED ALWAYS AS IDENTITY,
     name VARCHAR(100) NOT NULL,
-    type enrollment.requirement_type NOT NULL,
+    requirement_type enrollment.requirement_type NOT NULL,
     accepted_data_type enrollment.accepted_data_type NOT NULL,
     is_required BOOLEAN DEFAULT TRUE,
     description VARCHAR(255),
@@ -84,8 +84,8 @@ CREATE TABLE IF NOT EXISTS system.enrollment_group_requirement (
     constraint pk_enrollment_group_requirement PRIMARY KEY (group_id, requirement_id)
 );
 
--- plan
-CREATE TABLE IF NOT EXISTS system.plan (
+-- subscription_plan
+CREATE TABLE IF NOT EXISTS system.subscription_plan (
     plan_code CHAR(3) NOT NULL,
     name VARCHAR(30) NOT NULL,
     description VARCHAR(255) NOT NULL,
@@ -122,5 +122,18 @@ CREATE TABLE IF NOT EXISTS system.about_uppend (
     website_url VARCHAR(255) NOT NULL,  
     bir_accreditation_number VARCHAR(30) NOT NULL,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- academic_program
+CREATE TABLE IF NOT EXISTS system.academic_program (
+    program_id INT GENERATED ALWAYS AS IDENTITY,
+    program VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    constraint pk_academic_program PRIMARY KEY (program_id),
+    constraint uq_academic_program UNIQUE (program, description)
 );
 

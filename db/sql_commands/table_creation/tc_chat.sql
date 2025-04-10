@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS chat;
 -- conversation
 CREATE TABLE IF NOT EXISTS chat.conversation (
-    conversation_id INT NOT NULL,
+    conversation_id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
     participant_1 INT NOT NULL,
     participant_2 INT NOT NULL,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS chat.conversation (
 
 -- message
 CREATE TABLE IF NOT EXISTS chat.message (
-    message_id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    message_id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
     conversation_id INT NOT NULL,
     sender_id INT NOT NULL,
     content TEXT NOT NULL,

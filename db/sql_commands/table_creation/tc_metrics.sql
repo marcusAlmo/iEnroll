@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS metrics;
 
 -- consumption_data
 CREATE TABLE IF NOT EXISTS metrics.consumption_data (
-    consumption_data_id INT NOT NULL,
+    consumption_data_id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
     school_acad_year_id INT NOT NULL,
     date DATE NOT NULL,
     slot_used INT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS metrics.consumption_data (
 
 -- enrollment_data
 CREATE TABLE IF NOT EXISTS metrics.enrollment_data (
-    enrollment_data_id INT NOT NULL,
+    enrollment_data_id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
     school_acad_year_id INT NOT NULL,
     academic_level VARCHAR(50) NOT NULL,
     grade_level VARCHAR(50) NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS metrics.enrollment_data (
 
 -- performance_data
 CREATE TABLE IF NOT EXISTS metrics.performance_data (
-    performance_data_id INT NOT NULL,
+    performance_data_id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
     school_acad_year_id INT NOT NULL,
     academic_level VARCHAR(50) NOT NULL,
     grade_level VARCHAR(50) NOT NULL,
