@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { requestData } from "@/lib/dataRequester";
 
 const schema = yup.object().shape({
@@ -24,40 +24,34 @@ export default function CredentialsForm() {
     resolver: yupResolver(schema),
   });
 
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const emailFromQuery = queryParams.get("e");
+  const verifiedFromQuery = queryParams.get("v");
+
   const navigate = useNavigate();
 
   const onSubmit = async (data: FormData) => {
     try{
       console.log("Form submitted", data);
 
-      const res = await requestData<{
-        email: string;
-        verified: boolean;
-      }>({
-        url: "/api/metrics",
-        method: "GET",
-      });
+      localStorage.setItem("email", data.email);
+      localStorage.setItem("password", data.password);
 
-      if(res){
-        /**
-         * const {
-          email,
-          verified
-        } = res;
-        if (data.email === email && verified) {
-          console.log("Logged in: ", email, verified);
-        } else {
-          console.log("Invalid credentials");
-        }
-         */
-
-        console.log(res);
-      }
+      window.location.href = "http://localhost:3000/auth/google/callback";
     }catch(error){
       if(error instanceof Error) console.log(error.message);
       else console.log(error);
     }
   };
+
+  // determine if the user is logged in in google
+  useEffect(() => {
+    if (emailFromQuery && verifiedFromQuery) {
+      console.log(emailFromQuery, verifiedFromQuery);
+      console.log(localStorage.getItem("email"), localStorage.getItem("password"));
+    }
+  }, [emailFromQuery, verifiedFromQuery]);
 
   return (
     <form

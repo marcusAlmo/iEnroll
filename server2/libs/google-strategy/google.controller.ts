@@ -1,6 +1,7 @@
 // auth.controller.ts
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 
 @Controller('auth')
 export class GoogleAuthController {
@@ -12,10 +13,8 @@ export class GoogleAuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Req() req) {
-    return {
-      email: req.user.email,
-      verified: true,
-    };
+  googleAuthRedirect(@Req() req, @Res() res: Response) {
+    // eslint-disable-next-line
+    res.redirect(`http://localhost:5173/admin-credentials?e=${req.user.email}&v=true`);
   }
 }
