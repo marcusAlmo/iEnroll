@@ -1,14 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   IsString,
   IsEmail,
   IsOptional,
-  IsDate,
   IsEnum,
   IsNotEmpty,
   IsPhoneNumber,
+  IsNumber,
+  IsDateString,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
+import { IsPastDate } from './validators/is-past-date.decorator';
 
 export class CreateUserDto {
   @IsString()
@@ -38,14 +39,48 @@ export class CreateUserDto {
   @IsNotEmpty()
   lastName: string;
 
-  @Type(() => Date)
-  @IsDate()
-  dateOfBirth: Date;
+  @IsString()
+  @IsOptional()
+  suffix?: string;
 
-  @IsEnum(['M', 'F'])
-  sex: 'M' | 'F';
+  @Transform(({ value }) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    typeof value === 'string' ? new Date(value) : value,
+  )
+  @IsDateString()
+  @IsPastDate(false, {
+    message: 'Date of birth cannot be today or in the future.',
+  })
+  dateOfBirth: string | Date;
+
+  @IsEnum(['M', 'F', 'O'])
+  gender: 'M' | 'F' | 'O';
+
+  // @IsString()
+  // @IsNotEmpty()
+  // address: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  schoolId: number;
+
+  // @IsNumber()
+  // @IsNotEmpty()
+  // addressId: number;
 
   @IsString()
   @IsNotEmpty()
-  address: string;
+  street: string;
+
+  @IsString()
+  @IsNotEmpty()
+  district: string;
+
+  @IsString()
+  @IsNotEmpty()
+  municipality: string;
+
+  @IsNumber()
+  @IsOptional()
+  enrollerId?: number;
 }

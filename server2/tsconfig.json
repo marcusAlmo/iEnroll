@@ -6,6 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "target": "ES2022",
     "sourceMap": true,
     "outDir": "./dist",
@@ -18,9 +19,15 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@app/api-gateway": ["apps/api-gateway/src"],
-      "@app/chat": ["apps/chat/src"],
-      "@lib/*": ["libs/*"]
+      "@app/api-gateway": [
+        "apps/api-gateway/src"
+      ],
+      "@app/chat": [
+        "apps/chat/src"
+      ],
+      "@lib/*": [
+        "libs/*"
+      ]
     }
   }
 }

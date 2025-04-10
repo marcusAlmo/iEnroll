@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CreateUserDto } from './create-account.dto';
 import { CreateAccountService } from './create-account.service';
@@ -14,5 +13,10 @@ export class CreateAccountController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Get('/schools')
+  async getAllSchools() {
+    return this.usersService.getAllSchools();
   }
 }

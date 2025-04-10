@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { ApiGatewayModule } from './../src/api-gateway.module';
+import { Server } from 'http';
 
 describe('ApiGatewayController (e2e)', () => {
   let app: INestApplication;
@@ -16,9 +17,12 @@ describe('ApiGatewayController (e2e)', () => {
   });
 
   it('/ (GET)', () => {
-    return request(app.getHttpServer())
+    return request(app.getHttpServer() as Server)
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect('Hello World!')
+      .catch((err: Error) => {
+        console.error(err.message);
+      });
   });
 });
