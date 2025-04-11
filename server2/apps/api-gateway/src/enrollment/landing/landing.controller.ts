@@ -5,7 +5,7 @@ import { LandingService } from './landing.service';
 export class LandingController {
   constructor(private readonly landingService: LandingService) {}
 
-  @Get('parner-school')
+  @Get('partner-school')
   getPartnerSchools() {
     return this.landingService.getPartnerSchools();
   }

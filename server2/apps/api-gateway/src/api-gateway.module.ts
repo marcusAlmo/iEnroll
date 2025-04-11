@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ApiGatewayController } from './api-gateway.controller';
 import { ApiGatewayService } from './api-gateway.service';
-import { Transport } from '@nestjs/microservices';
 import { ClientsModule } from '@nestjs/microservices';
 import { GoogleStrategyModule } from '@lib/google-strategy/google.module';
 import { MetricsController } from './metrics/metrics.controller';
@@ -14,81 +13,21 @@ import { EnrollmentController } from './enrollment/enrollment.controller';
 import { EnrollmentService } from './enrollment/enrollment.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
-import { LandingService } from './enrollment/landing/landing.service';
-import { LandingController } from './enrollment/landing/landing.controller';
-import { CreateAccountService } from './enrollment/create-account/create-account.service';
-import { CreateAccountController } from './enrollment/create-account/create-account.controller';
-import { DashboardService } from './enrollment/dashboard/dashboard.service';
-import { DashboardController } from './enrollment/dashboard/dashboard.controller';
-import { EnrollController } from './enrollment/enroll/enroll.controller';
-import { EnrollService } from './enrollment/enroll/enroll.service';
 import { AuthModule } from '@lib/auth/auth.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
+import { rabbitMQConstants } from '@lib/constants/rabbit-mq.constants';
 @Module({
   imports: [
     AuthModule,
     ClientsModule.register([
-      {
-        name: 'CHAT_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
-          queue: 'chat_queue',
-          queueOptions: {
-            durable: true,
-            persistent: true,
-          },
-        },
-      },
-      {
-        name: 'ENROLLMENT_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'enrollment_queue',
-          queueOptions: {
-            durable: true,
-            persistent: true,
-          },
-        },
-      },
-      {
-        name: 'METRICS_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'metrics_queue',
-          queueOptions: {
-            durable: true,
-            persistent: true,
-          },
-        },
-      },
-      {
-        name: 'SYSTEM_MANAGEMENT_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'system_management_queue',
-          queueOptions: {
-            durable: true,
-            persistent: true,
-          },
-        },
-      },
-      {
-        name: 'AUTH_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'auth_queue',
-          queueOptions: {
-            durable: true,
-            persistent: true,
-          },
-        },
-      },
+      rabbitMQConstants.CHAT,
+      rabbitMQConstants.ENROLLMENT,
+      rabbitMQConstants.METRICS,
+      rabbitMQConstants.SYSTEM_MANAGEMENT,
+      rabbitMQConstants.AUTH,
     ]),
     GoogleStrategyModule,
+    EnrollmentModule,
   ],
   controllers: [
     ApiGatewayController,
@@ -97,10 +36,6 @@ import { AuthModule } from '@lib/auth/auth.module';
     ChatController,
     EnrollmentController,
     AuthController,
-    LandingController,
-    CreateAccountController,
-    DashboardController,
-    EnrollController,
   ],
   providers: [
     ApiGatewayService,
@@ -109,10 +44,6 @@ import { AuthModule } from '@lib/auth/auth.module';
     ChatService,
     EnrollmentService,
     AuthService,
-    LandingService,
-    CreateAccountService,
-    DashboardService,
-    EnrollService,
   ],
 })
 export class ApiGatewayModule {}

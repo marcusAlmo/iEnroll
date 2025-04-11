@@ -7,6 +7,7 @@ import {
   IsPhoneNumber,
   IsNumber,
   IsDateString,
+  IsDate,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { IsPastDate } from '../validators/is-past-date.decorator';
@@ -20,6 +21,13 @@ export class CreateUserDto {
   email!: string;
 
   @IsPhoneNumber('PH')
+  @Transform(({ value }) => {
+    if (typeof value === 'string' && value.startsWith('+63')) {
+      return '0' + value.slice(3);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return value;
+  })
   @IsNotEmpty()
   contactNumber!: string;
 
@@ -47,11 +55,11 @@ export class CreateUserDto {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     typeof value === 'string' ? new Date(value) : value,
   )
-  @IsDateString()
+  @IsDate()
   @IsPastDate(false, {
     message: 'Date of birth cannot be today or in the future.',
   })
-  dateOfBirth!: string | Date;
+  dateOfBirth!: Date;
 
   @IsEnum(['M', 'F', 'O'])
   gender!: 'M' | 'F' | 'O';

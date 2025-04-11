@@ -14,6 +14,7 @@ export class DashboardController {
     );
     if (!result) {
       throw new RpcException({
+        statusCode: 404,
         message: 'ERROR_STUDENT_NOT_FOUND',
       });
     }
@@ -29,10 +30,12 @@ export class DashboardController {
     switch (result) {
       case EnrollmentStatus.NOT_FOUND:
         throw new RpcException({
+          statusCode: 404,
           message: 'ERROR_STUDENT_NOT_FOUND',
         });
       case EnrollmentStatus.NOT_ENROLLED:
         throw new RpcException({
+          statusCode: 400,
           message: 'ERROR_STUDENT_NOT_ENROLLED',
         });
       default:

@@ -6,7 +6,7 @@ import { CreateUserDto } from '@lib/dtos/src/enrollment/v1/create-account.dto';
 export class CreateAccountController {
   constructor(private readonly createAccountService: CreateAccountService) {}
 
-  @Post('account')
+  @Post()
   createAccount(@Body() createAccountDto: CreateUserDto) {
     return this.createAccountService.create(createAccountDto);
   }
