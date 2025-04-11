@@ -9,7 +9,7 @@ import {
   IsDateString,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { IsPastDate } from './validators/is-past-date.decorator';
+import { IsPastDate } from '../../../../../apps/enrollment/src/create-account/validators/is-past-date.decorator';
 
 export class CreateUserDto {
   @IsString()

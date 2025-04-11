@@ -1,46 +1,39 @@
-import {
-  Controller,
-  Get,
-  NotFoundException,
-  Param,
-  ParseIntPipe,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { EnrollmentStatus } from './enums/enrollment-status.enum';
-import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 
 @Controller('dashboard')
-@UseGuards(JwtAuthGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Get(':id/enrollment-details')
-  async getEnrollmentDetails(@Param('id', ParseIntPipe) studentId: number) {
-    const result = await this.dashboardService.getEnrollmentDetails(studentId);
+  @MessagePattern({ cmd: 'get_enrollment_details' })
+  async getEnrollmentDetails(@Payload() payload: { studentId: number }) {
+    const result = await this.dashboardService.getEnrollmentDetails(
+      payload.studentId,
+    );
     if (!result) {
-      throw new NotFoundException({
-        message: 'Student not found',
-        error: 'ERROR_STUDENT_NOT_FOUND',
+      throw new RpcException({
+        message: 'ERROR_STUDENT_NOT_FOUND',
       });
     }
     return result;
   }
 
-  @Get(':id/enrollment-status')
-  async getEnrollmentStatus(@Param('id', ParseIntPipe) studentId: number) {
-    const result = await this.dashboardService.getEnrollmentStatus(studentId);
+  @MessagePattern({ cmd: 'get_enrollment_status' })
+  async getEnrollmentStatus(@Payload() payload: { studentId: number }) {
+    const result = await this.dashboardService.getEnrollmentStatus(
+      payload.studentId,
+    );
 
     switch (result) {
       case EnrollmentStatus.NOT_FOUND:
-        throw new NotFoundException({
-          message: 'Student not found',
-          error: 'ERROR_STUDENT_NOT_FOUND',
+        throw new RpcException({
+          message: 'ERROR_STUDENT_NOT_FOUND',
         });
       case EnrollmentStatus.NOT_ENROLLED:
-        throw new NotFoundException({
-          message: 'Student not enrolled',
-          error: 'ERROR_STUDENT_NOT_ENROLLED',
+        throw new RpcException({
+          message: 'ERROR_STUDENT_NOT_ENROLLED',
         });
       default:
         return result;
