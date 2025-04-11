@@ -289,7 +289,8 @@ CREATE TABLE IF NOT EXISTS enrollment.enrollment_fee (
     grade_section_program_id INT NOT NULL,
     name VARCHAR(30) NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
-    description VARCHAR(100) ,
+    description VARCHAR(100),
+    due_date DATE NOT NULL,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -318,12 +319,11 @@ CREATE TABLE IF NOT EXISTS enrollment.school_subscription (
 
 -- enrollment_fee_payment
 CREATE TABLE IF NOT EXISTS enrollment.enrollment_fee_payment (
-    fee_id INT NOT NULL,
     student_id INT NOT NULL,
     proof_of_payment_path VARCHAR(255) NOT NULL,
     upload_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_enrollment_fee_payment PRIMARY KEY (fee_id, student_id)
+    constraint pk_enrollment_fee_payment PRIMARY KEY (student_id)
 );
 
 

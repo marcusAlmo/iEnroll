@@ -1,3 +1,14 @@
+"""
+School Generator Module
+
+This module provides functionality to generate school-related data for the iEnroll system.
+It includes functions to generate schools, their subscriptions, grade levels, sections,
+fees, requirements, and enrollment schedules.
+
+The module uses Faker for generating fake data and maintains referential integrity
+across multiple related tables in the database.
+"""
+
 from faker import Faker
 from datetime import datetime, timedelta
 import random
@@ -7,7 +18,10 @@ fake = Faker()
 
 def get_academic_year():
     """
-    Returns the academic year in the format 'YYYY-YYYY' where the second year is current year + 1
+    Returns the current academic year in the format 'YYYY-YYYY'.
+    
+    Returns:
+        str: The academic year string in the format 'YYYY-YYYY'
     """
     current_year = datetime.now().year
     next_year = current_year + 1
@@ -15,7 +29,13 @@ def get_academic_year():
 
 def generate_invoice_id(cursor):
     """
-    Generates a random invoice ID
+    Generates a new invoice record with random data.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        int: The generated invoice_id if successful, None if failed
     """
     try:
         cursor.execute("""
@@ -63,7 +83,14 @@ def generate_invoice_id(cursor):
 
 def generate_school_subscription(cursor, school_id):
     """
-    Generates a new school subscription with the current academic year
+    Generates a subscription record for a school with a random plan.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        school_id (int): The ID of the school to create subscription for
+        
+    Returns:
+        int: The generated subscription_id if successful, None if failed
     """
     try:
         print(school_id)
@@ -95,10 +122,19 @@ def generate_school_subscription(cursor, school_id):
 
 def generate_school(cursor):
     """
-    Generates a new school with the current academic year
+    Generates a complete school record with all related data.
+    This includes:
+    - School basic information
+    - Address
+    - Subscription
+    - Grade levels
+    - Sections
+    - Fees
+    - Requirements
+    - Enrollment schedules
     
     Args:
-        cursor: Database cursor from the main module
+        cursor: Database cursor for executing SQL queries
         
     Returns:
         int: The generated school_id if successful, None if failed
@@ -184,7 +220,14 @@ def generate_school(cursor):
 
 def generate_grade_level_offered(cursor, school_id):
     """
-    Generates grade level offered for a new school
+    Generates grade level offerings for a school.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        school_id (int): The ID of the school to create grade levels for
+        
+    Returns:
+        list: List of generated grade_level_offered_ids if successful, None if failed
     """
     try:
         academic_levels = ['KGT', 'ELE', 'JHS', 'SHS', 'TER']
@@ -229,7 +272,14 @@ def generate_grade_level_offered(cursor, school_id):
 
 def generate_grade_section_type(cursor, grade_level_offered_id):
     """
-    Generates grade section types for a new school
+    Generates section types for a grade level offering.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        grade_level_offered_id (int): The ID of the grade level offering
+        
+    Returns:
+        int: The generated grade_section_type_id if successful, None if failed
     """
     try:
         section_types = ['special', 'regular']
@@ -267,7 +317,14 @@ def generate_grade_section_type(cursor, grade_level_offered_id):
 
 def generate_grade_section(cursor, grade_section_type_id):
     """
-    Generates grade sections for a new school
+    Generates sections for a grade section type.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        grade_section_type_id (int): The ID of the grade section type
+        
+    Returns:
+        int: The generated grade_section_id if successful, None if failed
     """
     try:
         section_name = fake.word()
@@ -293,7 +350,14 @@ def generate_grade_section(cursor, grade_section_type_id):
 
 def generate_enrollment_fee(cursor, grade_section_type_id):
     """
-    Generates enrollment fees for a new school
+    Generates enrollment fees for a grade section type.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        grade_section_type_id (int): The ID of the grade section type
+        
+    Returns:
+        list: List of generated fee_ids if successful, None if failed
     """
     try:
         fees = [
@@ -325,7 +389,14 @@ def generate_enrollment_fee(cursor, grade_section_type_id):
 
 def generate_enrollment_requirement(cursor, grade_section_type_id):
     """
-    Generates enrollment requirements for a new school
+    Generates enrollment requirements for a grade section type.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        grade_section_type_id (int): The ID of the grade section type
+        
+    Returns:
+        list: List of generated requirement_ids if successful, None if failed
     """
     try:
         cursor.execute("""
@@ -360,7 +431,14 @@ def generate_enrollment_requirement(cursor, grade_section_type_id):
 
 def generate_enrollment_schedule(cursor, grade_level_offered_id):
     """
-    Generates enrollment schedules for a new school
+    Generates enrollment schedules for a grade level offering.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        grade_level_offered_id (int): The ID of the grade level offering
+        
+    Returns:
+        int: The generated schedule_id if successful, None if failed
     """
     try:
         start_datetime = datetime.now()

@@ -1,5 +1,25 @@
+"""
+System Data Generator Module
+
+This module provides functionality to generate initial system data for the iEnroll system.
+It includes functions to set up academic levels, grade levels, system settings, enrollment
+requirements, requirement groups, subscription plans, and company information.
+
+The module ensures that all system-level data is properly initialized and maintains
+referential integrity across related tables.
+"""
+
 def generate_system_initial_setup(cursor):
-    """Main function to set up initial system data"""
+    """
+    Main function to set up all initial system data.
+    This function coordinates the generation of all system-level data in the correct order.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
+    """
     try:
         cursor.execute("BEGIN")
         
@@ -24,7 +44,13 @@ def generate_system_initial_setup(cursor):
 
 def check_default_data(cursor):
     """
-    Checks if the default data already exists in the database
+    Checks if the default system data already exists in the database.
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        bool: True if default data needs to be generated, False if it already exists
     """
     # Check if the system.grade_level table is empty
     cursor.execute("SELECT COUNT(*) FROM system.grade_level")
@@ -39,8 +65,17 @@ def check_default_data(cursor):
 
 def generate_grade_levels(cursor):
     """
-    Generate initial system setup data for grade levels
-    Covers primary (G), secondary (H), and college (C) levels
+    Generates initial grade level data for the system.
+    Creates grade levels for:
+    - Primary School (Grades 1-6)
+    - Secondary School (Grades 7-12)
+    - College (1st to 4th Year)
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
     """
     # Primary School Levels (Grades 1-6)
     primary_levels = [
@@ -94,6 +129,21 @@ def generate_grade_levels(cursor):
         print(f"Error inserting grade levels: {e}")
 
 def generate_academic_levels(cursor):
+    """
+    Generates academic level data for the system.
+    Creates levels for:
+    - Kindergarten
+    - Elementary
+    - Junior High School
+    - Senior High School
+    - Tertiary
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
+    """
     academic_levels = [
         ('KGT', 'Kindergarten'),
         ('ELE', 'Elementary'),
@@ -122,6 +172,25 @@ def generate_academic_levels(cursor):
         print(f"Error inserting academic levels: {e}")
 
 def generate_system_settings(cursor):
+    """
+    Generates default system settings including:
+    - Login attempts limit
+    - Password expiry
+    - Session timeout
+    - Maintenance mode
+    - File upload limits
+    - Allowed file types
+    - Enrollment status
+    - Academic year
+    - System email
+    - Backup retention
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
+    """
     # Default system settings
     system_settings = [
         ('MAX_LOGIN_ATTEMPTS', '3', '3'),
@@ -158,6 +227,25 @@ def generate_system_settings(cursor):
         print(f"Error inserting system settings: {e}")
 
 def generate_common_enrollment_requirements(cursor):
+    """
+    Generates common enrollment requirements that apply across all schools.
+    Includes requirements for:
+    - Transcript of Records (TOR)
+    - Birth Certificate
+    - Good Moral Character
+    - Form 137/138
+    - Medical Certificate
+    - Vaccination Records
+    - ID Photos
+    - Proof of Address
+    - Certificate of Completion
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
+    """
     # Common enrollment requirements that apply across schools
     common_requirements = [
         ('TOR', 'document', 'document', True, 'Official academic records from previous school'),
@@ -195,6 +283,20 @@ def generate_common_enrollment_requirements(cursor):
         print(f"Error inserting common enrollment requirements: {e}")
 
 def requirement_group_generator(cursor):
+    """
+    Generates requirement groups for different enrollment scenarios:
+    - New Student
+    - Transferee
+    - Foreign Student
+    - Returnee
+    - Graduate
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
+    """
     # Sample requirement groups for different enrollment scenarios
     requirement_groups = [
         ('NEW_STUDENT', 'New Student Requirements'),
@@ -227,6 +329,21 @@ def requirement_group_generator(cursor):
         print(f"Error inserting requirement groups: {e}")
 
 def requirement_group_mapping_generator(cursor):
+    """
+    Maps requirements to their respective groups.
+    Creates associations between:
+    - New Student requirements
+    - Transferee requirements
+    - Foreign Student requirements
+    - Returnee requirements
+    - Graduate requirements
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
+    """
     # Map requirements to groups
     group_requirements = [
         # New Student Requirements
@@ -295,7 +412,24 @@ def requirement_group_mapping_generator(cursor):
 
 def generate_plan(cursor):
     """
-    Generates subscription plans in the system.plan table
+    Generates subscription plans for the system:
+    - Free Plan (FRE)
+    - Basic Plan (BAS)
+    - Pro Plan (PRO)
+    - Enterprise Plan (ENT)
+    
+    Each plan includes:
+    - Duration
+    - Pricing
+    - Student limits
+    - Admin limits
+    - Feature limits
+    
+    Args:
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
     """
     # Define subscription plans with all required fields and valid prices
     plans = [
@@ -338,10 +472,18 @@ def generate_plan(cursor):
 
 def about_uppend(cursor):
     """
-    Generates about us content in the system.about_uppend table
+    Generates company information for Uppend IT.
+    Includes:
+    - Contact email
+    - Contact number
+    - Website URL
+    - BIR Accreditation Number
     
     Args:
-        cursor: Database cursor from the main module
+        cursor: Database cursor for executing SQL queries
+        
+    Returns:
+        None
     """
 
     # Define about us content
