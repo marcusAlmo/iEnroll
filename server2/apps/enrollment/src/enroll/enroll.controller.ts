@@ -1,10 +1,9 @@
-import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Controller('enroll')
-@UseGuards(JwtAuthGuard)
 export class EnrollController {
-  @Get()
+  @MessagePattern({ cmd: 'get_hello' })
   getHello() {
     return 'Hello';
   }

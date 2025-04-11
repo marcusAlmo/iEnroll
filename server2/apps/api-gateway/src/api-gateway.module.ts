@@ -12,8 +12,20 @@ import { ChatController } from './chat/chat.controller';
 import { ChatService } from './chat/chat.service';
 import { EnrollmentController } from './enrollment/enrollment.controller';
 import { EnrollmentService } from './enrollment/enrollment.service';
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
+import { LandingService } from './enrollment/landing/landing.service';
+import { LandingController } from './enrollment/landing/landing.controller';
+import { CreateAccountService } from './enrollment/create-account/create-account.service';
+import { CreateAccountController } from './enrollment/create-account/create-account.controller';
+import { DashboardService } from './enrollment/dashboard/dashboard.service';
+import { DashboardController } from './enrollment/dashboard/dashboard.controller';
+import { EnrollController } from './enrollment/enroll/enroll.controller';
+import { EnrollService } from './enrollment/enroll/enroll.service';
+import { AuthModule } from '@lib/auth/auth.module';
 @Module({
   imports: [
+    AuthModule,
     ClientsModule.register([
       {
         name: 'CHAT_SERVICE',
@@ -63,6 +75,18 @@ import { EnrollmentService } from './enrollment/enrollment.service';
           },
         },
       },
+      {
+        name: 'AUTH_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'auth_queue',
+          queueOptions: {
+            durable: true,
+            persistent: true,
+          },
+        },
+      },
     ]),
     GoogleStrategyModule,
   ],
@@ -72,6 +96,11 @@ import { EnrollmentService } from './enrollment/enrollment.service';
     SystemManagementController,
     ChatController,
     EnrollmentController,
+    AuthController,
+    LandingController,
+    CreateAccountController,
+    DashboardController,
+    EnrollController,
   ],
   providers: [
     ApiGatewayService,
@@ -79,6 +108,11 @@ import { EnrollmentService } from './enrollment/enrollment.service';
     SystemManagementService,
     ChatService,
     EnrollmentService,
+    AuthService,
+    LandingService,
+    CreateAccountService,
+    DashboardService,
+    EnrollService,
   ],
 })
 export class ApiGatewayModule {}

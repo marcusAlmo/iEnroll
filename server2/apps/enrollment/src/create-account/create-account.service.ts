@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateUserDto } from './create-account.dto';
+import { Injectable } from '@nestjs/common';
+import { CreateUserDto } from '@lib/dtos/src/enrollment/v1/create-account.dto';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { $Enums } from '@prisma/client';
 import { AuthService } from '@lib/auth/auth.service';
 import { UserExists } from './enums/user-exists.enum';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class CreateAccountService {
@@ -163,11 +164,12 @@ export class CreateAccountService {
     return Boolean(enroller);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private createError(statusCode: number, errorCode: string, message: string) {
-    return new BadRequestException({
+    return new RpcException({
       statusCode,
-      error: errorCode,
-      message,
+      message: errorCode,
+      // message,
     });
   }
 }

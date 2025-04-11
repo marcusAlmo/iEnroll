@@ -1,21 +1,18 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { CreateUserDto } from './create-account.dto';
+import { Controller } from '@nestjs/common';
+import { CreateUserDto } from '@lib/dtos/src/enrollment/v1/create-account.dto';
 import { CreateAccountService } from './create-account.service';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('create-account')
 export class CreateAccountController {
   constructor(private readonly usersService: CreateAccountService) {}
-  @Get()
-  getHello(): string {
-    return 'Hello my Nigga';
-  }
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  @MessagePattern({ cmd: 'create_account' })
+  async create(@Payload() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
-  @Get('/schools')
+  @MessagePattern({ cmd: 'get_all_schools' })
   async getAllSchools() {
     return this.usersService.getAllSchools();
   }

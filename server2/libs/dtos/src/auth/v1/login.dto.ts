@@ -5,19 +5,19 @@ import {
   IsStrongPassword,
 } from 'class-validator';
 
-export class AuthDto {
+export class LoginDto {
   @IsString()
   @IsOptional()
-  username: string;
+  username?: string;
 
   @IsString()
   @IsOptional()
-  email: string;
+  email?: string;
 
   @IsString()
   @IsNotEmpty()
   @IsStrongPassword()
-  password: string;
+  password!: string;
 }
 
 export interface validateSuccessType {

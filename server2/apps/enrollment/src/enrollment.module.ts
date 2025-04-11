@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { EnrollmentController } from './enrollment.controller';
 import { ConfigModule } from '@nestjs/config';
 import { CreateAccountModule } from './create-account/create-account.module';
 import { PrismaModule } from '@lib/prisma/src/prisma.module';
@@ -20,7 +19,6 @@ import configuration from './config/configuration';
     LandingModule,
     DashboardModule,
   ],
-  controllers: [EnrollmentController],
   providers: [],
 })
 export class EnrollmentModule {}

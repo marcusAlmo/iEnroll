@@ -1,48 +1,29 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto, validateSuccessType } from './auth.dto';
+import { LoginDto } from '@lib/dtos/src/auth/v1/login.dto';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get()
-  getHello(): string {
-    return this.authService.getHello();
-  }
-
-  @Post('login')
-  async login(@Body() authDto: AuthDto) {
-    let user: number | validateSuccessType = -1;
-
-    if (authDto.username)
-      user = await this.authService.validateUser({
-        username: authDto.username,
-        password: authDto.password,
-      });
-    else if (authDto.email)
-      user = await this.authService.validateUser({
-        email: authDto.email,
-        password: authDto.password,
-      });
+  @MessagePattern({ cmd: 'login_acc' })
+  async login(@Payload() authDto: LoginDto) {
+    const user = await this.authService.validateUser({
+      username: authDto.username,
+      password: authDto.password,
+      email: authDto.email,
+    });
 
     if (user === -1)
-      throw new UnauthorizedException({
+      throw new RpcException({
         statusCode: 401,
-        error: 'ERR_USER_NOT_FOUND',
-        message: 'User does not exist',
+        message: 'ERR_USER_NOT_FOUND',
       });
     else if (user === -2)
-      throw new UnauthorizedException({
+      throw new RpcException({
         statusCode: 401,
-        error: 'ERR_INVALID_PASSWORD',
-        message: 'Invalid password',
+        message: 'ERR_INVALID_PASSWORD',
       });
     else if (
       typeof user === 'object' &&
