@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './auth.service';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
 // import { JwtAuthGuard } from './guards/jwt-auth.guard';
 // import { AuthService } from './auth.service';
 
@@ -13,7 +14,7 @@ import { AuthService } from './auth.service';
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [JwtStrategy, AuthService],
+  providers: [JwtStrategy, AuthService, PrismaService],
   exports: [JwtModule, JwtStrategy],
 })
 export class AuthModule {}

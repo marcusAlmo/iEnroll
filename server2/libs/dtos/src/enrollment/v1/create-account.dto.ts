@@ -9,27 +9,27 @@ import {
   IsDateString,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { IsPastDate } from '../../../../../apps/enrollment/src/create-account/validators/is-past-date.decorator';
+import { IsPastDate } from '../validators/is-past-date.decorator';
 
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
-  username: string;
+  username!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsPhoneNumber('PH')
   @IsNotEmpty()
-  contactNumber: string;
+  contactNumber!: string;
 
   @IsString()
   @IsNotEmpty()
-  password: string;
+  password!: string;
 
   @IsString()
   @IsNotEmpty()
-  firstName: string;
+  firstName!: string;
 
   @IsString()
   @IsOptional()
@@ -37,7 +37,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  lastName: string;
+  lastName!: string;
 
   @IsString()
   @IsOptional()
@@ -51,10 +51,10 @@ export class CreateUserDto {
   @IsPastDate(false, {
     message: 'Date of birth cannot be today or in the future.',
   })
-  dateOfBirth: string | Date;
+  dateOfBirth!: string | Date;
 
   @IsEnum(['M', 'F', 'O'])
-  gender: 'M' | 'F' | 'O';
+  gender!: 'M' | 'F' | 'O';
 
   // @IsString()
   // @IsNotEmpty()
@@ -62,7 +62,7 @@ export class CreateUserDto {
 
   @IsNumber()
   @IsNotEmpty()
-  schoolId: number;
+  schoolId!: number;
 
   // @IsNumber()
   // @IsNotEmpty()
@@ -70,15 +70,15 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  street: string;
+  street!: string;
 
   @IsString()
   @IsNotEmpty()
-  district: string;
+  district!: string;
 
   @IsString()
   @IsNotEmpty()
-  municipality: string;
+  municipality!: string;
 
   @IsNumber()
   @IsOptional()
