@@ -81,6 +81,7 @@ export class CreateAccountService {
           street: createUserDto.street,
           district: createUserDto.district,
           municipality: createUserDto.municipality,
+          province: createUserDto.province,
         },
       });
 
