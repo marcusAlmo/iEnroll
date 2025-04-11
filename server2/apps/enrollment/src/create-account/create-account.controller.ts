@@ -9,6 +9,7 @@ export class CreateAccountController {
 
   @MessagePattern({ cmd: 'create_account' })
   async create(@Payload() createUserDto: CreateUserDto) {
+    console.debug('Received payload:', createUserDto);
     return this.usersService.create(createUserDto);
   }
 
