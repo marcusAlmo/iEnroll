@@ -103,15 +103,15 @@ model enrollment_application {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model enrollment_fee {
-  fee_id                   Int                      @id(map: "pk_enrollment_fee") @default(autoincrement())
+  fee_id                   Int                   @id(map: "pk_enrollment_fee") @default(autoincrement())
   grade_section_program_id Int
-  name                     String                   @db.VarChar(30)
-  amount                   Decimal                  @db.Decimal(10, 2)
-  description              String?                  @db.VarChar(100)
-  creation_datetime        DateTime?                @default(now()) @db.Timestamp(6)
-  update_datetime          DateTime?                @default(now()) @db.Timestamp(6)
-  grade_section_program    grade_section_program    @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_enrollment_fee_grade_section_type_id")
-  enrollment_fee_payment   enrollment_fee_payment[]
+  name                     String                @db.VarChar(30)
+  amount                   Decimal               @db.Decimal(10, 2)
+  description              String?               @db.VarChar(100)
+  creation_datetime        DateTime?             @default(now()) @db.Timestamp(6)
+  update_datetime          DateTime?             @default(now()) @db.Timestamp(6)
+  due_date                 DateTime              @db.Date
+  grade_section_program    grade_section_program @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_enrollment_fee_grade_section_type_id")
 
   @@unique([grade_section_program_id, name], map: "uq_enrollment_fee")
   @@index([grade_section_program_id], map: "idx_enrollment_fee_grade_section_type_id")
@@ -299,18 +299,18 @@ model school_subscription {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model student {
-  student_id                     Int                      @id(map: "pk_student") @default(autoincrement())
+  student_id                     Int                     @id(map: "pk_student") @default(autoincrement())
   address_id                     Int
   enroller_id                    Int
-  birthdate                      DateTime                 @db.Date
-  has_enrolled                   Boolean?                 @default(false)
-  update_datetime                DateTime?                @default(now()) @db.Timestamp(6)
+  birthdate                      DateTime                @db.Date
+  has_enrolled                   Boolean?                @default(false)
+  update_datetime                DateTime?               @default(now()) @db.Timestamp(6)
   enrollment_application         enrollment_application?
-  enrollment_fee_payment         enrollment_fee_payment[]
+  enrollment_fee_payment         enrollment_fee_payment?
   school_file_access             school_file_access[]
-  address                        address                  @relation(fields: [address_id], references: [address_id], map: "fk_student_address_id")
-  user_student_enroller_idTouser user                     @relation("student_enroller_idTouser", fields: [enroller_id], references: [user_id], map: "fk_student_enroller_id")
-  user_student_student_idTouser  user                     @relation("student_student_idTouser", fields: [student_id], references: [user_id], map: "fk_student_user_id")
+  address                        address                 @relation(fields: [address_id], references: [address_id], map: "fk_student_address_id")
+  user_student_enroller_idTouser user                    @relation("student_enroller_idTouser", fields: [enroller_id], references: [user_id], map: "fk_student_enroller_id")
+  user_student_student_idTouser  user                    @relation("student_student_idTouser", fields: [student_id], references: [user_id], map: "fk_student_user_id")
 
   @@index([address_id], map: "idx_student_address_id")
   @@index([enroller_id], map: "idx_student_enroller_id")
@@ -646,14 +646,11 @@ model system_setting {
 }
 
 model enrollment_fee_payment {
-  fee_id                Int
-  student_id            Int
-  proof_of_payment_path String         @db.VarChar(255)
-  upload_datetime       DateTime?      @default(now()) @db.Timestamp(6)
-  enrollment_fee        enrollment_fee @relation(fields: [fee_id], references: [fee_id], map: "fk_enrollment_fee_payment_fee_id")
-  student               student        @relation(fields: [student_id], references: [student_id], map: "fk_enrollment_fee_payment_student_id")
+  student_id            Int       @id(map: "pk_enrollment_fee_payment")
+  proof_of_payment_path String    @db.VarChar(255)
+  upload_datetime       DateTime? @default(now()) @db.Timestamp(6)
+  student               student   @relation(fields: [student_id], references: [student_id], map: "fk_enrollment_fee_payment_student_id")
 
-  @@id([fee_id, student_id], map: "pk_enrollment_fee_payment")
   @@schema("enrollment")
 }
 
