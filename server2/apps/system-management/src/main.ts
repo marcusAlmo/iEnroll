@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { SystemManagementModule } from './system-management.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { rabbitMQQueue, rabbitMqUrl } from '@lib/constants/rabbit-mq.constants';
 
 async function bootstrap() {
   // Create HTTP adapter for health checks
@@ -9,8 +10,8 @@ async function bootstrap() {
     {
       transport: Transport.RMQ,
       options: {
-        urls: ['amqp://localhost:5672'],
-        queue: 'system_management_queue',
+        urls: [rabbitMqUrl],
+        queue: rabbitMQQueue.SYSTEM_MANAGEMENT,
         queueOptions: {
           durable: true,
         },

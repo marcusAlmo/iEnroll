@@ -167,5 +167,27 @@ export class EnrollService {
     );
   }
 
-  async getAllFees() {}
+  // TODO: Fill up platform and number
+  async getFeeDetails(gradeSectionProgramId: number) {
+    const result = await this.prisma.enrollment_fee.findMany({
+      where: { grade_section_program_id: gradeSectionProgramId },
+      select: {
+        name: true,
+        amount: true,
+        description: true,
+        due_date: true,
+      },
+    });
+
+    return {
+      fees: result.map(({ name, amount, description, due_date }) => ({
+        name,
+        amount: amount.toNumber(),
+        description,
+        dueDate: due_date,
+      })),
+      platform: null,
+      number: null,
+    };
+  }
 }

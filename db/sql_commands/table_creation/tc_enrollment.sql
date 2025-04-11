@@ -97,23 +97,24 @@ CREATE TABLE IF NOT EXISTS enrollment.student (
 
 -- school_file
 CREATE TYPE enrollment.access_type AS ENUM ('public', 'limited', 'restricted');
+
 CREATE TABLE IF NOT EXISTS enrollment.school_file (
-    file_id INT GENERATED ALWAYS AS IDENTITY,
+    school_file_id INT GENERATED ALWAYS AS IDENTITY,
     school_id INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    file_path VARCHAR(255) NOT NULL,
+    file_id INT NOT NULL,
     description VARCHAR(255) NOT NULL,
     access_type enrollment.access_type NOT NULL,
     upload_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_school_file PRIMARY KEY (file_id)
+    constraint pk_school_file PRIMARY KEY (school_file_id),
+    constraint uq_school_file UNIQUE (school_id, file_id)
 );
 
 -- school_file_access
 CREATE TABLE IF NOT EXISTS enrollment.school_file_access (
     file_access_id INT GENERATED ALWAYS AS IDENTITY,
-    file_id INT NOT NULL,
+    school_file_id INT NOT NULL,
     student_id INT NOT NULL,
     issuer_id INT NOT NULL,
     access_datetime TIMESTAMP,
@@ -157,7 +158,8 @@ CREATE TYPE enrollment.attachment_status AS ENUM ('pending', 'accepted', 'invali
 CREATE TABLE IF NOT EXISTS enrollment.application_attachment (
     application_id INT NOT NULL,
     requirement_id INT NOT NULL,
-    attachment VARCHAR(255) NOT NULL,
+    text_content TEXT,
+    file_id INT,
     type enrollment.attachment_type NOT NULL,
     status enrollment.attachment_status NOT NULL,
     reviewer_id INT,
@@ -320,11 +322,12 @@ CREATE TABLE IF NOT EXISTS enrollment.school_subscription (
 -- enrollment_fee_payment
 CREATE TABLE IF NOT EXISTS enrollment.enrollment_fee_payment (
     student_id INT NOT NULL,
-    proof_of_payment_path VARCHAR(255) NOT NULL,
+    file_id INT NOT NULL,
     payment_option_id INT NOT NULL,
     upload_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_enrollment_fee_payment PRIMARY KEY (student_id)
+    constraint pk_enrollment_fee_payment PRIMARY KEY (student_id),
+    constraint uq_enrollment_fee_payment UNIQUE (file_id)
 );
 
 CREATE TYPE enrollment.payment_option_type AS ENUM ('credit_card', 'debit_card', 'e-wallet', 'bank_transfer', 'crypto');
@@ -347,3 +350,15 @@ CREATE TABLE IF NOT EXISTS enrollment.school_payment_option (
     constraint uq_school_payment_option UNIQUE (school_id, payment_option_type)
 );
 
+-- file
+CREATE TABLE IF NOT EXISTS enrollment.file (
+    file_id INT GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(255) NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    type VARCHAR(100) NOT NULL,
+    size INT NOT NULL,
+    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    constraint pk_file PRIMARY KEY (file_id),
+    constraint uq_file UNIQUE (name, path, type)
+);

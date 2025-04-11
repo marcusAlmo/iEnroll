@@ -4,9 +4,9 @@ import { rabbitMQQueue, rabbitMqUrl } from '@lib/constants/rabbit-mq.constants';
 export default () => ({
   rabbitmq: {
     url: rabbitMqUrl,
-    chatQueue: rabbitMQQueue.AUTH,
+    chatQueue: rabbitMQQueue.DOCUMENT,
     deadLetterExchange: 'dlx',
-    deadLetterRoutingKey: 'auth_queue.dlq',
+    deadLetterRoutingKey: 'document_queue.dlq',
   },
   // other service-specific config
 });
