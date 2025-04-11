@@ -1,7 +1,8 @@
 import { Transport, ClientProviderOptions } from '@nestjs/microservices';
 
+export const rabbitMqUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
+
 const getRabbitMQConfig = (serviceName: string): ClientProviderOptions => {
-  const rabbitMqUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
   return {
     name: `${serviceName}_SERVICE`,
     transport: Transport.RMQ,
@@ -23,4 +24,12 @@ export const rabbitMQConstants = {
   SYSTEM_MANAGEMENT: getRabbitMQConfig('SYSTEM_MANAGEMENT'),
   AUTH: getRabbitMQConfig('AUTH'),
   // Add other services here as needed
+};
+
+export const rabbitMQQueue = {
+  ENROLLMENT: 'enrollment_queue',
+  CHAT: 'chat_queue',
+  METRICS: 'metrics_queue',
+  SYSTEM_MANAGEMENT: 'system_management_queue',
+  AUTH: 'auth_queue',
 };
