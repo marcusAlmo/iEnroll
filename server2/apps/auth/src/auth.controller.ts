@@ -9,10 +9,11 @@ export class AuthController {
 
   @MessagePattern({ cmd: 'login_acc' })
   async login(@Payload() authDto: LoginDto) {
-    const user = await this.authService.validateUser(
-      authDto.username,
-      authDto.password,
-    );
+    const user = await this.authService.validateUser({
+      username: authDto.username,
+      password: authDto.password,
+      email: authDto.email,
+    });
 
     if (user === -1)
       throw new RpcException({
@@ -24,6 +25,12 @@ export class AuthController {
         statusCode: 401,
         message: 'ERR_INVALID_PASSWORD',
       });
-    else return this.authService.login(user);
+    else if (
+      typeof user === 'object' &&
+      user !== null &&
+      'userId' in user &&
+      'username' in user
+    )
+      return this.authService.login(user);
   }
 }
