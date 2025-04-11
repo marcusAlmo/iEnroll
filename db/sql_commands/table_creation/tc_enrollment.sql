@@ -321,11 +321,29 @@ CREATE TABLE IF NOT EXISTS enrollment.school_subscription (
 CREATE TABLE IF NOT EXISTS enrollment.enrollment_fee_payment (
     student_id INT NOT NULL,
     proof_of_payment_path VARCHAR(255) NOT NULL,
+    payment_option_id INT NOT NULL,
     upload_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_enrollment_fee_payment PRIMARY KEY (student_id)
 );
 
+CREATE TYPE enrollment.payment_option_type AS ENUM ('credit_card', 'debit_card', 'e-wallet', 'bank_transfer', 'crypto');
 
+-- school_payment_option
+CREATE TABLE IF NOT EXISTS enrollment.school_payment_option (
+    payment_option_id INT GENERATED ALWAYS AS IDENTITY,
+    school_id INT NOT NULL,
+    payment_option_type enrollment.payment_option_type NOT NULL,
+    provider VARCHAR(255) NOT NULL,
+    account_number VARCHAR(40) NOT NULL,
+    account_name VARCHAR(100) NOT NULL,
+    is_available BOOLEAN DEFAULT TRUE,
+    additional_fee NUMERIC(10, 2) NOT NULL,
+    instruction TEXT,
+    creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+    constraint pk_school_payment_option PRIMARY KEY (payment_option_id),
+    constraint uq_school_payment_option UNIQUE (school_id, payment_option_type)
+);
 

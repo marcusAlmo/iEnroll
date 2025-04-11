@@ -104,7 +104,12 @@ ALTER TABLE enrollment.school_subscription
 
 -- enrollment_fee_payment
 ALTER TABLE enrollment.enrollment_fee_payment
-    ADD CONSTRAINT fk_enrollment_fee_payment_fee_id FOREIGN KEY (fee_id) REFERENCES enrollment.enrollment_fee(fee_id) ON UPDATE CASCADE ON DELETE RESTRICT;
-ALTER TABLE enrollment.enrollment_fee_payment
     ADD CONSTRAINT fk_enrollment_fee_payment_student_id FOREIGN KEY (student_id) REFERENCES enrollment.student(student_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE enrollment.enrollment_fee_payment
+    ADD CONSTRAINT fk_enrollment_fee_payment_payment_option_id FOREIGN KEY (payment_option_id) REFERENCES enrollment.school_payment_option(payment_option_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+-- payment_option
+ALTER TABLE enrollment.school_payment_option
+    ADD CONSTRAINT fk_school_payment_option_school_id FOREIGN KEY (school_id) REFERENCES enrollment.school(school_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
 
