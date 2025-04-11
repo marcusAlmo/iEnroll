@@ -1,10 +1,12 @@
+import { rabbitMQQueue, rabbitMqUrl } from '@lib/constants/rabbit-mq.constants';
+
 // apps/user-service/src/config/configuration.ts
 export default () => ({
   rabbitmq: {
-    url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
-    chatQueue: 'chat_queue',
+    url: rabbitMqUrl,
+    chatQueue: rabbitMQQueue.AUTH,
     deadLetterExchange: 'dlx',
-    deadLetterRoutingKey: 'chat_queue.dlq',
+    deadLetterRoutingKey: 'auth_queue.dlq',
   },
   // other service-specific config
 });
