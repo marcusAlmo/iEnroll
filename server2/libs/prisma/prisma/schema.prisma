@@ -241,23 +241,6 @@ model school {
   school_file           school_file[]
   school_payment_option school_payment_option[]
   user                  user[]
-  school_id             Int                     @id(map: "pk_school")
-  name                  String                  @unique(map: "uq_school_name") @db.VarChar(255)
-  academic_year         String                  @db.VarChar(9)
-  school_type           school_type
-  email_address         String                  @db.VarChar(100)
-  contact_number        String                  @db.Char(11)
-  website_url           String?                 @db.VarChar(255)
-  address_id            Int
-  is_active             Boolean?                @default(true)
-  creation_datetime     DateTime?               @default(now()) @db.Timestamp(6)
-  update_datetime       DateTime?               @default(now()) @db.Timestamp(6)
-  banner                banner?
-  grade_level_offered   grade_level_offered[]
-  address               address                 @relation(fields: [address_id], references: [address_id], map: "fk_school_address_id")
-  school_file           school_file[]
-  school_payment_option school_payment_option[]
-  user                  user[]
 
   @@index([address_id], map: "idx_school_address_id")
   @@schema("enrollment")
@@ -667,10 +650,13 @@ model system_setting {
 }
 
 model enrollment_fee_payment {
-  student_id            Int       @id(map: "pk_enrollment_fee_payment")
-  proof_of_payment_path String    @db.VarChar(255)
-  upload_datetime       DateTime? @default(now()) @db.Timestamp(6)
-  student               student   @relation(fields: [student_id], references: [student_id], map: "fk_enrollment_fee_payment_student_id")
+  student_id            Int                   @id(map: "pk_enrollment_fee_payment")
+  file_id               Int                   @unique(map: "uq_file_id")
+  upload_datetime       DateTime?             @default(now()) @db.Timestamp(6)
+  payment_option_id     Int
+  file                  file                  @relation(fields: [file_id], references: [file_id], map: "fk_enrollment_fee_payment_file_id")
+  school_payment_option school_payment_option @relation(fields: [payment_option_id], references: [payment_option_id], map: "fk_enrollment_fee_payment_payment_option_id")
+  student               student               @relation(fields: [student_id], references: [student_id], map: "fk_enrollment_fee_payment_student_id")
 
   @@schema("enrollment")
 }
@@ -725,6 +711,40 @@ model subscription_plan {
   school_subscription    school_subscription[]
 
   @@schema("system")
+}
+
+model file {
+  file_id                Int                      @id(map: "pk_file") @default(autoincrement())
+  name                   String                   @db.VarChar(255)
+  path                   String                   @db.VarChar(255)
+  type                   String                   @db.VarChar(100)
+  size                   Int
+  creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
+  application_attachment application_attachment[]
+  enrollment_fee_payment enrollment_fee_payment?
+  school_file            school_file[]
+
+  @@unique([name, path, type], map: "uq_file")
+  @@schema("enrollment")
+}
+
+model school_payment_option {
+  payment_option_id      Int                      @id(map: "pk_school_payment_option") @default(autoincrement())
+  school_id              Int
+  payment_option_type    payment_option_type
+  provider               String                   @db.VarChar(255)
+  account_number         String                   @db.VarChar(40)
+  account_name           String                   @db.VarChar(100)
+  is_available           Boolean?                 @default(true)
+  additional_fee         Decimal                  @db.Decimal(10, 2)
+  instruction            String?
+  creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
+  update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
+  enrollment_fee_payment enrollment_fee_payment[]
+  school                 school                   @relation(fields: [school_id], references: [school_id], map: "fk_school_payment_option_school_id")
+
+  @@unique([school_id, payment_option_type], map: "uq_school_payment_option")
+  @@schema("enrollment")
 }
 
 enum accepted_data_type {
