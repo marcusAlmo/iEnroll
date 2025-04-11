@@ -91,7 +91,7 @@ export class DashboardService {
         },
         enrollment_fee_payment: {
           select: {
-            proof_of_payment_path: true,
+            file_id: true,
           },
         },
       },

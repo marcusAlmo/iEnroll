@@ -1,8 +1,10 @@
+import { rabbitMQQueue, rabbitMqUrl } from '@lib/constants/rabbit-mq.constants';
+
 // apps/user-service/src/config/configuration.ts
 export default () => ({
   rabbitmq: {
-    url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
-    enrollmentQueue: 'enrollment_queue',
+    url: rabbitMqUrl,
+    enrollmentQueue: rabbitMQQueue.ENROLLMENT,
     deadLetterExchange: 'dlx',
     deadLetterRoutingKey: 'enrollment_queue.dlq',
   },
