@@ -6,7 +6,6 @@ import {
   IsNotEmpty,
   IsPhoneNumber,
   IsNumber,
-  IsDateString,
   IsDate,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
