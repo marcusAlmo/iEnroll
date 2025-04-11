@@ -33,10 +33,14 @@ export class EnrollService {
             },
           },
         },
-        grade_section_type: {
+        grade_section_program: {
           select: {
-            grade_section_type_id: true,
-            section_type: true,
+            grade_section_program_id: true,
+            academic_program: {
+              select: {
+                program: true,
+              },
+            },
             grade_section: {
               select: {
                 grade_section_id: true,
@@ -64,7 +68,7 @@ export class EnrollService {
           curr.grade_level.academic_level.academic_level_code;
         const gradeLevelName = curr.grade_level.grade_level;
         const gradeLevelCode = curr.grade_level.grade_level_code;
-        const gradeSectionTypes = curr.grade_section_type;
+        const gradeSectionPrograms = curr.grade_section_program;
 
         // Filter valid enrollment schedules
         const filteredSchedules = curr.enrollment_schedule.filter(
@@ -72,10 +76,10 @@ export class EnrollService {
         );
 
         // Build section types with sections
-        const sectionTypes = gradeSectionTypes.map((type) => ({
-          id: type.grade_section_type_id,
-          type: type.section_type,
-          sections: type.grade_section.map((section) => ({
+        const sectionTypes = gradeSectionPrograms.map((program) => ({
+          id: program.grade_section_program_id,
+          type: program.academic_program.program,
+          sections: program.grade_section.map((section) => ({
             id: section.grade_section_id,
             name: section.section_name,
             slot: section.slot,
@@ -132,25 +136,31 @@ export class EnrollService {
     return Object.values(grouped);
   }
 
-  async getAllGradeSectionTypeRequirements(gradeSectionTypeId: number) {
+  async getAllGradeSectionTypeRequirements(gradeSectionProgramId: number) {
     const result = await this.prisma.enrollment_requirement.findMany({
       where: {
-        grade_section_type_id: gradeSectionTypeId,
+        grade_section_program_id: gradeSectionProgramId,
       },
       select: {
         requirement_id: true,
         name: true,
-        type: true,
+        requirement_type: true,
         accepted_data_type: true,
         is_required: true,
       },
     });
 
     return result.map(
-      ({ requirement_id, name, type, accepted_data_type, is_required }) => ({
+      ({
+        requirement_id,
+        name,
+        requirement_type,
+        accepted_data_type,
+        is_required,
+      }) => ({
         requirementId: requirement_id,
         name,
-        type,
+        requirement_type,
         acceptedDataTypes: accepted_data_type,
         isRequired: is_required,
       }),

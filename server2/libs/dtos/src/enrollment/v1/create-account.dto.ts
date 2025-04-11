@@ -80,6 +80,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   municipality!: string;
 
+  @IsString()
+  @IsNotEmpty()
+  province!: string;
+
   @IsNumber()
   @IsOptional()
   enrollerId?: number;
