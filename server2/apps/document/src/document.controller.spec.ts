@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentController } from './document.controller';
 import { DocumentService } from './document.service';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
 
 describe('DocumentController', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -9,7 +10,7 @@ describe('DocumentController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [DocumentController],
-      providers: [DocumentService],
+      providers: [DocumentService, PrismaService],
     }).compile();
 
     documentController = app.get<DocumentController>(DocumentController);
