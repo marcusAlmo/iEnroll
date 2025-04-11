@@ -12,6 +12,8 @@ import { ChatController } from './chat/chat.controller';
 import { ChatService } from './chat/chat.service';
 import { EnrollmentController } from './enrollment/enrollment.controller';
 import { EnrollmentService } from './enrollment/enrollment.service';
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
 @Module({
   imports: [
     ClientsModule.register([
@@ -63,6 +65,18 @@ import { EnrollmentService } from './enrollment/enrollment.service';
           },
         },
       },
+      {
+        name: 'AUTH_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'auth_queue',
+          queueOptions: {
+            durable: true,
+            persistent: true,
+          },
+        },
+      },
     ]),
     GoogleStrategyModule,
   ],
@@ -72,6 +86,7 @@ import { EnrollmentService } from './enrollment/enrollment.service';
     SystemManagementController,
     ChatController,
     EnrollmentController,
+    AuthController,
   ],
   providers: [
     ApiGatewayService,
@@ -79,6 +94,7 @@ import { EnrollmentService } from './enrollment/enrollment.service';
     SystemManagementService,
     ChatService,
     EnrollmentService,
+    AuthService,
   ],
 })
 export class ApiGatewayModule {}
