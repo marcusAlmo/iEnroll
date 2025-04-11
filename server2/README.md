@@ -44,37 +44,6 @@ To get started, you'll need to have Node.js (v14 or above) and npm installed.
      npm run start:dev
    ```
 
-3. **Running Individual Services**:
-   Chat service
-
-   ```bash
-     npm run start:dev:chat
-   ```
-
-   Enrollment service
-
-   ```bash
-     npm run start:dev:enrollment
-   ```
-
-   System management service
-
-   ```bash
-     npm run start:dev:system-management
-   ```
-
-   Metrics service
-
-   ```bash
-     npm run start:dev:metrics
-   ```
-
-   Auth service
-
-   ```bash
-     npm run start:dev:auth
-   ```
-
 4. **Running All Services**:
 
    ```bash
@@ -121,6 +90,8 @@ You can customize the app behavior by editing the `.env` file. Remember that you
 | `JWT_SECRET_KEY`             | Secret key for signing JWTs     | No (must be specified for auth to work)  | `your_jwt_secret`  |
 | `JWT_EXPIRATION`             | JWT token expiration time       | No (must be specified for auth to work)  | `1d`, `7d`         |
 | `RABBITMQ_URL`               | RabbitMQ connection string      | No (required in production environments) | `amqp://localhost` |
+| `GOOGLE_CLIENT_ID`               | Google client ID      | Yes                                      | `djbetdf45t...`   |
+| `GOOGLE_CLIENT_SECRET`               | Google client secret      | Yes                                      | `GOCS-wwdewr...`   |
 
 > 🛡️ Keep sensitive values like `JWT_SECRET_KEY` secure and never commit them to version control.
 
