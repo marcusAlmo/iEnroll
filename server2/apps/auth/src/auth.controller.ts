@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto } from './auth.dto';
+import { AuthDto, validateSuccessType } from './auth.dto';
 
 @Controller()
 export class AuthController {
@@ -19,10 +19,19 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() authDto: AuthDto) {
-    const user = await this.authService.validateUser(
-      authDto.username,
-      authDto.password,
-    );
+    let user: number | validateSuccessType = -1;
+
+    if (authDto.username)
+      user = await this.authService.validateUser({
+        username: authDto.username,
+        password: authDto.password,
+      });
+    else if (authDto.email)
+      user = await this.authService.validateUser({
+        email: authDto.email,
+        password: authDto.password,
+      });
+
     if (user === -1)
       throw new UnauthorizedException({
         statusCode: 401,
@@ -35,6 +44,12 @@ export class AuthController {
         error: 'ERR_INVALID_PASSWORD',
         message: 'Invalid password',
       });
-    else return this.authService.login(user);
+    else if (
+      typeof user === 'object' &&
+      user !== null &&
+      'userId' in user &&
+      'username' in user
+    )
+      return this.authService.login(user);
   }
 }

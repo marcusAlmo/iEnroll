@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { requestData } from "@/lib/dataRequester";
 
 const schema = yup.object().shape({
@@ -45,12 +45,36 @@ export default function CredentialsForm() {
     }
   };
 
+  const login = async () => {
+    if (emailFromQuery && verifiedFromQuery) {
+      try{
+        const passwordFromQuery = localStorage.getItem("password");
+
+        if(!passwordFromQuery) throw new Error("Password not found");
+
+        // eslint-disable-next-line
+        const res = await requestData<any>({
+          url: "http://localhost:3005/api/auth/login?",
+          method: "POST",
+          body: {
+            email: emailFromQuery,
+            password: passwordFromQuery,
+          }
+        });
+
+        if(res){
+          navigate("/admin");
+        }
+      }catch(err) {
+        if(err instanceof Error) console.log(err.message);
+        else console.log(err);
+      }
+    }
+  }
+
   // determine if the user is logged in in google
   useEffect(() => {
-    if (emailFromQuery && verifiedFromQuery) {
-      console.log(emailFromQuery, verifiedFromQuery);
-      console.log(localStorage.getItem("email"), localStorage.getItem("password"));
-    }
+    login();
   }, [emailFromQuery, verifiedFromQuery]);
 
   return (

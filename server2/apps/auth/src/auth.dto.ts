@@ -1,12 +1,26 @@
-import { IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsStrongPassword,
+} from 'class-validator';
 
 export class AuthDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   username: string;
+
+  @IsString()
+  @IsOptional()
+  email: string;
 
   @IsString()
   @IsNotEmpty()
   @IsStrongPassword()
   password: string;
+}
+
+export interface validateSuccessType {
+  userId: number;
+  username: string;
 }

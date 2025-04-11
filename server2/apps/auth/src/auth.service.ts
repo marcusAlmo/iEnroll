@@ -4,6 +4,12 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from '@lib/auth/interfaces/jwt-payload.interface';
 
+interface UserType {
+  user_id: number;
+  username: string;
+  password_hash: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -27,11 +33,32 @@ export class AuthService {
    *
    * @throws Will propagate any errors encountered during the database query or password comparison.
    */
-  async validateUser(username: string, password: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { username },
-      select: { user_id: true, username: true, password_hash: true },
-    });
+  async validateUser({
+    password,
+    username,
+    email,
+  }: {
+    password: string;
+    username?: string;
+    email?: string;
+  }) {
+    if (!username && !email) {
+      throw new Error('Username or email is required');
+    }
+
+    let user: UserType | null = null;
+
+    if (username) {
+      user = await this.prisma.user.findFirst({
+        where: { username },
+        select: { user_id: true, username: true, password_hash: true },
+      });
+    } else if (email) {
+      user = await this.prisma.user.findFirst({
+        where: { email_address: email },
+        select: { user_id: true, username: true, password_hash: true },
+      });
+    }
 
     if (!user) return -1;
 
