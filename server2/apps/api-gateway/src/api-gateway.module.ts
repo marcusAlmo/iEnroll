@@ -4,8 +4,28 @@ import { ApiGatewayService } from './api-gateway.service';
 import { Transport } from '@nestjs/microservices';
 import { ClientsModule } from '@nestjs/microservices';
 import { GoogleStrategyModule } from '@lib/google-strategy/google.module';
+import { MetricsController } from './metrics/metrics.controller';
+import { MetricsService } from './metrics/metrics.service';
+import { SystemManagementController } from './system-management/system-management.controller';
+import { SystemManagementService } from './system-management/system-management.service';
+import { ChatController } from './chat/chat.controller';
+import { ChatService } from './chat/chat.service';
+import { EnrollmentController } from './enrollment/enrollment.controller';
+import { EnrollmentService } from './enrollment/enrollment.service';
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
+import { LandingService } from './enrollment/landing/landing.service';
+import { LandingController } from './enrollment/landing/landing.controller';
+import { CreateAccountService } from './enrollment/create-account/create-account.service';
+import { CreateAccountController } from './enrollment/create-account/create-account.controller';
+import { DashboardService } from './enrollment/dashboard/dashboard.service';
+import { DashboardController } from './enrollment/dashboard/dashboard.controller';
+import { EnrollController } from './enrollment/enroll/enroll.controller';
+import { EnrollService } from './enrollment/enroll/enroll.service';
+import { AuthModule } from '@lib/auth/auth.module';
 @Module({
   imports: [
+    AuthModule,
     ClientsModule.register([
       {
         name: 'CHAT_SERVICE',
@@ -23,8 +43,44 @@ import { GoogleStrategyModule } from '@lib/google-strategy/google.module';
         name: 'ENROLLMENT_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+          urls: ['amqp://localhost:5672'],
           queue: 'enrollment_queue',
+          queueOptions: {
+            durable: true,
+            persistent: true,
+          },
+        },
+      },
+      {
+        name: 'METRICS_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'metrics_queue',
+          queueOptions: {
+            durable: true,
+            persistent: true,
+          },
+        },
+      },
+      {
+        name: 'SYSTEM_MANAGEMENT_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'system_management_queue',
+          queueOptions: {
+            durable: true,
+            persistent: true,
+          },
+        },
+      },
+      {
+        name: 'AUTH_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'auth_queue',
           queueOptions: {
             durable: true,
             persistent: true,
@@ -34,7 +90,29 @@ import { GoogleStrategyModule } from '@lib/google-strategy/google.module';
     ]),
     GoogleStrategyModule,
   ],
-  controllers: [ApiGatewayController],
-  providers: [ApiGatewayService],
+  controllers: [
+    ApiGatewayController,
+    MetricsController,
+    SystemManagementController,
+    ChatController,
+    EnrollmentController,
+    AuthController,
+    LandingController,
+    CreateAccountController,
+    DashboardController,
+    EnrollController,
+  ],
+  providers: [
+    ApiGatewayService,
+    MetricsService,
+    SystemManagementService,
+    ChatService,
+    EnrollmentService,
+    AuthService,
+    LandingService,
+    CreateAccountService,
+    DashboardService,
+    EnrollService,
+  ],
 })
 export class ApiGatewayModule {}

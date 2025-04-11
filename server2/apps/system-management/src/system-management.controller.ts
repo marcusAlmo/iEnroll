@@ -1,9 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Controller()
 export class SystemManagementController {
-  @Get()
-  getHello(): string {
-    return 'You are gay';
+  @MessagePattern({ cmd: 'get_system_management' })
+  getSystemManagement() {
+    return { message: 'You are gay' };
   }
 }

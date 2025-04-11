@@ -44,37 +44,6 @@ To get started, you'll need to have Node.js (v14 or above) and npm installed.
      npm run start:dev
    ```
 
-3. **Running Individual Services**:
-   Chat service
-
-   ```bash
-     npm run start:dev:chat
-   ```
-
-   Enrollment service
-
-   ```bash
-     npm run start:dev:enrollment
-   ```
-
-   System management service
-
-   ```bash
-     npm run start:dev:system-management
-   ```
-
-   Metrics service
-
-   ```bash
-     npm run start:dev:metrics
-   ```
-
-   Auth service
-
-   ```bash
-     npm run start:dev:auth
-   ```
-
 4. **Running All Services**:
 
    ```bash
@@ -107,18 +76,22 @@ To get started, you'll need to have Node.js (v14 or above) and npm installed.
 
 ## Configuration
 
-You can customize the app behavior by editing the `.env` file. Below are the key environment variables:
+You can customize the app behavior by editing the `.env` file. Remember that you must specify the required variables. Below are the key environment variables.:
 
-| Variable Name                | Description                        | Example           |
-| ---------------------------- | ---------------------------------- | ----------------- |
-| `DATABASE_URL`               | Database connection string         | `postgres://...`  |
-| `API_GATEWAY_PORT`           | Port for the API gateway           | `3000`            |
-| `CHAT_API_PORT`              | Port for the Chat service          | `3001`            |
-| `ENROLLMENT_API_PORT`        | Port for the Enrollment service    | `3002`            |
-| `SYSTEM_MANAGEMENT_API_PORT` | Port for System Management service | `3003`            |
-| `METRICS_API_PORT`           | Port for the Metrics service       | `3004`            |
-| `AUTH_API_PORT`              | Port for the Auth service          | `3005`            |
-| `JWT_SECRET_KEY`             | Secret for signing JWTs            | `your_jwt_secret` |
+| Variable Name                | Description                     | Required                                 | Example            |
+| ---------------------------- | ------------------------------- | ---------------------------------------- | ------------------ |
+| `DATABASE_URL`               | Database connection string      | Yes                                      | `postgres://...`   |
+| `API_GATEWAY_PORT`           | Port for the API Gateway        | No                                       | `3000`             |
+| `CHAT_API_PORT`              | Port for the Chat service       | No                                       | `3001`             |
+| `ENROLLMENT_API_PORT`        | Port for the Enrollment service | No                                       | `3002`             |
+| `SYSTEM_MANAGEMENT_API_PORT` | Port for the System Management  | No                                       | `3003`             |
+| `METRICS_API_PORT`           | Port for the Metrics service    | No                                       | `3004`             |
+| `AUTH_API_PORT`              | Port for the Auth service       | No                                       | `3005`             |
+| `JWT_SECRET_KEY`             | Secret key for signing JWTs     | No (must be specified for auth to work)  | `your_jwt_secret`  |
+| `JWT_EXPIRATION`             | JWT token expiration time       | No (must be specified for auth to work)  | `1d`, `7d`         |
+| `RABBITMQ_URL`               | RabbitMQ connection string      | No (required in production environments) | `amqp://localhost` |
+| `GOOGLE_CLIENT_ID`               | Google client ID      | Yes                                      | `djbetdf45t...`   |
+| `GOOGLE_CLIENT_SECRET`               | Google client secret      | Yes                                      | `GOCS-wwdewr...`   |
 
 > 🛡️ Keep sensitive values like `JWT_SECRET_KEY` secure and never commit them to version control.
 
@@ -126,8 +99,15 @@ You can customize the app behavior by editing the `.env` file. Below are the key
 
 This project is proudly built and maintained by:
 
-- **[@kntgio-z](https://github.com/kntgio-z)** – Backend Lead
-- **[@Mark-cyber-lab](https://github.com/Mark-cyber-lab)** – System Architect & Microservices Lead
+**[@kntgio-z](https://github.com/kntgio-z)**  
+<img src="https://github.com/kntgio-z.png" width="80" style="border-radius: 50%;" alt="kntgio-z">  
+Backend Lead
+
+---
+
+**[@Mark-cyber-lab](https://github.com/Mark-cyber-lab)**  
+<img src="https://github.com/Mark-cyber-lab.png" width="80" style="border-radius: 50%;" alt="Mark-cyber-lab">  
+System Architect & Microservices Lead
 
 ---
 
