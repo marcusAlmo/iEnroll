@@ -15,6 +15,9 @@ ALTER TABLE enrollment.user_role
 -- school_file 
 ALTER TABLE enrollment.school_file
     ADD CONSTRAINT fk_school_file_school_id FOREIGN KEY (school_id) REFERENCES enrollment.school(school_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE enrollment.school_file
+    ADD CONSTRAINT fk_school_file_file_id FOREIGN KEY (file_id) REFERENCES enrollment.file(file_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
 
 -- school_file_access 
 ALTER TABLE enrollment.school_file_access
@@ -53,6 +56,9 @@ ALTER TABLE enrollment.application_attachment
     ADD CONSTRAINT fk_application_attachment_requirement_id FOREIGN KEY (requirement_id) REFERENCES enrollment.enrollment_requirement(requirement_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 ALTER TABLE enrollment.application_attachment
     ADD CONSTRAINT fk_application_attachment_reviewer_id FOREIGN KEY (reviewer_id) REFERENCES enrollment.user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE enrollment.application_attachment
+    ADD CONSTRAINT fk_application_attachment_file_id FOREIGN KEY (file_id) REFERENCES enrollment.file(file_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
 
 -- school 
 ALTER TABLE enrollment.school
@@ -107,6 +113,8 @@ ALTER TABLE enrollment.enrollment_fee_payment
     ADD CONSTRAINT fk_enrollment_fee_payment_student_id FOREIGN KEY (student_id) REFERENCES enrollment.student(student_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 ALTER TABLE enrollment.enrollment_fee_payment
     ADD CONSTRAINT fk_enrollment_fee_payment_payment_option_id FOREIGN KEY (payment_option_id) REFERENCES enrollment.school_payment_option(payment_option_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE enrollment.enrollment_fee_payment
+    ADD CONSTRAINT fk_enrollment_fee_payment_file_id FOREIGN KEY (file_id) REFERENCES enrollment.file(file_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 -- payment_option
 ALTER TABLE enrollment.school_payment_option
