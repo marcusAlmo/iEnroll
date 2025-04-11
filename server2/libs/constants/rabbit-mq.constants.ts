@@ -10,6 +10,7 @@ const serviceNames = [
   'METRICS',
   'SYSTEM_MANAGEMENT',
   'AUTH',
+  'DOCUMENT',
 ] as const;
 
 // Helper function to generate RabbitMQ config for a given service
