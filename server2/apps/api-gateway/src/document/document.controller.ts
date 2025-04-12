@@ -8,6 +8,9 @@ import {
   Param,
   ParseIntPipe,
   Get,
+  Query,
+  ParseBoolPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentService } from './document.service';
@@ -18,8 +21,17 @@ export class DocumentController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  async upload(@UploadedFile() file: Express.Multer.File) {
-    return await this.documentService.uploadFile(file);
+  async upload(
+    @UploadedFile() file: Express.Multer.File,
+    @Query('ocr_enabled', new DefaultValuePipe(false), ParseBoolPipe)
+    ocr: boolean,
+    @Query('blurry_enabled', new DefaultValuePipe(false), ParseBoolPipe)
+    blurry: boolean,
+  ) {
+    return await this.documentService.uploadFile(file, {
+      ocrEnabled: ocr,
+      blurEnabled: blurry,
+    });
   }
 
   @Get(':id')

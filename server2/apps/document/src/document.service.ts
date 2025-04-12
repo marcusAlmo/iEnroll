@@ -1,88 +1,141 @@
+import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.service';
+import { OcrService } from '@lib/ocr/ocr.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
+import {
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  unlinkSync,
+  readFileSync,
+} from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { ModulePluginOptions } from './interfaces/module-plugin-options.interface';
 
 @Injectable()
 export class DocumentService {
-  constructor(private prisma: PrismaService) {}
+  private readonly uploadDir = join(__dirname, '..', '..', '..', 'uploads');
 
-  async handleFile(payload: any) {
+  constructor(
+    private prisma: PrismaService,
+    private readonly ocrService: OcrService,
+    private readonly blurryDetectorService: BlurryDetectorService,
+  ) {
+    if (!existsSync(this.uploadDir)) mkdirSync(this.uploadDir);
+  }
+
+  private async processPlugins(
+    filePath: string,
+    mimetype: string,
+    buffer: Buffer | null,
+    options?: ModulePluginOptions,
+  ) {
+    if (!options) return undefined;
+
+    const isImage = mimetype?.startsWith('image/');
+    const result: any = {};
+
+    if (options.burryDetector && isImage) {
+      result.isBlurry =
+        await this.blurryDetectorService.isImageBlurry(filePath);
+    }
+
+    if (options.ocr && buffer) {
+      result.ocr = await this.ocrService.extractText(buffer);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return result;
+  }
+
+  async handleFile(payload: any, options?: ModulePluginOptions) {
     try {
-      const uploadDir = join(__dirname, '..', '..', '..', 'uploads');
-      if (!existsSync(uploadDir)) mkdirSync(uploadDir);
-
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const fileBuffer = Buffer.from(payload.buffer, 'base64');
-      const finalName = `${uuidv4()}-${payload.originalName}`;
-      const finalPath = join(uploadDir, finalName);
+      const buffer = Buffer.from(payload.buffer, 'base64');
+      const fileName = `${uuidv4()}-${payload.originalName}`;
+      const filePath = join(this.uploadDir, fileName);
 
-      writeFileSync(finalPath, fileBuffer);
+      writeFileSync(filePath, buffer);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       unlinkSync(payload.filepath);
 
-      const document = await this.prisma.file.create({
+      const file = await this.prisma.file.create({
         data: {
           name: payload.originalName,
-          path: finalName,
+          path: fileName,
           type: payload.mimetype,
           size: payload.size,
         },
       });
 
+      const plugins = await this.processPlugins(
+        filePath,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        payload.mimetype,
+        buffer,
+        options,
+      );
+
       return {
         success: true,
         document: {
-          id: document.file_id,
-          name: document.name,
-          url: `/uploads/${finalName}`,
-          type: document.type,
-          size: document.size,
-          createdAt: document.creation_datetime,
+          id: file.file_id,
+          name: file.name,
+          url: `/uploads/${fileName}`,
+          type: file.type,
+          size: file.size,
+          createdAt: file.creation_datetime,
         },
+        plugins,
       };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
   }
 
-  async getMetadata({ id }: { id: number }) {
-    const document = await this.prisma.file.findUnique({
+  async getMetadata({ id }: { id: number }, options?: ModulePluginOptions) {
+    const file = await this.prisma.file.findUnique({
       where: { file_id: id },
     });
-    if (!document) return { success: false, message: 'Document not found' };
+
+    if (!file) return { success: false, message: 'Document not found' };
+
+    const filePath = join(this.uploadDir, file.path);
+    const needsBuffer = options?.ocr;
+    const buffer = needsBuffer ? readFileSync(filePath) : null;
+
+    const plugins = await this.processPlugins(
+      filePath,
+      file.type,
+      buffer,
+      options,
+    );
+
     return {
       success: true,
       document: {
-        id: document.file_id,
-        name: document.name,
-        url: `/uploads/${document.path}`,
-        type: document.type,
-        size: document.size,
-        createdAt: document.creation_datetime,
+        id: file.file_id,
+        name: file.name,
+        url: `/uploads/${file.path}`,
+        type: file.type,
+        size: file.size,
+        createdAt: file.creation_datetime,
       },
+      plugins,
     };
   }
 
   async handleDeleteFile(id: number) {
-    const document = await this.prisma.file.findUnique({
+    const file = await this.prisma.file.findUnique({
       where: { file_id: id },
     });
 
-    if (!document) {
-      throw new Error('Document not found');
-    }
+    if (!file) throw new Error('Document not found');
 
     try {
-      // Delete the file from the filesystem
-
-      unlinkSync(document.path);
-
-      // Delete the document metadata from the database
-      await this.prisma.file.delete({
-        where: { file_id: id },
-      });
+      unlinkSync(join(this.uploadDir, file.path));
+      await this.prisma.file.delete({ where: { file_id: id } });
 
       return { success: true, message: 'Document deleted successfully' };
     } catch (error: any) {

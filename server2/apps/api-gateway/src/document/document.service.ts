@@ -9,6 +9,7 @@ import { lastValueFrom } from 'rxjs';
 import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { ModulePluginOptions } from 'apps/document/src/interfaces/module-plugin-options.interface';
 
 @Injectable()
 export class DocumentService {
@@ -16,7 +17,13 @@ export class DocumentService {
     @Inject('DOCUMENT_SERVICE') private readonly client: ClientProxy,
   ) {}
 
-  async uploadFile(file: Express.Multer.File) {
+  async uploadFile(
+    file: Express.Multer.File,
+    options?: {
+      blurEnabled: boolean;
+      ocrEnabled: boolean;
+    },
+  ) {
     const tempPath = join(__dirname, '..', '..', '..', 'temp');
 
     const tempPathFileName = join(tempPath, uuidv4());
@@ -36,21 +43,47 @@ export class DocumentService {
     const result: UploadFileReturn = await lastValueFrom(
       this.client.send(
         {
-          cmd: 'store_document_file',
+          cmd: options
+            ? 'store_document_file_plugin_enabled'
+            : 'store_document_file',
         },
-        payload,
+        options
+          ? {
+              file: payload,
+              options: {
+                ocr: options.ocrEnabled,
+                burryDetector: options.blurEnabled,
+              } as ModulePluginOptions,
+            }
+          : payload,
       ),
     );
     return result;
   }
 
-  async getMetadata(payload: any) {
+  async getMetadata(
+    payload: { id: number },
+    options?: {
+      blurEnabled: boolean;
+      ocrEnabled: boolean;
+    },
+  ) {
     const result: MetadataFileReturn = await lastValueFrom(
       this.client.send(
         {
-          cmd: 'get_document_metadata',
+          cmd: options
+            ? 'get_document_metadata_plugin_enabled'
+            : 'get_document_metadata',
         },
-        payload,
+        options
+          ? {
+              file: payload,
+              options: {
+                ocr: options.ocrEnabled,
+                burryDetector: options.blurEnabled,
+              } as ModulePluginOptions,
+            }
+          : payload,
       ),
     );
     return result;
