@@ -1,26 +1,25 @@
 import { NestFactory } from '@nestjs/core';
-import { AuthModule } from './auth.module';
+import { DocumentModule } from './document.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { rabbitMQQueue, rabbitMqUrl } from '@lib/constants/rabbit-mq.constants';
+import { rabbitMqUrl, rabbitMQQueue } from '@lib/constants/rabbit-mq.constants';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AuthModule,
+    DocumentModule,
     {
       transport: Transport.RMQ,
       options: {
         urls: [rabbitMqUrl],
-        queue: rabbitMQQueue.AUTH,
+        queue: rabbitMQQueue.DOCUMENT,
         queueOptions: {
           durable: true,
         },
       },
     },
   );
-
-  // Start both services
   await app.listen();
-  console.log('Auth service is running with RabbitMQ');
+
+  console.log('Document service is running with RabbitMQ');
 }
 bootstrap().catch((err) => {
   console.error(err);

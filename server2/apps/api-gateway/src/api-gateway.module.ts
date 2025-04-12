@@ -16,8 +16,16 @@ import { AuthService } from './auth/auth.service';
 import { AuthModule } from '@lib/auth/auth.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { rabbitMQConstants } from '@lib/constants/rabbit-mq.constants';
+import { DocumentModule } from './document/document.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', '..', 'uploads'),
+      serveRoot: 'media',
+    }),
     AuthModule,
     ClientsModule.register([
       rabbitMQConstants.CHAT,
@@ -25,9 +33,11 @@ import { rabbitMQConstants } from '@lib/constants/rabbit-mq.constants';
       rabbitMQConstants.METRICS,
       rabbitMQConstants.SYSTEM_MANAGEMENT,
       rabbitMQConstants.AUTH,
+      rabbitMQConstants.DOCUMENT,
     ]),
     GoogleStrategyModule,
     EnrollmentModule,
+    DocumentModule,
   ],
   controllers: [
     ApiGatewayController,
