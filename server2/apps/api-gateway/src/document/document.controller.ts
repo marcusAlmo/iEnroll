@@ -35,16 +35,16 @@ export class DocumentController {
       buffer: file.buffer,
     };
 
-    return this.documentService.uploadFile(payload);
+    return await this.documentService.uploadFile(payload);
   }
 
   @Get(':id')
   async getMetadata(@Param('id', ParseIntPipe) id: number) {
-    return this.documentService.getMetadata({ id });
+    return await this.documentService.getMetadata({ id });
   }
 
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
-    return this.documentService.deleteFile({ id });
+    return await this.documentService.deleteFile({ id });
   }
 }

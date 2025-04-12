@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { CreateReturn, GetAllSchoolsReturn } from './create-account.types';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class CreateAccountService {
@@ -7,21 +9,27 @@ export class CreateAccountService {
     @Inject('ENROLLMENT_SERVICE') private readonly client: ClientProxy,
   ) {}
 
-  create(payload: object) {
-    return this.client.send(
-      {
-        cmd: 'create_account',
-      },
-      payload,
+  async create(payload: object) {
+    const result: CreateReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'create_account',
+        },
+        payload,
+      ),
     );
+    return result;
   }
 
-  getAllSchools() {
-    return this.client.send(
-      {
-        cmd: 'get_all_schools',
-      },
-      {},
+  async getAllSchools() {
+    const result: GetAllSchoolsReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_all_schools',
+        },
+        {},
+      ),
     );
+    return result;
   }
 }

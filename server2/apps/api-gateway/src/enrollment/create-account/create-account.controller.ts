@@ -7,12 +7,12 @@ export class CreateAccountController {
   constructor(private readonly createAccountService: CreateAccountService) {}
 
   @Post()
-  createAccount(@Body() createAccountDto: CreateUserDto) {
-    return this.createAccountService.create(createAccountDto);
+  async createAccount(@Body() createAccountDto: CreateUserDto) {
+    return await this.createAccountService.create(createAccountDto);
   }
 
   @Get('schools')
-  getAllAvailableSchools() {
-    return this.createAccountService.getAllSchools();
+  async getAllAvailableSchools() {
+    return await this.createAccountService.getAllSchools();
   }
 }

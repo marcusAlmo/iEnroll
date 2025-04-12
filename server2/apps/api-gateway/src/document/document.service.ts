@@ -1,5 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import {
+  DeleteFileReturn,
+  MetadataFileReturn,
+  UploadFileReturn,
+} from './document.types';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class DocumentService {
@@ -7,30 +13,39 @@ export class DocumentService {
     @Inject('DOCUMENT_SERVICE') private readonly client: ClientProxy,
   ) {}
 
-  uploadFile(payload: any) {
-    return this.client.send(
-      {
-        cmd: 'store_document_file',
-      },
-      payload,
+  async uploadFile(payload: any) {
+    const result: UploadFileReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'store_document_file',
+        },
+        payload,
+      ),
     );
+    return result;
   }
 
-  getMetadata(payload: any) {
-    return this.client.send(
-      {
-        cmd: 'get_document_metadata',
-      },
-      payload,
+  async getMetadata(payload: any) {
+    const result: MetadataFileReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_document_metadata',
+        },
+        payload,
+      ),
     );
+    return result;
   }
 
-  deleteFile(payload: any) {
-    return this.client.send(
-      {
-        cmd: 'delete_document_file',
-      },
-      payload,
+  async deleteFile(payload: any) {
+    const result: DeleteFileReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'delete_document_file',
+        },
+        payload,
+      ),
     );
+    return result;
   }
 }

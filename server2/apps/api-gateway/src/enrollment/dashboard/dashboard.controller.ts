@@ -14,12 +14,12 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get(':id/enrollment-details')
-  getEnrolleeDetails(@Param('id', ParseIntPipe) studentId: number) {
-    return this.dashboardService.getEnrolleeDetails({ studentId });
+  async getEnrolleeDetails(@Param('id', ParseIntPipe) studentId: number) {
+    return await this.dashboardService.getEnrolleeDetails({ studentId });
   }
 
   @Get(':id/enrollment-status')
-  getEnrolleeStatus(@Param('id', ParseIntPipe) studentId: number) {
-    return this.dashboardService.getEnrollmentStatus({ studentId });
+  async getEnrolleeStatus(@Param('id', ParseIntPipe) studentId: number) {
+    return await this.dashboardService.getEnrollmentStatus({ studentId });
   }
 }

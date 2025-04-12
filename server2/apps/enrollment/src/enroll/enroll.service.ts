@@ -167,8 +167,7 @@ export class EnrollService {
     );
   }
 
-  // TODO: Fill up platform and number
-  async getFeeDetails(gradeSectionProgramId: number) {
+  async getPaymentMethodDetails(gradeSectionProgramId: number) {
     const result = await this.prisma.enrollment_fee.findMany({
       where: {
         grade_section_program_id: gradeSectionProgramId,
@@ -241,4 +240,8 @@ export class EnrollService {
       ),
     };
   }
+
+  async submitPayment(payload: any) {}
+
+  async submitRequirements(payload: any) {}
 }
