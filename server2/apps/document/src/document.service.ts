@@ -42,7 +42,7 @@ export class DocumentService {
           createdAt: document.creation_datetime,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }
@@ -85,7 +85,7 @@ export class DocumentService {
       });
 
       return { success: true, message: 'Document deleted successfully' };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }

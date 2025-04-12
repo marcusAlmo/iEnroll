@@ -26,7 +26,11 @@ export class EnrollController {
   }
 
   @MessagePattern({ cmd: 'submit_payment' })
-  async submitPayment(payload: any) {
+  async submitPayment(payload: {
+    fileId: number;
+    paymentOptionId: number;
+    studentId: number;
+  }) {
     return await this.enrollService.submitPayment(payload);
   }
 

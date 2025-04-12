@@ -1,5 +1,6 @@
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class EnrollService {
@@ -241,7 +242,25 @@ export class EnrollService {
     };
   }
 
-  async submitPayment(payload: any) {}
+  async submitPayment(payload: {
+    fileId: number;
+    paymentOptionId: number;
+    studentId: number;
+  }) {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.enrollment_fee_payment.create({
+          data: {
+            student_id: payload.studentId,
+            file_id: payload.fileId,
+            payment_option_id: payload.paymentOptionId,
+          },
+        });
+      });
+    } catch (error: any) {
+      throw new RpcException(error.message as string);
+    }
+  }
 
   async submitRequirements(payload: any) {}
 }
