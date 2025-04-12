@@ -16,7 +16,19 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsStrongPassword()
+  @IsStrongPassword(
+    {
+      minLength: 8,
+      minLowercase: 1,
+      minUppercase: 0,
+      minNumbers: 1,
+      minSymbols: 0,
+    },
+    {
+      message:
+        'Password is not strong enough (include upper, lower, number, or symbol)',
+    },
+  )
   password!: string;
 }
 

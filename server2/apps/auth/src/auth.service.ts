@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from '@lib/auth/interfaces/jwt-payload.interface';
+import { SecureUtilityService } from '@lib/secure-utility/secure-utility.service';
 
 interface UserType {
   user_id: number;
@@ -54,8 +55,10 @@ export class AuthService {
         select: { user_id: true, username: true, password_hash: true },
       });
     } else if (email) {
+      const decryptedEmail = SecureUtilityService.decrypt(email);
+
       user = await this.prisma.user.findFirst({
-        where: { email_address: email },
+        where: { email_address: decryptedEmail },
         select: { user_id: true, username: true, password_hash: true },
       });
     }

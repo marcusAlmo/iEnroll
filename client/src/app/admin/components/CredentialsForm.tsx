@@ -54,17 +54,17 @@ export default function CredentialsForm() {
 
         // eslint-disable-next-line
         const res = await requestData<any>({
-          url: "http://localhost:3005/api/auth/login?",
+          url: "http://localhost:3000/api/auth/login",
           method: "POST",
           body: {
             email: emailFromQuery,
-            password: passwordFromQuery,
+            password: passwordFromQuery
           }
         });
 
-        if(res){
+        if(res)
           navigate("/admin");
-        }
+
       }catch(err) {
         if(err instanceof Error) console.log(err.message);
         else console.log(err);

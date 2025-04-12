@@ -713,21 +713,6 @@ model subscription_plan {
   @@schema("system")
 }
 
-model file {
-  file_id                Int                      @id(map: "pk_file") @default(autoincrement())
-  name                   String                   @db.VarChar(255)
-  path                   String                   @db.VarChar(255)
-  type                   String                   @db.VarChar(100)
-  size                   Int
-  creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
-  application_attachment application_attachment[]
-  enrollment_fee_payment enrollment_fee_payment?
-  school_file            school_file[]
-
-  @@unique([name, path, type], map: "uq_file")
-  @@schema("enrollment")
-}
-
 model school_payment_option {
   payment_option_id      Int                      @id(map: "pk_school_payment_option") @default(autoincrement())
   school_id              Int
@@ -744,6 +729,21 @@ model school_payment_option {
   school                 school                   @relation(fields: [school_id], references: [school_id], map: "fk_school_payment_option_school_id")
 
   @@unique([school_id, payment_option_type], map: "uq_school_payment_option")
+  @@schema("enrollment")
+}
+
+model file {
+  file_id                Int                      @id(map: "pk_file") @default(autoincrement())
+  name                   String                   @db.VarChar(255)
+  path                   String                   @db.VarChar(255)
+  type                   String                   @db.VarChar(100)
+  size                   Int
+  creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
+  application_attachment application_attachment[]
+  enrollment_fee_payment enrollment_fee_payment?
+  school_file            school_file[]
+
+  @@unique([name, path, type], map: "uq_file")
   @@schema("enrollment")
 }
 
