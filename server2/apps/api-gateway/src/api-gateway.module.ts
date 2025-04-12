@@ -35,6 +35,7 @@ import { ImageModule } from './image/image.module';
       rabbitMQConstants.SYSTEM_MANAGEMENT,
       rabbitMQConstants.AUTH,
       rabbitMQConstants.DOCUMENT,
+      rabbitMQConstants.IMAGE,
     ]),
     GoogleStrategyModule,
     EnrollmentModule,

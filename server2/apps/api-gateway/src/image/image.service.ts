@@ -1,19 +1,37 @@
-import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.service';
-import { OcrService } from '@lib/ocr/ocr.service';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import {
+  CheckIfBlurryReturn,
+  CheckIfPaymentMethodReturn,
+  ExtractTextFromImageReturn,
+} from './image.types';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class ImageService {
-  constructor(
-    private readonly blurryDetectorService: BlurryDetectorService,
-    private readonly ocrService: OcrService,
-  ) {}
+  constructor(@Inject('IMAGE_SERVICE') private readonly client: ClientProxy) {}
 
   async checkIfBlurry(file: Express.Multer.File) {
-    return await this.blurryDetectorService.isImageBlurry(file.buffer);
+    const result: CheckIfBlurryReturn = await lastValueFrom(
+      this.client.send({ cmd: 'check_if_blurry' }, file),
+    );
+
+    return result;
   }
 
   async extractTextFromImage(file: Express.Multer.File) {
-    return await this.ocrService.extractText(file.buffer);
+    const result: ExtractTextFromImageReturn = await lastValueFrom(
+      this.client.send({ cmd: 'extract_text_from_image' }, file),
+    );
+
+    return result;
+  }
+
+  async checkIfPaymentMethod(file: Express.Multer.File) {
+    const result: CheckIfPaymentMethodReturn = await lastValueFrom(
+      this.client.send({ cmd: 'check_if_payment_method' }, file),
+    );
+
+    return result;
   }
 }
