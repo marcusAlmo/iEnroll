@@ -2,8 +2,6 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
   ValidationArguments,
-  registerDecorator,
-  ValidationOptions,
 } from 'class-validator';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lib/prisma/src/prisma.service';

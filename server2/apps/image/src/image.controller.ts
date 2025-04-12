@@ -39,6 +39,7 @@ export class ImageController {
       /(?:on\s*)?(\d{2}-\d{2}-\d{4})\s+(\d{1,2}:\d{2}\s*(?:am|pm))|(\w+\s+\d{1,2},\s+\d{4}\s+\d{1,2}:\d{2}\s*(?:am|pm))/i;
     const balanceRegex = /balance\s+(?:is\s+)?php\s*([\d,.]+)/i;
     const phoneRegex = /(\b09\d{9}\b)/;
+    // eslint-disable-next-line no-useless-escape
     const nameRegex = /to\s+([\w\*]+\s+[\w\*\.]+)/i;
 
     const amountMatch = text.match(amountRegex);

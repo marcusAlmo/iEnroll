@@ -1,4 +1,3 @@
-import { ExistsPaymentOption } from '@lib/decorators/enrollment/enrollment.decorator';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Transform } from 'class-transformer';
 
