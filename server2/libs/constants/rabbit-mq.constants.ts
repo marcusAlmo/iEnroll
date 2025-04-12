@@ -11,6 +11,7 @@ const serviceNames = [
   'SYSTEM_MANAGEMENT',
   'AUTH',
   'DOCUMENT',
+  'IMAGE',
 ] as const;
 
 // Helper function to generate RabbitMQ config for a given service

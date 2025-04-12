@@ -65,6 +65,15 @@
         "tsConfigPath": "apps/enrollment/tsconfig.app.json"
       }
     },
+    "image": {
+      "type": "application",
+      "root": "apps/image",
+      "entryFile": "main",
+      "sourceRoot": "apps/image/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/image/tsconfig.app.json"
+      }
+    },
     "metrics": {
       "type": "application",
       "root": "apps/metrics",

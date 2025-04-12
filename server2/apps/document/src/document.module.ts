@@ -4,6 +4,8 @@ import { DocumentService } from './document.service';
 import { PrismaModule } from '@lib/prisma/src/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
+import { OcrService } from '@lib/ocr/ocr.service';
+import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.service';
 
 @Module({
   imports: [
@@ -14,6 +16,6 @@ import configuration from './config/configuration';
     PrismaModule,
   ],
   controllers: [DocumentController],
-  providers: [DocumentService],
+  providers: [DocumentService, OcrService, BlurryDetectorService],
 })
 export class DocumentModule {}

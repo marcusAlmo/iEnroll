@@ -17,7 +17,8 @@
     "start:dev:metrics": "cross-env METRICS_API_PORT=3004 RABBITMQ_URL=amqp://localhost:5672 nest start --watch metrics",
     "start:dev:auth": "cross-env AUTH_API_PORT=3005 RABBITMQ_URL=amqp://localhost:5672 nest start --watch auth",
     "start:dev:docs": "cross-env AUTH_API_PORT=3006 RABBITMQ_URL=amqp://localhost:5672 nest start --watch document",
-    "start:dev:all": "concurrently \"npm:start:dev:api-gateway\" \"npm:start:dev:chat\" \"npm:start:dev:enrollment\" \"npm:start:dev:system-management\" \"npm:start:dev:metrics\" \"npm:start:dev:auth\" \"npm:start:dev:docs\"",
+    "start:dev:image": "cross-env AUTH_API_PORT=3007 RABBITMQ_URL=amqp://localhost:5672 nest start --watch image",
+    "start:dev:all": "concurrently \"npm:start:dev:api-gateway\" \"npm:start:dev:chat\" \"npm:start:dev:enrollment\" \"npm:start:dev:system-management\" \"npm:start:dev:metrics\" \"npm:start:dev:auth\" \"npm:start:dev:docs\" \"npm:start:dev:image\"",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/server2/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -54,6 +55,8 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sharp": "^0.34.1",
+    "tesseract.js": "^6.0.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -66,7 +69,7 @@
     "@swc/core": "^1.10.7",
     "@types/amqplib": "^0.10.7",
     "@types/bcrypt": "^5.0.2",
-    "@types/express": "^5.0.0",
+    "@types/express": "^5.0.1",
     "@types/jest": "^29.5.14",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.7",

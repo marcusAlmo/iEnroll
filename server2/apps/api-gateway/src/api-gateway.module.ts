@@ -19,6 +19,7 @@ import { rabbitMQConstants } from '@lib/constants/rabbit-mq.constants';
 import { DocumentModule } from './document/document.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ImageModule } from './image/image.module';
 
 @Module({
   imports: [
@@ -34,10 +35,12 @@ import { join } from 'path';
       rabbitMQConstants.SYSTEM_MANAGEMENT,
       rabbitMQConstants.AUTH,
       rabbitMQConstants.DOCUMENT,
+      rabbitMQConstants.IMAGE,
     ]),
     GoogleStrategyModule,
     EnrollmentModule,
     DocumentModule,
+    ImageModule,
   ],
   controllers: [
     ApiGatewayController,

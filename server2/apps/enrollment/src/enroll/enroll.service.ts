@@ -1,5 +1,6 @@
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class EnrollService {
@@ -167,27 +168,100 @@ export class EnrollService {
     );
   }
 
-  // TODO: Fill up platform and number
-  async getFeeDetails(gradeSectionProgramId: number) {
+  async getPaymentMethodDetails(gradeSectionProgramId: number) {
     const result = await this.prisma.enrollment_fee.findMany({
-      where: { grade_section_program_id: gradeSectionProgramId },
+      where: {
+        grade_section_program_id: gradeSectionProgramId,
+        grade_section_program: {
+          grade_level_offered: {
+            school: {
+              school_payment_option: {
+                some: {
+                  is_available: true,
+                },
+              },
+            },
+          },
+        },
+      },
       select: {
         name: true,
         amount: true,
         description: true,
         due_date: true,
+        grade_section_program: {
+          select: {
+            grade_level_offered: {
+              select: {
+                school: {
+                  select: {
+                    school_payment_option: {
+                      select: {
+                        payment_option_id: true,
+                        provider: true,
+                        account_name: true,
+                        account_number: true,
+                        instruction: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
     return {
-      fees: result.map(({ name, amount, description, due_date }) => ({
-        name,
-        amount: amount.toNumber(),
-        description,
-        dueDate: due_date,
-      })),
-      platform: null,
-      number: null,
+      fees: result.map(
+        ({
+          name,
+          amount,
+          description,
+          due_date,
+          grade_section_program: {
+            grade_level_offered: {
+              school: { school_payment_option },
+            },
+          },
+        }) => ({
+          name,
+          amount: amount.toNumber(),
+          description,
+          dueDate: due_date,
+          paymentOptions: school_payment_option.map((p) => ({
+            id: p.payment_option_id,
+            accountName: p.account_name,
+            accountNumber: p.account_number,
+            provider: p.provider,
+            instruction: p.instruction,
+          })),
+        }),
+      ),
     };
   }
+
+  async submitPayment(payload: {
+    fileId: number;
+    paymentOptionId: number;
+    studentId: number;
+  }) {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.enrollment_fee_payment.create({
+          data: {
+            student_id: payload.studentId,
+            file_id: payload.fileId,
+            payment_option_id: payload.paymentOptionId,
+          },
+        });
+      });
+    } catch (error: any) {
+      throw new RpcException(error.message as string);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async submitRequirements(payload: any) {}
 }

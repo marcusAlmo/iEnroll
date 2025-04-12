@@ -8,5 +8,6 @@ import { ClientsModule } from '@nestjs/microservices';
   imports: [ClientsModule.register([rabbitMQConstants.DOCUMENT])],
   controllers: [DocumentController],
   providers: [DocumentService],
+  exports: [DocumentService],
 })
 export class DocumentModule {}

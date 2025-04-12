@@ -6,12 +6,12 @@ export class LandingController {
   constructor(private readonly landingService: LandingService) {}
 
   @Get('partner-school')
-  getPartnerSchools() {
-    return this.landingService.getPartnerSchools();
+  async getPartnerSchools() {
+    return await this.landingService.getPartnerSchools();
   }
 
   @Get('announcement')
-  getAnnouncements() {
-    return this.landingService.getAnnouncements();
+  async getAnnouncements() {
+    return await this.landingService.getAnnouncements();
   }
 }
