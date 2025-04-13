@@ -7,6 +7,17 @@
 </h1>
 
 <p align="center">
+  <a href="https://prisma.io" target="_blank">
+    <img src="https://img.shields.io/badge/Made%20with-Prisma-3982CE?style=flat&logo=prisma&logoColor=white" alt="Made with Prisma" />
+  </a>
+  <a href="https://nestjs.com/" target="_blank">
+    <img src="https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white" alt="NestJS" />
+  </a>
+</p>
+
+
+
+<p align="center">
 By Uppend
 </p>
 
