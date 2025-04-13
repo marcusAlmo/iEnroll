@@ -39,6 +39,11 @@ CREATE TRIGGER t_update_enrollment_application
     BEFORE UPDATE ON enrollment.enrollment_application
     FOR EACH ROW EXECUTE FUNCTION fn_update_datetime();
 
+-- enrollment_application before insert trigger
+CREATE TRIGGER t_insert_enrollment_application
+    BEFORE INSERT ON enrollment.enrollment_application
+    FOR EACH ROW EXECUTE FUNCTION enrollment.fn_check_section_slot_availability();
+
 
 -- application_attachment update trigger
 CREATE TRIGGER t_update_application_attachment
