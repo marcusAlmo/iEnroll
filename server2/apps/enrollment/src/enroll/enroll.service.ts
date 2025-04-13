@@ -1,7 +1,3 @@
-import {
-  RequirementTextDto,
-  RequirementDocumentDto,
-} from '@lib/dtos/src/enrollment/v1/enroll.dto';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';

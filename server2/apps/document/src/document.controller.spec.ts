@@ -12,7 +12,12 @@ describe('DocumentController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [DocumentController],
-      providers: [DocumentService, PrismaService, OcrService, BlurryDetectorService],
+      providers: [
+        DocumentService,
+        PrismaService,
+        OcrService,
+        BlurryDetectorService,
+      ],
     }).compile();
 
     documentController = app.get<DocumentController>(DocumentController);
