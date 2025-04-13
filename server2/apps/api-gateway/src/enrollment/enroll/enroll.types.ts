@@ -19,3 +19,15 @@ export type SubmitPaymentsReturn = Awaited<
 export type SubmitRequirementsReturn = Awaited<
   ReturnType<EnrollService['submitRequirements']>
 >;
+
+export type ValidatePaymentOptionReturn = Awaited<
+  ReturnType<EnrollService['validatePaymentOptionId']>
+>;
+
+export type CheckStudentAlreadyPaidReturn = Awaited<
+  ReturnType<EnrollService['checkIfStudentIsALreadyPaid']>
+>;
+
+export type CheckRequirementIdsValidReturn = Awaited<
+  ReturnType<EnrollService['checkIfAllRequirementIdsAreValid']>
+>;
