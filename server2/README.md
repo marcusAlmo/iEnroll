@@ -108,17 +108,30 @@ You can customize the app behavior by editing the `.env` file. Remember that you
 
 ## Contributors
 
-This project is proudly built and maintained by:
-
-**[@kntgio-z](https://github.com/kntgio-z)**  
-<img src="https://github.com/kntgio-z.png" width="80" style="border-radius: 50%;" alt="kntgio-z">  
-Backend Lead
-
----
-
-**[@Mark-cyber-lab](https://github.com/Mark-cyber-lab)**  
-<img src="https://github.com/Mark-cyber-lab.png" width="80" style="border-radius: 50%;" alt="Mark-cyber-lab">  
-System Architect & Microservices Lead
+<p align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <a href="https://github.com/kntgio-z">
+          <img src="https://github.com/kntgio-z.png?s=100" width="100" alt="kntgio-z"/>
+          <br />
+          <sub><b>@kntgio-z</b></sub>
+        </a>
+        <br />
+        <i>Backend Lead</i>
+      </td>
+      <td align="center">
+        <a href="https://github.com/Mark-cyber-lab">
+          <img src="https://github.com/Mark-cyber-lab.png?s=100" width="100" alt="Mark-cyber-lab"/>
+          <br />
+          <sub><b>@Mark-cyber-lab</b></sub>
+        </a>
+        <br />
+        <i>System Architect & Microservices Lead</i>
+      </td>
+    </tr>
+  </table>
+</p>
 
 ---
 
