@@ -109,28 +109,26 @@ You can customize the app behavior by editing the `.env` file. Remember that you
 ## Contributors
 
 <p align="center">
-  <table>
-    <tr>
-      <td align="center">
-        <a href="https://github.com/kntgio-z">
-          <img src="https://github.com/kntgio-z.png?s=100" width="100" alt="kntgio-z"/>
-          <br />
-          <sub><b>@kntgio-z</b></sub>
-        </a>
+  <div align="center" style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+    <div align="center">
+      <a href="https://github.com/kntgio-z">
+        <img src="https://images.weserv.nl/?url=avatars.githubusercontent.com/u/112701322?v=4&h=100&w=100&fit=cover&mask=circle&maxage=7d" width="100" alt="@kntgio-z" />
         <br />
-        <i>Backend Lead</i>
-      </td>
-      <td align="center">
-        <a href="https://github.com/Mark-cyber-lab">
-          <img src="https://github.com/Mark-cyber-lab.png?s=100" width="100" alt="Mark-cyber-lab"/>
-          <br />
-          <sub><b>@Mark-cyber-lab</b></sub>
-        </a>
+        <sub><b>@kntgio-z</b></sub>
+      </a>
+      <br />
+      <i>Backend Lead</i>
+    </div>
+    <div align="center">
+      <a href="https://github.com/Mark-cyber-lab">
+        <img src="https://images.weserv.nl/?url=avatars.githubusercontent.com/u/156742215?v=4&h=100&w=100&fit=cover&mask=circle&maxage=7d" width="100" alt="@Mark-cyber-lab" />
         <br />
-        <i>System Architect & Microservices Lead</i>
-      </td>
-    </tr>
-  </table>
+        <sub><b>@Mark-cyber-lab</b></sub>
+      </a>
+      <br />
+      <i>System Architect & Microservices Lead</i>
+    </div>
+  </div>
 </p>
 
 ---
