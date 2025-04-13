@@ -143,6 +143,7 @@ CREATE TYPE enrollment.application_status AS ENUM ('pending', 'accepted', 'denie
 CREATE TABLE IF NOT EXISTS enrollment.enrollment_application (
     application_id INT NOT NULL, 
     grade_level_offered_id INT NOT NULL,
+    schedule_id INT NOT NULL,
     status enrollment.application_status NOT NULL DEFAULT 'pending',
     remarks TEXT,
     application_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -361,4 +362,17 @@ CREATE TABLE IF NOT EXISTS enrollment.file (
 
     constraint pk_file PRIMARY KEY (file_id),
     constraint uq_file UNIQUE (name, path, type)
+);
+
+
+-- aux_schedule_slot
+CREATE TABLE IF NOT EXISTS enrollment.aux_schedule_slot (
+    schedule_id INT NOT NULL,
+    application_slot_left INT NOT NULL,
+    start_datetime TIMESTAMP NOT NULL,
+    end_datetime TIMESTAMP NOT NULL,
+    is_closed BOOLEAN NOT NULL DEFAULT FALSE,
+
+    constraint pk_aux_schedule_slot PRIMARY KEY (schedule_id),
+    constraint ck_application_slot_left CHECK (application_slot_left >= 0)
 );

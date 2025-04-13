@@ -48,6 +48,8 @@ ALTER TABLE enrollment.enrollment_application
     ADD CONSTRAINT fk_enrollment_application_student_id FOREIGN KEY (application_id) REFERENCES enrollment.student(student_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 ALTER TABLE enrollment.enrollment_application
     ADD CONSTRAINT fk_enrollment_application_grade_level_offered_id FOREIGN KEY (grade_level_offered_id) REFERENCES enrollment.grade_level_offered(grade_level_offered_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE enrollment.enrollment_application
+    ADD CONSTRAINT fk_enrollment_application_schedule_id FOREIGN KEY (schedule_id) REFERENCES enrollment.aux_schedule_slot(schedule_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 -- application_attachment 
 ALTER TABLE enrollment.application_attachment
@@ -120,4 +122,7 @@ ALTER TABLE enrollment.enrollment_fee_payment
 ALTER TABLE enrollment.school_payment_option
     ADD CONSTRAINT fk_school_payment_option_school_id FOREIGN KEY (school_id) REFERENCES enrollment.school(school_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
+-- aux_schedule_slot
+ALTER TABLE enrollment.aux_schedule_slot
+    ADD CONSTRAINT fk_aux_schedule_slot_schedule_id FOREIGN KEY (schedule_id) REFERENCES enrollment.enrollment_schedule(schedule_id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
