@@ -16,6 +16,12 @@ import {
 } from './enroll.types';
 import { DocumentService } from '../../document/document.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
+import {
+  RequirementTextDto,
+  RequirementDocumentDto,
+} from '@lib/dtos/src/enrollment/v1/enroll.dto';
+import { EnrollService as EnrollService2 } from 'apps/enrollment/src/enroll/enroll.service';
+import { $Enums } from '@prisma/client';
 
 @Injectable()
 export class EnrollService {
@@ -24,6 +30,18 @@ export class EnrollService {
     private readonly documentService: DocumentService,
     private readonly prisma: PrismaService,
   ) {}
+
+  private formatFileName(studentId: number) {
+    const currentYear = new Date().getFullYear();
+    return `${studentId}_requirements_${currentYear}_${currentYear + 1}`;
+  }
+
+  private setFileName(file: Express.Multer.File, studentId: number) {
+    return {
+      ...file,
+      filename: this.formatFileName(studentId),
+    } as Express.Multer.File;
+  }
 
   async getSchoolLevelAndScheduleSelection(payload: { id: number }) {
     const result: SelectionReturn = await lastValueFrom(
@@ -82,9 +100,9 @@ export class EnrollService {
       throw new BadRequestException('Student already paid.');
     }
 
-    const { document, error } = await this.documentService.uploadFile(
-      payload.file,
-    );
+    const file = this.setFileName(payload.file, payload.studentId);
+
+    const { document, error } = await this.documentService.uploadFile(file);
 
     if (error)
       throw new InternalServerErrorException(
@@ -113,15 +131,107 @@ export class EnrollService {
     return { success: true };
   }
 
-  async submitRequirements(payload: any) {
-    const result: SubmitRequirementsReturn = await lastValueFrom(
-      this.client.send(
-        {
-          cmd: 'submit_requirements',
+  async checkIfAllRequirementIdsAreValid(
+    requirementIds: number[],
+  ): Promise<boolean> {
+    const found = await this.prisma.enrollment_requirement.findMany({
+      where: {
+        requirement_id: {
+          in: requirementIds,
         },
-        payload,
-      ),
+      },
+      select: {
+        requirement_id: true,
+      },
+    });
+
+    const foundIds = new Set(found.map((req) => req.requirement_id));
+    return requirementIds.every((id) => foundIds.has(id));
+  }
+
+  private async sendRequirementToService(
+    data: Parameters<EnrollService2['submitRequirements']>[0],
+  ): Promise<SubmitRequirementsReturn> {
+    return await lastValueFrom(
+      this.client.send({ cmd: 'submit_requirements' }, data),
     );
-    return result;
+  }
+
+  async submitRequirements(input: {
+    payloads: (RequirementTextDto | RequirementDocumentDto)[];
+    studentId: number;
+  }): Promise<{
+    success: boolean;
+    failedItems: { requirementId: number; reason: string }[];
+  }> {
+    const { payloads, studentId } = input;
+
+    const tasks = payloads.map(async (item) => {
+      try {
+        if (item.type === 'document') {
+          const file = this.setFileName(item.value, studentId);
+          const { document, error } =
+            await this.documentService.uploadFile(file);
+
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          if (error) throw new Error(error.message);
+          if (!document) throw new Error('Uploaded document is undefined.');
+
+          const type: $Enums.attachment_type = document.type.includes('image')
+            ? $Enums.attachment_type.image
+            : $Enums.attachment_type.document;
+
+          return {
+            applicationId: studentId,
+            requirementId: item.requirementId,
+            textContent: document.url,
+            type,
+            fileId: document.id,
+          };
+        } else {
+          return {
+            applicationId: studentId,
+            requirementId: item.requirementId,
+            textContent: item.value,
+            type: $Enums.attachment_type.document,
+          };
+        }
+      } catch (err: any) {
+        return {
+          error: true,
+          requirementId: item.requirementId,
+          reason: err.message ?? 'Unknown error',
+        };
+      }
+    });
+
+    const resolved = await Promise.all(tasks);
+
+    const successfulPayloads = resolved.filter(
+      (
+        item,
+      ): item is Exclude<
+        (typeof resolved)[number],
+        { error: boolean; reason: string }
+      > => !('error' in item && 'reason' in item),
+    );
+
+    const failedItems = resolved
+      .filter(
+        (
+          item,
+        ): item is { error: boolean; requirementId: number; reason: string } =>
+          'error' in item && item.error === true,
+      )
+      .map(({ requirementId, reason }) => ({ requirementId, reason }));
+
+    if (successfulPayloads.length > 0) {
+      await this.sendRequirementToService(successfulPayloads);
+    }
+
+    return {
+      success: failedItems.length === 0,
+      failedItems,
+    };
   }
 }

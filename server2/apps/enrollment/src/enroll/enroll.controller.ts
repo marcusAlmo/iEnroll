@@ -1,6 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { EnrollService } from './enroll.service';
+import { $Enums } from '@prisma/client';
 
 @Controller('enroll')
 export class EnrollController {
@@ -35,7 +36,15 @@ export class EnrollController {
   }
 
   @MessagePattern({ cmd: 'submit_requirements' })
-  async submitRequirements(payload: any) {
+  async submitRequirements(
+    payload: {
+      applicationId: number;
+      requirementId: number;
+      textContent: string;
+      type: $Enums.attachment_type;
+      fileId?: number;
+    }[],
+  ) {
     return await this.enrollService.submitRequirements(payload);
   }
 }

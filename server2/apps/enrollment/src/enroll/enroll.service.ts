@@ -1,6 +1,7 @@
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
+import { $Enums } from '@prisma/client';
 
 @Injectable()
 export class EnrollService {
@@ -262,6 +263,26 @@ export class EnrollService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async submitRequirements(payload: any) {}
+  async submitRequirements(
+    payload: {
+      applicationId: number;
+      requirementId: number;
+      textContent: string;
+      type: $Enums.attachment_type;
+      fileId?: number;
+    }[],
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.application_attachment.createMany({
+        data: payload.map((p) => ({
+          application_id: p.applicationId,
+          requirement_id: p.requirementId,
+          text_content: p.textContent,
+          type: p.type,
+          file_id: p.fileId,
+          status: $Enums.attachment_status.pending,
+        })),
+      });
+    });
+  }
 }
