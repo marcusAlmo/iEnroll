@@ -122,7 +122,7 @@ To run the localhost and make the site accessible to your mobile device, do the 
 
 1. Make sure that your local server and mobile device are connected to the **same network**.
 2. Run `npm run dev -- --host` on the terminal.
-3. Vite will display three URLs: one local (`http://localhost:5173`), and two networks (`http://[ip-address]:5173`). 
+3. Vite will display three URLs: one local (`http://localhost:5174`), and two networks (`http://[ip-address]:5173`). 
 4. Enter the URL of one of the network URLs on the browser of your mobile device.
 5. You should be able to see now the mobile interface on your mobile device.
 

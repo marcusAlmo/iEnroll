@@ -15,12 +15,12 @@ export class GoogleAuthController {
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req, @Res() res: Response) {
     if (!req.user || !req.user.email)
-      res.redirect(`http://localhost:5173/admin-credentials`);
+      res.redirect(`http://localhost:5174/admin-credentials`);
 
     const encryptedEmail = SecureUtilityService.encrypt(req.user.email);
 
     res.redirect(
-      `http://localhost:5173/admin-credentials?e=${encryptedEmail}&v=true`,
+      `http://localhost:5174/admin-credentials?e=${encryptedEmail}&v=true`,
     );
   }
 }
