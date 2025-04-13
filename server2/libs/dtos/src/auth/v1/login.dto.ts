@@ -15,6 +15,10 @@ export class LoginDto {
   email?: string;
 
   @IsString()
+  @IsOptional()
+  emailEntered?: string;
+
+  @IsString()
   @IsNotEmpty()
   @IsStrongPassword()
   password!: string;

@@ -38,10 +38,12 @@ export class AuthService {
     password,
     username,
     email,
+    emailEntered,
   }: {
     password: string;
     username?: string;
     email?: string;
+    emailEntered?: string;
   }) {
     if (!username && !email) {
       throw new Error('Username or email is required');
@@ -56,11 +58,23 @@ export class AuthService {
       });
     } else if (email) {
       const decryptedEmail = SecureUtilityService.decrypt(email);
+      console.log(
+        'Decrypted email:',
+        decryptedEmail,
+        'Original email:',
+        emailEntered,
+      );
 
-      user = await this.prisma.user.findFirst({
-        where: { email_address: decryptedEmail },
-        select: { user_id: true, username: true, password_hash: true },
-      });
+      const isEmailMatch: boolean = decryptedEmail === emailEntered;
+
+      console.log('Is email match:', isEmailMatch);
+
+      if (!isEmailMatch) {
+        user = await this.prisma.user.findFirst({
+          where: { email_address: decryptedEmail },
+          select: { user_id: true, username: true, password_hash: true },
+        });
+      }
     }
 
     if (!user) return -1;

@@ -49,11 +49,13 @@ export default function CredentialsForm() {
     if (emailFromQuery && verifiedFromQuery) {
       try{
         const passwordFromQuery = localStorage.getItem("password");
+        const emailEntered = localStorage.getItem("email");
+
+        if(!emailEntered) throw new Error("Email not found");
 
         if(!passwordFromQuery) throw new Error("Password not found");
 
-        console.log('emailFromQuery: ',emailFromQuery);
-        console.log('passwordFromQuery: ',passwordFromQuery);
+        if(verifiedFromQuery !== "true") throw new Error("Email not verified");
 
         // eslint-disable-next-line
         const res = await requestData<any>({
@@ -61,6 +63,7 @@ export default function CredentialsForm() {
           method: "POST",
           body: {
             email: emailFromQuery,
+            emailEntered: emailEntered,
             password: passwordFromQuery,
           }
         });
