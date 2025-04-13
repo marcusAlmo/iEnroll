@@ -96,6 +96,8 @@ export default function CredentialsForm() {
           {...register("email")}
           type="email"
           id="email"
+          value={localStorage.getItem("email")?? ''}
+          onChange={(e) => localStorage.setItem("email", e.target.value)}
           className="border-2 border-border_1 py-2 rounded-[8px] pl-2 bg-white"
           placeholder="Email"
         />
@@ -110,6 +112,8 @@ export default function CredentialsForm() {
           {...register("password")}
           type="password"
           id="password"
+          value={localStorage.getItem("password")?? ''}
+          onChange={(e) => localStorage.setItem("password", e.target.value)}
           className="border-2 border-border_1 py-2 rounded-[8px] pl-2 bg-white"
           placeholder="Password"
         />
