@@ -1,8 +1,8 @@
 // auth.controller.ts
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Response } from 'express';
-
+import { Response, Request } from 'express';
+import { SecureUtilityService } from '../secure-utility/secure-utility.service';
 @Controller('auth')
 export class GoogleAuthController {
   @Get('google')
@@ -14,7 +14,13 @@ export class GoogleAuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req, @Res() res: Response) {
-    // eslint-disable-next-line
-    res.redirect(`http://localhost:5173/admin-credentials?e=${req.user.email}&v=true`);
+    if (!req.user || !req.user.email)
+      res.redirect(`http://localhost:5173/admin-credentials`);
+
+    const encryptedEmail = SecureUtilityService.encrypt(req.user.email);
+
+    res.redirect(
+      `http://localhost:5173/admin-credentials?e=${encryptedEmail}&v=true`,
+    );
   }
 }

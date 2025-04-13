@@ -9,6 +9,7 @@ export class AuthController {
 
   @MessagePattern({ cmd: 'login_acc' })
   async login(@Payload() authDto: LoginDto) {
+    console.log('authDto: ', authDto);
     const user = await this.authService.validateUser({
       username: authDto.username,
       password: authDto.password,

@@ -52,9 +52,12 @@ export default function CredentialsForm() {
 
         if(!passwordFromQuery) throw new Error("Password not found");
 
+        console.log('emailFromQuery: ',emailFromQuery);
+        console.log('passwordFromQuery: ',passwordFromQuery);
+
         // eslint-disable-next-line
         const res = await requestData<any>({
-          url: "http://localhost:3005/api/auth/login?",
+          url: "http://localhost:3000/api/auth/login",
           method: "POST",
           body: {
             email: emailFromQuery,
