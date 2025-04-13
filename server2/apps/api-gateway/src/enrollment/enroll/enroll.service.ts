@@ -13,9 +13,11 @@ import {
   PaymentMethodsReturn,
   SubmitPaymentsReturn,
   SubmitRequirementsReturn,
+  ValidatePaymentOptionReturn,
+  CheckStudentAlreadyPaidReturn,
+  CheckRequirementIdsValidReturn,
 } from './enroll.types';
 import { DocumentService } from '../../document/document.service';
-import { PrismaService } from '@lib/prisma/src/prisma.service';
 import {
   RequirementTextDto,
   RequirementDocumentDto,
@@ -28,7 +30,7 @@ export class EnrollService {
   constructor(
     @Inject('ENROLLMENT_SERVICE') private readonly client: ClientProxy,
     private readonly documentService: DocumentService,
-    private readonly prisma: PrismaService,
+    // private readonly prisma: PrismaService,
   ) {}
 
   private formatFileName(studentId: number) {
@@ -77,24 +79,29 @@ export class EnrollService {
     paymentOptionId: number;
     studentId: number;
   }) {
-    const isPaymentOptionIdExists = Boolean(
-      await this.prisma.school_payment_option.findFirst({
-        select: { payment_option_id: true },
-        where: { payment_option_id: payload.paymentOptionId },
-      }),
-    );
+    const isPaymentOptionIdExists: ValidatePaymentOptionReturn =
+      await lastValueFrom(
+        this.client.send(
+          {
+            cmd: 'validate_payment_option_id',
+          },
+          { paymentOptionId: payload.paymentOptionId },
+        ),
+      );
 
     if (!isPaymentOptionIdExists) {
       throw new NotFoundException('Payment option id does not exist.');
     }
 
-    const isStudentAlreadyPaid = Boolean(
-      await this.prisma.enrollment_fee_payment.findFirst({
-        where: {
-          student_id: payload.studentId,
-        },
-      }),
-    );
+    const isStudentAlreadyPaid: CheckStudentAlreadyPaidReturn =
+      await lastValueFrom(
+        this.client.send(
+          {
+            cmd: 'check_if_student_is_paid',
+          },
+          { studentId: payload.studentId },
+        ),
+      );
 
     if (isStudentAlreadyPaid) {
       throw new BadRequestException('Student already paid.');
@@ -131,22 +138,17 @@ export class EnrollService {
     return { success: true };
   }
 
-  async checkIfAllRequirementIdsAreValid(
-    requirementIds: number[],
-  ): Promise<boolean> {
-    const found = await this.prisma.enrollment_requirement.findMany({
-      where: {
-        requirement_id: {
-          in: requirementIds,
+  async checkIfAllRequirementIdsAreValid(requirementIds: number[]) {
+    const result: CheckRequirementIdsValidReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'check_if_all_requirements_are_valid',
         },
-      },
-      select: {
-        requirement_id: true,
-      },
-    });
+        { requirementIds },
+      ),
+    );
 
-    const foundIds = new Set(found.map((req) => req.requirement_id));
-    return requirementIds.every((id) => foundIds.has(id));
+    return result;
   }
 
   private async sendRequirementToService(
