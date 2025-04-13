@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MetricsController } from './metrics.controller';
 import { ConfigModule /**, ConfigService */ } from '@nestjs/config';
+import { MetricsService } from './metrics/metrics.service';
+import { DashboardModule } from './dashboard/dashboard.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -9,8 +11,9 @@ import configuration from './config/configuration';
       load: [configuration],
       isGlobal: false,
     }),
+    DashboardModule,
   ],
   controllers: [MetricsController],
-  providers: [],
+  providers: [MetricsService],
 })
 export class MetricsModule {}
