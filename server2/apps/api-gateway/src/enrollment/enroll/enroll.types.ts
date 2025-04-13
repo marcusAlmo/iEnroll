@@ -17,5 +17,5 @@ export type SubmitPaymentsReturn = Awaited<
 >;
 
 export type SubmitRequirementsReturn = Awaited<
-  ReturnType<EnrollService['submitRequirements']>
+  ReturnType<EnrollService['submitRequirement']>
 >;

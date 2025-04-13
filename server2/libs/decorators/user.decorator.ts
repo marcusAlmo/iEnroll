@@ -9,6 +9,7 @@ export const User = createParamDecorator(
     const user = request.user as RequestUser;
 
     // if you provide a specific key (e.g. @User('id')) return user.id
-    return data ? user?.[data] : user;
+    const result = data ? user?.[data] : user;
+    return result;
   },
 );

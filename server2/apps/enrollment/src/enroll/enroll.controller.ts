@@ -36,6 +36,6 @@ export class EnrollController {
 
   @MessagePattern({ cmd: 'submit_requirements' })
   async submitRequirements(payload: any) {
-    return await this.enrollService.submitRequirements(payload);
+    return await this.enrollService.submitRequirement(payload);
   }
 }

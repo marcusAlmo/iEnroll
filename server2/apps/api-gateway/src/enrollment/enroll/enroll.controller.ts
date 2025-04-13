@@ -12,9 +12,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { EnrollService } from './enroll.service';
-import { PaymentDto } from '@lib/dtos/src/enrollment/v1/enroll.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  PaymentDto,
+  RequirementPayloadDto,
+} from '@lib/dtos/src/enrollment/v1/enroll.dto';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { User } from '@lib/decorators/user.decorator';
+import { MultipleDynamicFileInterceptor } from './interceptors/multiple-file-dynamic.interceptor';
 
 @Controller('enroll')
 @UseGuards(JwtAuthGuard)
@@ -65,5 +69,30 @@ export class EnrollController {
     });
   }
 
-  // TODO: Finish submit payments and requirements
+  @Post('requirements')
+  @UseInterceptors(
+    FilesInterceptor('files'),
+    new MultipleDynamicFileInterceptor(),
+  )
+  async submitRequirements(
+    @Body() body: RequirementPayloadDto,
+    @User('user_id') studentId: number,
+  ) {
+    const allRequirementIds = body.payloads.map((p) => p.requirementId);
+
+    if (
+      !(await this.enrollService.checkIfAllRequirementIdsAreValid(
+        allRequirementIds,
+      ))
+    ) {
+      throw new BadRequestException('Not all requirement ids are valid');
+    }
+
+    const result = await this.enrollService.submitRequirements({
+      payloads: body.payloads,
+      studentId,
+    });
+
+    return result;
+  }
 }
