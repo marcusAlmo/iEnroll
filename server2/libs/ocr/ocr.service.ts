@@ -5,7 +5,7 @@ import { createWorker, PSM } from 'tesseract.js';
 // ocr.service.ts
 @Injectable()
 export class OcrService {
-  private worker: Awaited<ReturnType<typeof createWorker>>;
+  private worker!: Awaited<ReturnType<typeof createWorker>>;
 
   async onModuleInit() {
     this.worker = await createWorker();

@@ -22,10 +22,10 @@ export class RequirementTextDto {
   requirementId!: number;
 
   @IsEnum(['text'])
-  type: 'text';
+  type!: 'text';
 
   @IsString()
-  value: string;
+  value!: string;
 }
 
 export class RequirementDocumentDto {
@@ -35,9 +35,9 @@ export class RequirementDocumentDto {
   requirementId!: number;
 
   @IsEnum(['document'])
-  type: 'document';
+  type!: 'document';
 
-  value: Express.Multer.File;
+  value!: Express.Multer.File;
 }
 
 export class RequirementPayloadDto {
@@ -53,7 +53,7 @@ export class RequirementPayloadDto {
     },
     keepDiscriminatorProperty: true,
   })
-  payloads: (RequirementTextDto | RequirementDocumentDto)[];
+  payloads!: (RequirementTextDto | RequirementDocumentDto)[];
 }
 
 // export class RequirementPayloadDto {
