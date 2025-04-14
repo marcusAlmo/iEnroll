@@ -110,7 +110,7 @@ export class EnrollService {
               ? filteredSchedules.map((f) => ({
                   startDatetime: f.start_datetime,
                   endDatetime: f.end_datetime,
-                  slotsLeft: f.aux_schedule_slot?.application_slot_left ?? NaN,
+                  slotsLeft: f.aux_schedule_slot?.application_slot_left ?? null,
                 }))
               : null,
           note:
@@ -131,7 +131,11 @@ export class EnrollService {
             name: string;
             code: string;
             schedule:
-              | { startDatetime: Date; endDatetime: Date; slotsLeft: number }[]
+              | {
+                  startDatetime: Date;
+                  endDatetime: Date;
+                  slotsLeft: number | null;
+                }[]
               | null;
             note?: string;
             gradeSectionType: {
