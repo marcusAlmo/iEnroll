@@ -285,4 +285,51 @@ export class EnrollService {
       });
     });
   }
+
+  async validatePaymentOptionId({
+    paymentOptionId,
+  }: {
+    paymentOptionId: number;
+  }) {
+    const isPaymentOptionIdExists = Boolean(
+      await this.prisma.school_payment_option.findFirst({
+        select: { payment_option_id: true },
+        where: { payment_option_id: paymentOptionId },
+      }),
+    );
+
+    return isPaymentOptionIdExists;
+  }
+
+  async checkIfStudentIsALreadyPaid({ studentId }: { studentId: number }) {
+    const isStudentAlreadyPaid = Boolean(
+      await this.prisma.enrollment_fee_payment.findFirst({
+        where: {
+          student_id: studentId,
+        },
+      }),
+    );
+
+    return isStudentAlreadyPaid;
+  }
+
+  async checkIfAllRequirementIdsAreValid({
+    requirementIds,
+  }: {
+    requirementIds: number[];
+  }) {
+    const found = await this.prisma.enrollment_requirement.findMany({
+      where: {
+        requirement_id: {
+          in: requirementIds,
+        },
+      },
+      select: {
+        requirement_id: true,
+      },
+    });
+
+    const foundIds = new Set(found.map((req) => req.requirement_id));
+    return requirementIds.every((id) => foundIds.has(id));
+  }
 }

@@ -47,4 +47,33 @@ export class EnrollController {
   ) {
     return await this.enrollService.submitRequirements(payload);
   }
+
+  @MessagePattern({ cmd: 'validate_payment_option_id' })
+  async validatePaymentOptionId({
+    paymentOptionId,
+  }: {
+    paymentOptionId: number;
+  }) {
+    return await this.enrollService.validatePaymentOptionId({
+      paymentOptionId,
+    });
+  }
+
+  @MessagePattern({ cmd: 'check_if_student_is_paid' })
+  async checkIfStudentIsALreadyPaid({ studentId }: { studentId: number }) {
+    return await this.enrollService.checkIfStudentIsALreadyPaid({
+      studentId,
+    });
+  }
+
+  @MessagePattern({ cmd: 'check_if_all_requirements_are_valid' })
+  async checkIfAllRequirementIdsAreValid({
+    requirementIds,
+  }: {
+    requirementIds: number[];
+  }) {
+    return await this.enrollService.checkIfAllRequirementIdsAreValid({
+      requirementIds,
+    });
+  }
 }
