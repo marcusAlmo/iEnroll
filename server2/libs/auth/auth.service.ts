@@ -18,13 +18,22 @@ export class AuthService {
 
   async validateUserById(userId: number) {
     // Add logic to validate user by ID
-    return await this.prisma.user.findFirst({
+    const result = await this.prisma.user.findFirst({
       select: {
         user_id: true,
         username: true,
+        school_id: true,
         // password_hash: true,
       },
       where: { user_id: userId },
     });
+
+    if (!result) return null;
+
+    return {
+      username: result.username,
+      user_id: result.user_id,
+      school_id: result.school_id,
+    };
   }
 }
