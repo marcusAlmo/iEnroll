@@ -1,7 +1,7 @@
-import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.service';
-import { OcrService } from '@lib/ocr/ocr.service';
-import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
+import { OcrService } from '@lib/ocr/ocr.service';
+import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.service';
 import {
   writeFileSync,
   existsSync,
@@ -18,7 +18,7 @@ export class DocumentService {
   private readonly uploadDir = join(__dirname, '..', '..', '..', 'uploads');
 
   constructor(
-    private prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly ocrService: OcrService,
     private readonly blurryDetectorService: BlurryDetectorService,
   ) {
@@ -28,37 +28,31 @@ export class DocumentService {
   private async processPlugins(
     filePath: string,
     mimetype: string,
-    buffer: Buffer | null,
+    buffer?: Buffer,
     options?: ModulePluginOptions,
-  ) {
+  ): Promise<Record<string, any> | undefined> {
     if (!options) return undefined;
 
-    const isImage = mimetype?.startsWith('image/');
-    const result: any = {};
-
-    if (options.burryDetector && isImage) {
+    const result: Record<string, any> = {};
+    if (options.burryDetector && mimetype.startsWith('image/')) {
       result.isBlurry =
         await this.blurryDetectorService.isImageBlurry(filePath);
     }
-
     if (options.ocr && buffer) {
       result.ocr = await this.ocrService.extractText(buffer);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result;
   }
 
   async handleFile(payload: any, options?: ModulePluginOptions) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const buffer = Buffer.from(payload.buffer, 'base64');
       const fileName = `${uuidv4()}-${payload.originalName}`;
       const filePath = join(this.uploadDir, fileName);
 
       writeFileSync(filePath, buffer);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      unlinkSync(payload.filepath);
+      unlinkSync(payload.filepath); // Delete temporary file
 
       const file = await this.prisma.file.create({
         data: {
@@ -71,7 +65,6 @@ export class DocumentService {
 
       const plugins = await this.processPlugins(
         filePath,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         payload.mimetype,
         buffer,
         options,
@@ -89,21 +82,17 @@ export class DocumentService {
         },
         plugins,
       };
-    } catch (error: any) {
+    } catch (error) {
       return { success: false, error: error.message };
     }
   }
 
   async getMetadata({ id }: { id: number }, options?: ModulePluginOptions) {
-    const file = await this.prisma.file.findUnique({
-      where: { file_id: id },
-    });
-
+    const file = await this.prisma.file.findUnique({ where: { file_id: id } });
     if (!file) return { success: false, message: 'Document not found' };
 
     const filePath = join(this.uploadDir, file.path);
-    const needsBuffer = options?.ocr;
-    const buffer = needsBuffer ? readFileSync(filePath) : null;
+    const buffer = options?.ocr ? readFileSync(filePath) : undefined;
 
     const plugins = await this.processPlugins(
       filePath,
@@ -127,10 +116,7 @@ export class DocumentService {
   }
 
   async handleDeleteFile(id: number) {
-    const file = await this.prisma.file.findUnique({
-      where: { file_id: id },
-    });
-
+    const file = await this.prisma.file.findUnique({ where: { file_id: id } });
     if (!file) throw new Error('Document not found');
 
     try {
@@ -138,7 +124,7 @@ export class DocumentService {
       await this.prisma.file.delete({ where: { file_id: id } });
 
       return { success: true, message: 'Document deleted successfully' };
-    } catch (error: any) {
+    } catch (error) {
       return { success: false, error: error.message };
     }
   }
