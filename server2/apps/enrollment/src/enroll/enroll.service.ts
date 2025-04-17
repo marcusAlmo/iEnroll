@@ -180,7 +180,7 @@ export class EnrollService {
       }) => ({
         requirementId: requirement_id,
         name,
-        requirement_type,
+        requirementTypr: requirement_type,
         acceptedDataTypes: accepted_data_type,
         isRequired: is_required,
       }),
