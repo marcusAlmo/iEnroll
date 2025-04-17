@@ -13,7 +13,6 @@ export class CardsController {
 
   @MessagePattern({ cmd: 'accepted-enrollment-total' })
   async getAcceptedEnrollmentTotal(payload: { schoolId: number }) {
-    console.log('payload3', payload);
     return await this.cardsService.getAcceptedEnrollmentTotal(payload.schoolId);
   }
 
