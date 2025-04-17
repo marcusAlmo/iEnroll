@@ -57,6 +57,11 @@ export class EnrollService {
           select: {
             start_datetime: true,
             end_datetime: true,
+            aux_schedule_slot: {
+              select: {
+                application_slot_left: true,
+              },
+            },
           },
         },
       },
@@ -100,7 +105,14 @@ export class EnrollService {
         acc[academicLevelName].gradeLevels.push({
           name: gradeLevelName,
           code: gradeLevelCode,
-          schedule: filteredSchedules.length > 0 ? filteredSchedules : null,
+          schedule:
+            filteredSchedules.length > 0
+              ? filteredSchedules.map((f) => ({
+                  startDatetime: f.start_datetime,
+                  endDatetime: f.end_datetime,
+                  slotsLeft: f.aux_schedule_slot?.application_slot_left ?? null,
+                }))
+              : null,
           note:
             filteredSchedules.length === 0
               ? 'All enrollment schedules have passed.'
@@ -118,7 +130,13 @@ export class EnrollService {
           gradeLevels: {
             name: string;
             code: string;
-            schedule: { start_datetime: Date; end_datetime: Date }[] | null;
+            schedule:
+              | {
+                  startDatetime: Date;
+                  endDatetime: Date;
+                  slotsLeft: number | null;
+                }[]
+              | null;
             note?: string;
             gradeSectionType: {
               id: number;
