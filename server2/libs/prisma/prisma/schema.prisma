@@ -147,7 +147,6 @@ model enrollment_schedule {
   end_datetime           DateTime            @db.Timestamp(6)
   creation_datetime      DateTime?           @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?           @default(now()) @db.Timestamp(6)
-  application_slot       Int
   aux_schedule_slot      aux_schedule_slot?
   grade_level_offered    grade_level_offered @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_enrollment_schedule_grade_level_offered_id")
 
@@ -162,7 +161,6 @@ model grade_level_offered {
   creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
   is_active              Boolean                  @default(true)
-  aux_schedule_slot      aux_schedule_slot[]
   enrollment_application enrollment_application[]
   enrollment_schedule    enrollment_schedule[]
   grade_level            grade_level              @relation(fields: [grade_level_code], references: [grade_level_code], map: "fk_grade_level_offered_grade_level_code")
@@ -759,9 +757,7 @@ model aux_schedule_slot {
   is_closed              Boolean                  @default(false)
   start_datetime         DateTime                 @db.Timestamp(6)
   end_datetime           DateTime                 @db.Timestamp(6)
-  grade_level_offered_id Int
   enrollment_schedule    enrollment_schedule      @relation(fields: [schedule_id], references: [schedule_id], map: "fk_aux_schedule_slot_schedule_id")
-  grade_level_offered    grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grade_level_offered_id")
   enrollment_application enrollment_application[]
 
   @@schema("enrollment")

@@ -20,6 +20,7 @@ import { DocumentModule } from './document/document.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ImageModule } from './image/image.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ImageModule } from './image/image.module';
     EnrollmentModule,
     DocumentModule,
     ImageModule,
+    MetricsModule,
   ],
   controllers: [
     ApiGatewayController,
