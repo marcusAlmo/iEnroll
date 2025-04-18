@@ -6,7 +6,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest(err: any, user: any) {
     console.debug('handleRequest', err, user);
     if (err || !user) {
-      throw err || new UnauthorizedException('User not authorized');
+      throw err || new UnauthorizedException('ERR_USER_NOT_AUTHORIZED');
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return user;

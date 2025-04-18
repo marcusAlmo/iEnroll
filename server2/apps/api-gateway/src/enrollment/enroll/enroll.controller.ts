@@ -60,12 +60,14 @@ export class EnrollController {
     @Body() paymentDto: PaymentDto,
     @UploadedFile() file: Express.Multer.File,
     @User('user_id') studentId: number,
+    @User('school_id') schoolId: number,
   ) {
     if (!file) throw new BadRequestException('File upload not found!');
     return await this.enrollService.submitPayment({
       file,
       paymentOptionId: paymentDto.paymentOptionId,
-      studentId: studentId,
+      studentId,
+      schoolId,
     });
   }
 
@@ -77,6 +79,7 @@ export class EnrollController {
   async submitRequirements(
     @Body() body: RequirementPayloadDto,
     @User('user_id') studentId: number,
+    @User('school_id') schoolId: number,
   ) {
     const allRequirementIds = body.payloads.map((p) => p.requirementId);
 
@@ -91,6 +94,7 @@ export class EnrollController {
     const result = await this.enrollService.submitRequirements({
       payloads: body.payloads,
       studentId,
+      schoolId,
     });
 
     return result;

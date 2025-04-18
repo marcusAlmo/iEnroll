@@ -10,7 +10,7 @@ const serviceNames = [
   'METRICS',
   'SYSTEM_MANAGEMENT',
   'AUTH',
-  'DOCUMENT',
+  'FILE',
   'IMAGE',
 ] as const;
 

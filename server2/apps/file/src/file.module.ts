@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { DocumentController } from './document.controller';
-import { DocumentService } from './document.service';
+import { FileController } from './file.controller';
+import { FileService } from './file.service';
 import { PrismaModule } from '@lib/prisma/src/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
@@ -15,7 +15,7 @@ import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.serv
     }),
     PrismaModule,
   ],
-  controllers: [DocumentController],
-  providers: [DocumentService, OcrService, BlurryDetectorService],
+  controllers: [FileController],
+  providers: [FileService, OcrService, BlurryDetectorService],
 })
-export class DocumentModule {}
+export class FileModule {}
