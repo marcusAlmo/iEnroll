@@ -7,7 +7,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-
 export class PaymentDto {
   @Transform(({ value }: { value: string }) => parseInt(value, 10))
   @IsNumber()

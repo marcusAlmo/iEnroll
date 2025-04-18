@@ -82,7 +82,7 @@ export class DocumentService {
         },
         plugins,
       };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }
@@ -124,7 +124,7 @@ export class DocumentService {
       await this.prisma.file.delete({ where: { file_id: id } });
 
       return { success: true, message: 'Document deleted successfully' };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }

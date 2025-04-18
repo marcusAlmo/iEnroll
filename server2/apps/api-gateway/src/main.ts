@@ -3,6 +3,7 @@ import { ApiGatewayModule } from './api-gateway.module';
 import * as dotenv from 'dotenv';
 import { ValidationPipe } from '@nestjs/common';
 import os from 'os';
+import 'multer';
 
 async function bootstrap() {
   dotenv.config();
