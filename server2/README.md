@@ -126,14 +126,4 @@ You can customize the app behavior by editing the `.env` file. Remember that you
   </div>
 </p>
 
----
 
-### Additional Tips
-
-- Ensure you have the latest version of Node.js and npm.
-
----
-
-### Getting Help
-
-For any questions or issues, feel free to open a new issue on our GitHub repository or reach out to our community forum.
