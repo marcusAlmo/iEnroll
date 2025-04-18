@@ -168,4 +168,3 @@ You can customize the app behavior by editing the `.env` file. Remember that you
     </div>
   </div>
 </p>
-````
