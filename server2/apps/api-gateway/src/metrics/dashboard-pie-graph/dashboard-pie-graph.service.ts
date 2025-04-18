@@ -1,12 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DashboardPieGraph } from './interface/dashboard-pie-graph.interface';
+import {
+  DashboardPieGraph,
+  PieGraphData,
+} from './interface/dashboard-pie-graph.interface';
 import { lastValueFrom } from 'rxjs';
 import { ClientProxy } from '@nestjs/microservices';
-
+import { ExceptionCheckerService } from '@lib/exception-checker/exception-checker.service';
+import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 @Injectable()
 export class DashboardPieGraphService {
   constructor(
     @Inject('METRICS_SERVICE') private readonly client: ClientProxy,
+    private readonly exceptionCheckerService: ExceptionCheckerService,
   ) {}
 
   public async getAllGrades(
@@ -18,5 +23,15 @@ export class DashboardPieGraphService {
     );
 
     return result;
+  }
+
+  public async getPieGraphData(payload: object): Promise<PieGraphData> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-pie-graph-data' }, payload),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as PieGraphData;
   }
 }

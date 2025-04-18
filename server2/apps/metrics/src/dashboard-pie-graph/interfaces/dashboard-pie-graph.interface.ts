@@ -10,6 +10,10 @@ export interface DashboardPieGraph {
     }>;
     totalEnrollmentCount: number;
   };
+
+  gradeLevelWithCode: { gradeLevel: string; gradeLevelCode: string };
+
+  gradeLevelsWithCode: Array<this['gradeLevelWithCode']>;
 }
 
 // eslint-disable-next-line

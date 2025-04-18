@@ -8,7 +8,12 @@ export class DashboardPieGraphController {
 
   @Get('all-grades')
   async getAllGrades(@User('school_id') schoolId: number) {
-    schoolId = 762306;
     return await this.pieGraphService.getAllGrades({ schoolId });
+  }
+
+  @Get('pie-graph-data')
+  async getPieGraphData(@User('school_id') schoolId: number) {
+    schoolId = 762306;
+    return await this.pieGraphService.getPieGraphData({ schoolId });
   }
 }

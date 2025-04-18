@@ -63,7 +63,7 @@ export class CardsService {
 
   // SUPPORTING METHODS
 
-  private async getAcademicYear(
+  public async getAcademicYear(
     schoolId: number,
   ): Promise<AcademicYear['returnValue']['data']> {
     console.log('schoolId2', schoolId);

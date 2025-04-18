@@ -11,4 +11,9 @@ export class DashboardPieGraphController {
     console.log('payload2', payload);
     return await this.pieGraphService.getAllGrades(payload.schoolId);
   }
+
+  @MessagePattern({ cmd: 'get-pie-graph-data' })
+  async getPieGraphData(payload: { schoolId: number }) {
+    return await this.pieGraphService.getPieGraphData(payload.schoolId);
+  }
 }
