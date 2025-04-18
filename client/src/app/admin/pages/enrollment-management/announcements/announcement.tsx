@@ -1,18 +1,34 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Form } from "@/components/ui/form"; // Import the Form wrapper
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form } from "@/components/ui/form";
 import InfoIcon from '@/assets/images/info icon.svg';
 import { Switch } from '@headlessui/react';
 import CustomInput from '@/components/CustomInput';
 
-interface FormData {
-  subject: string;
-  content: string;
-}
+const announcementSchema = z.object({
+  subject: z
+    .string()
+    .max(100, { message: "Subject must not exceed 100 characters." }),
+    
+  content: z
+    .string()
+    .max(255, { message: "Content must not exceed 255 characters." }),
+});
+
+type FormData = z.infer<typeof announcementSchema>;
 
 export default function Announcement() {
-  const [enabled, setEnabled] = useState(true); // Default switch to enabled (right)
-  const form = useForm<FormData>(); // Using form object for react-hook-form
+  const [enabled, setEnabled] = useState(true);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(announcementSchema),
+    defaultValues: {
+      subject: '',
+      content: '',
+    },
+  });
 
   const onSubmit = (data: FormData) => {
     console.log('Form Submitted:', data);
@@ -35,9 +51,8 @@ export default function Announcement() {
         </div>
       </div>
 
-      {/* Content section */}
       <div className="flex justify-center items-center">
-        <div className="bg-white shadow-md justify-center items-center rounded-lg p-4 border-2 mt-6 max-w-[800px] w-full">
+        <div className="bg-white shadow-md justify-center items-center rounded-lg p-4 border-2 mt-7 max-w-[800px] w-full mx-auto">
           <div className="flex flex-row justify-center items-center mb-6 gap-2 mt-4">
             <Switch
               checked={enabled}
@@ -58,7 +73,7 @@ export default function Announcement() {
           {/* Form Wrapper */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {/* Subject Input using CustomInput */}
+              {/* Subject Input */}
               <div className='flex flex-col px-6'>
                 <CustomInput
                   control={form.control}
@@ -70,23 +85,23 @@ export default function Announcement() {
                 />
               </div>
 
-              {/* Content Input using CustomInput */}
+              {/* Content Input */}
               <div className='flex flex-col px-6'>
                 <CustomInput
-                    control={form.control}
-                    name="content"
-                    label="Content"
-                    placeholder="Please be advised that there will be an early dismissal on Thursday, October 26th, due to a scheduled faculty meeting. Students will be dismissed at 12:00 PM. Please make arrangements for transportation."
-                    inputStyle="w-full p-4 pb-10 mt-1 text-sm rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text- placeholder:whitespace-pre-line placeholder:text-[13px] placeholder:leading-5"
-                    labelStyle="block text-sm font-semibold"
+                  control={form.control}
+                  name="content"
+                  label="Content"
+                  placeholder="Please be advised that there will be an early dismissal on Thursday, October 26th, due to a scheduled faculty meeting. Students will be dismissed at 12:00 PM. Please make arrangements for transportation."
+                  inputStyle="w-full p-4 pb-10 mt-1 text-sm rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:whitespace-pre-line placeholder:text-[13px] placeholder:leading-5"
+                  labelStyle="block text-sm font-semibold"
                 />
-                </div>
+              </div>
 
               {/* Submit Button */}
               <div className="mt-5 flex justify-center flex-col items-center">
                 <button 
                   type="submit" 
-                  className="bg-accent  py-2 px-4 rounded-[10px]  duration-300 hover:bg-opacity-80 hover:shadow-lg  font-semibold text-white transition ease-in-out hover:bg-primary hover:text-background"
+                  className="bg-accent py-2 px-4 rounded-[10px] duration-300 hover:bg-opacity-80 hover:shadow-lg font-semibold text-white transition ease-in-out hover:bg-primary hover:text-background"
                 >
                   Publish Announcement
                 </button>
