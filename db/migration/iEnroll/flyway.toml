@@ -1,5 +1,5 @@
 databaseType = "PostgreSql"
-id = "8e0dd01e-169c-4bb3-b40e-2f01d2322641"
+id = "2370e3c6-6e4c-42a9-b995-0944df5a1fdd"
 name = "iEnroll"
 
 [flyway]
@@ -25,7 +25,7 @@ detectRenames = "identical-only"
 [redgateCompare.postgresql.options.ignores]
 ignoreNewlinesInTextObjects = "off"
 
-[environments.iEnroll]
+[environments.ienroll]
 url = "jdbc:postgresql://rt8-2.h.filess.io:5433/iEnroll_ballthembe"
-schemas = [ "'chat", "enrollment", "metrics", "record", "system'" ]
+schemas = [ "chat", "enrollment", "metrics", "record", "system" ]
 displayName = "iEnroll"
