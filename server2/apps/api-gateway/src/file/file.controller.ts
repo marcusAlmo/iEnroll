@@ -24,14 +24,112 @@ import { Response } from 'express';
 import { join } from 'path';
 import { CryptoUtils } from '@lib/utils/crypto.utils';
 import { UPLOADDIR } from '@lib/constants/file.constants';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiInternalServerErrorResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { UploadFileResponseDto } from '@lib/dtos/src/file/v1/upload-response.dto';
 
+@ApiTags('File Management')
 @Controller('file')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class FileController {
   constructor(private readonly fileService: FileService) {}
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload a file' })
+  @ApiQuery({ name: 'ocr_enabled', required: false, type: Boolean })
+  @ApiQuery({ name: 'blurry_enabled', required: false, type: Boolean })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'File uploaded successfully',
+    type: UploadFileResponseDto,
+    example: {
+      success: true,
+      document: {
+        id: 1,
+        name: 'example-file.pdf',
+        url: '/api/file/123e4567-e89b-12d3-a456-426614174000',
+        type: 'application/pdf',
+        size: 102400,
+        createdAt: '2025-04-01T12:30:00Z',
+        uuid: '123e4567-e89b-12d3-a456-426614174000',
+      },
+      plugins: {
+        ocr: 'Extracted text from the document',
+        isBlurry: false,
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 401,
+          message: 'ERR_USER_NOT_AUTHORIZED',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'File not provided',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 400,
+          message: 'ERR_FILE_NOT_FOUND',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'File too large',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 400,
+          message: 'ERR_FILE_EXCEEDS_MAX_SIZE',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'School not found.',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 404,
+          message: 'ERR_SCHOOL_NOT_FOUND',
+        },
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse()
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Query('ocr_enabled', new DefaultValuePipe(false), ParseBoolPipe)
@@ -39,7 +137,7 @@ export class FileController {
     @Query('blurry_enabled', new DefaultValuePipe(false), ParseBoolPipe)
     blurry: boolean,
     @User('school_id') schoolId: number,
-  ) {
+  ): Promise<UploadFileResponseDto> {
     if (!file) {
       throw new BadRequestException('ERR_FILE_NOT_FOUND');
     }
