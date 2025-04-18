@@ -2,33 +2,33 @@ import { ApiProperty } from '@nestjs/swagger';
 
 class DocumentDto {
   @ApiProperty()
-  id: number;
+  id!: number;
 
   @ApiProperty()
-  name: string;
+  name!: string;
 
   @ApiProperty()
-  url: string;
+  url!: string;
 
   @ApiProperty()
-  type: string;
+  type!: string;
 
   @ApiProperty()
-  size: number;
+  size!: number;
 
   @ApiProperty({ type: String, nullable: true })
-  createdAt: Date | null;
+  createdAt!: Date | null;
 
   @ApiProperty({ type: String, nullable: true })
-  uuid: string | null;
+  uuid!: string | null;
 }
 
 export class UploadFileResponseDto {
   @ApiProperty()
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({ type: DocumentDto })
-  document: DocumentDto;
+  document!: DocumentDto;
 
   @ApiProperty({
     type: 'object',
