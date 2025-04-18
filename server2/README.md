@@ -130,19 +130,24 @@ npm run start:prod
 
 You can customize the app behavior by editing the `.env` file. Remember that you must specify the required variables. Below are the key environment variables.:
 
-| Variable Name          | Description                        | Required                                 | Example                                       |
-| ---------------------- | ---------------------------------- | ---------------------------------------- | --------------------------------------------- |
-| `PORT`                 | Port number the app will listen on | No                                       | `3000`                                        |
-| `HOST`                 | Host IP to bind the server to      | No, but advisable in prod                | `192.168.1.43`                                |
-| `CORS_ORIGIN`          | Allowed origins for CORS requests  | No, but advisable in prod                | `http://localhost:5173,http://localhost:5174` |
-| `DATABASE_URL`         | Database connection string         | Yes                                      | `postgres://...`                              |
-| `JWT_SECRET_KEY`       | Secret key for signing JWTs        | No (must be specified for auth to work)  | `your_jwt_secret`                             |
-| `JWT_EXPIRATION`       | JWT token expiration time          | No (must be specified for auth to work)  | `1d`, `7d`                                    |
-| `RABBITMQ_URL`         | RabbitMQ connection string         | No (required in production environments) | `amqp://localhost`                            |
-| `GOOGLE_CLIENT_ID`     | Google client ID                   | Yes                                      | `djbetdf45t...`                               |
-| `GOOGLE_CLIENT_SECRET` | Google client secret               | Yes                                      | `GOCS-wwdewr...`                              |
+| Variable Name          | Description                         | Required                                 | Example                                                            |
+| ---------------------- | ----------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
+| `PORT`                 | Port number the app will listen on  | No                                       | `3000`                                                             |
+| `HOST`                 | Host IP to bind the server to       | No, but advisable in prod                | `192.168.1.43`                                                     |
+| `CORS_ORIGIN`          | Allowed origins for CORS requests   | No, but advisable in prod                | `http://localhost:5173,http://localhost:5174`                      |
+| `DATABASE_URL`         | Database connection string          | Yes                                      | `postgres://...`                                                   |
+| `JWT_SECRET_KEY`       | Secret key for signing JWTs         | No (must be specified for auth to work)  | `your_jwt_secret`                                                  |
+| `JWT_EXPIRATION`       | JWT token expiration time           | No (must be specified for auth to work)  | `1d`, `7d`                                                         |
+| `RABBITMQ_URL`         | RabbitMQ connection string          | No (required in production environments) | `amqp://localhost`                                                 |
+| `GOOGLE_CLIENT_ID`     | Google client ID                    | Yes                                      | `djbetdf45t...`                                                    |
+| `GOOGLE_CLIENT_SECRET` | Google client secret                | Yes                                      | `GOCS-wwdewr...`                                                   |
+| `MASTER_FILE_KEY`      | 32-byte hex key for file encryption | No (required in production environments) | `0000000000000000000000000000000000000000000000000000000000000000` |
 
 > 🛡️ Keep sensitive values like `JWT_SECRET_KEY` secure and never commit them to version control.
+
+## API Documentation
+
+You can read the API documentation by clicking [here.](./API.md)
 
 ## Contributors
 

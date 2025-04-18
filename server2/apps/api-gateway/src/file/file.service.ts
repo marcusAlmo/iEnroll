@@ -1,34 +1,38 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import {
+  DeleteFileParams,
   DeleteFileReturn,
+  MetadataFileParams,
   MetadataFileReturn,
   UploadFileReturn,
-} from './document.types';
+  FileUUIDReturn,
+  FileUUIDParams,
+} from './file.types';
 import { lastValueFrom } from 'rxjs';
 import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { ModulePluginOptions } from 'apps/document/src/interfaces/module-plugin-options.interface';
+import { ModulePluginOptions } from 'apps/file/src/interfaces/module-plugin-options.interface';
+import { TEMPDIR } from '@lib/constants/file.constants';
 
 @Injectable()
-export class DocumentService {
-  constructor(
-    @Inject('DOCUMENT_SERVICE') private readonly client: ClientProxy,
-  ) {}
+export class FileService {
+  private readonly tempPath = TEMPDIR;
+
+  constructor(@Inject('FILE_SERVICE') private readonly client: ClientProxy) {}
 
   async uploadFile(
     file: Express.Multer.File,
+    schoolId: number,
     options?: {
       blurEnabled: boolean;
       ocrEnabled: boolean;
     },
   ) {
-    const tempPath = join(__dirname, '..', '..', '..', 'temp');
+    const tempPathFileName = join(this.tempPath, uuidv4());
 
-    const tempPathFileName = join(tempPath, uuidv4());
-
-    if (!existsSync(tempPath)) mkdirSync(tempPath);
+    if (!existsSync(this.tempPath)) mkdirSync(this.tempPath);
 
     writeFileSync(tempPathFileName, file.buffer);
 
@@ -38,14 +42,13 @@ export class DocumentService {
       mimetype: file.mimetype,
       size: file.size,
       buffer: file.buffer,
+      schoolId,
     };
 
     const result: UploadFileReturn = await lastValueFrom(
       this.client.send(
         {
-          cmd: options
-            ? 'store_document_file_plugin_enabled'
-            : 'store_document_file',
+          cmd: options ? 'store_file_plugin_enabled' : 'store_file',
         },
         options
           ? {
@@ -62,7 +65,7 @@ export class DocumentService {
   }
 
   async getMetadata(
-    payload: { id: number },
+    payload: { uuid: string; schoolId: number },
     options?: {
       blurEnabled: boolean;
       ocrEnabled: boolean;
@@ -71,11 +74,9 @@ export class DocumentService {
     const result: MetadataFileReturn = await lastValueFrom(
       this.client.send(
         {
-          cmd: options
-            ? 'get_document_metadata_plugin_enabled'
-            : 'get_document_metadata',
+          cmd: options ? 'get_metadata_plugin_enabled' : 'get_metadata',
         },
-        options
+        (options
           ? {
               file: payload,
               options: {
@@ -83,19 +84,31 @@ export class DocumentService {
                 burryDetector: options.blurEnabled,
               } as ModulePluginOptions,
             }
-          : payload,
+          : payload) as MetadataFileParams,
       ),
     );
     return result;
   }
 
-  async deleteFile(payload: any) {
+  async getFileByUUID(payload: { uuid: string }) {
+    const result: FileUUIDReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_file_by_uuid',
+        },
+        payload as FileUUIDParams,
+      ),
+    );
+    return result;
+  }
+
+  async deleteFile(payload: { fileId: number }) {
     const result: DeleteFileReturn = await lastValueFrom(
       this.client.send(
         {
-          cmd: 'delete_document_file',
+          cmd: 'delete_file',
         },
-        payload,
+        payload as DeleteFileParams,
       ),
     );
     return result;

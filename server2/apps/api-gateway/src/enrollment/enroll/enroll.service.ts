@@ -17,7 +17,7 @@ import {
   CheckStudentAlreadyPaidReturn,
   CheckRequirementIdsValidReturn,
 } from './enroll.types';
-import { DocumentService } from '../../document/document.service';
+import { FileService } from '../../file/file.service';
 import {
   RequirementTextDto,
   RequirementDocumentDto,
@@ -29,7 +29,7 @@ import { $Enums } from '@prisma/client';
 export class EnrollService {
   constructor(
     @Inject('ENROLLMENT_SERVICE') private readonly client: ClientProxy,
-    private readonly documentService: DocumentService,
+    private readonly documentService: FileService,
     // private readonly prisma: PrismaService,
   ) {}
 
@@ -78,6 +78,7 @@ export class EnrollService {
     file: Express.Multer.File;
     paymentOptionId: number;
     studentId: number;
+    schoolId: number;
   }) {
     const isPaymentOptionIdExists: ValidatePaymentOptionReturn =
       await lastValueFrom(
@@ -109,11 +110,14 @@ export class EnrollService {
 
     const file = this.setFileName(payload.file, payload.studentId);
 
-    const { document, error } = await this.documentService.uploadFile(file);
+    const { document, success } = await this.documentService.uploadFile(
+      file,
+      payload.schoolId,
+    );
 
-    if (error)
+    if (!success)
       throw new InternalServerErrorException(
-        'An error occured in uploading file. Error: ' + error?.message,
+        'An error occured in uploading file',
       );
 
     if (!document)
@@ -162,6 +166,7 @@ export class EnrollService {
   async submitRequirements(input: {
     payloads: (RequirementTextDto | RequirementDocumentDto)[];
     studentId: number;
+    schoolId: number;
   }): Promise<{
     success: boolean;
     failedItems: { requirementId: number; reason: string }[];
@@ -172,11 +177,15 @@ export class EnrollService {
       try {
         if (item.type === 'document') {
           const file = this.setFileName(item.value, studentId);
-          const { document, error } =
-            await this.documentService.uploadFile(file);
+          const { document, success } = await this.documentService.uploadFile(
+            file,
+            1,
+          );
 
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          if (error) throw new Error(error.message);
+          if (!success)
+            throw new InternalServerErrorException(
+              'An error occured in uploading file',
+            );
           if (!document) throw new Error('Uploaded document is undefined.');
 
           const type: $Enums.attachment_type = document.type.includes('image')

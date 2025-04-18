@@ -1,16 +1,16 @@
 import { NestFactory } from '@nestjs/core';
-import { DocumentModule } from './document.module';
+import { FileModule } from './file.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { rabbitMqUrl, rabbitMQQueue } from '@lib/constants/rabbit-mq.constants';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    DocumentModule,
+    FileModule,
     {
       transport: Transport.RMQ,
       options: {
         urls: [rabbitMqUrl],
-        queue: rabbitMQQueue.DOCUMENT,
+        queue: rabbitMQQueue.FILE,
         queueOptions: {
           durable: true,
         },

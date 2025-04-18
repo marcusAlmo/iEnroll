@@ -1,26 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DocumentController } from './document.controller';
-import { DocumentService } from './document.service';
+import { FileController } from './file.controller';
+import { FileService } from './file.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { OcrService } from '@lib/ocr/ocr.service';
 import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.service';
 
-describe('DocumentController', () => {
+describe('FileController', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let documentController: DocumentController;
+  let documentController: FileController;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [DocumentController],
+      controllers: [FileController],
       providers: [
-        DocumentService,
+        FileService,
         PrismaService,
         OcrService,
         BlurryDetectorService,
       ],
     }).compile();
 
-    documentController = app.get<DocumentController>(DocumentController);
+    documentController = app.get<FileController>(FileController);
   });
 
   describe('root', () => {
