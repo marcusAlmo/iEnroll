@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { DashboardPieGraphService } from './dashboard-pie-graph.service';
-import { DashboardPieGraphController } from './dashboard-pie-graph.controller';
+import { EnrollmentTrendDataController } from './enrollment-trend-data.controller';
+import { EnrollmentTrendDataService } from './enrollment-trend-data.service';
 import { AuthModule } from '@lib/auth/auth.module';
 import { ClientsModule } from '@nestjs/microservices';
 import { rabbitMQConstants } from '@lib/constants/rabbit-mq.constants';
 import { ExceptionCheckerService } from '@lib/exception-checker/exception-checker.service';
+
 @Module({
   imports: [AuthModule, ClientsModule.register([rabbitMQConstants.METRICS])],
-  providers: [DashboardPieGraphService, ExceptionCheckerService],
-  controllers: [DashboardPieGraphController],
+  controllers: [EnrollmentTrendDataController],
+  providers: [EnrollmentTrendDataService, ExceptionCheckerService],
 })
-export class DashboardPieGraphModule {}
+export class EnrollmentTrendDataModule {}

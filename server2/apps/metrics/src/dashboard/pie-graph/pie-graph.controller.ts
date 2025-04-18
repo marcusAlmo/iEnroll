@@ -1,10 +1,10 @@
 import { Controller } from '@nestjs/common';
-import { DashboardPieGraphService } from './dashboard-pie-graph.service';
+import { PieGraphService } from './pie-graph.service';
 import { MessagePattern } from '@nestjs/microservices';
 
-@Controller('dashboard-pie-graph')
-export class DashboardPieGraphController {
-  constructor(private readonly pieGraphService: DashboardPieGraphService) {}
+@Controller('pie-graph')
+export class PieGraphController {
+  constructor(private readonly pieGraphService: PieGraphService) {}
 
   @MessagePattern({ cmd: 'get-all-grades' })
   async getAllGrades(payload: { schoolId: number }) {

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DashboardPieGraphController } from './dashboard-pie-graph.controller';
+import { DashboardPieGraphController } from './pie-graph.controller';
 
 describe('DashboardPieGraphController', () => {
   let controller: DashboardPieGraphController;

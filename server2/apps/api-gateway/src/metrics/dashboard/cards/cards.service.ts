@@ -2,7 +2,7 @@ import { ExceptionCheckerService } from '@lib/exception-checker/exception-checke
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { EnrollmentTotal } from 'apps/metrics/src/cards/interfaces/cards.interface';
+import { EnrollmentTotal } from 'apps/metrics/src/dashboard/cards/interfaces/cards.interface';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()

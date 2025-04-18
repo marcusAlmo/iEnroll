@@ -6,7 +6,7 @@ import { MicroserviceUtility } from '@lib/microservice-utility/microservice-util
 import { CardsService } from '../cards/cards.service';
 import { AcademicYear } from '../cards/interfaces/cards.interface';
 @Injectable()
-export class DashboardPieGraphService {
+export class PieGraphService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly microserviceUtilityService: MicroserviceUtilityService,

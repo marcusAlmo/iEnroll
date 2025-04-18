@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DashboardPieGraphService } from './dashboard-pie-graph.service';
+import { DashboardPieGraphService } from './pie-graph.service';
 
 describe('DashboardPieGraphService', () => {
   let service: DashboardPieGraphService;

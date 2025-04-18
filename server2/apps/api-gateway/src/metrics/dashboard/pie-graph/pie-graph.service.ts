@@ -8,7 +8,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { ExceptionCheckerService } from '@lib/exception-checker/exception-checker.service';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 @Injectable()
-export class DashboardPieGraphService {
+export class PieGraphService {
   constructor(
     @Inject('METRICS_SERVICE') private readonly client: ClientProxy,
     private readonly exceptionCheckerService: ExceptionCheckerService,
