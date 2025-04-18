@@ -15,8 +15,6 @@
   </a>
 </p>
 
-
-
 <p align="center">
 By Uppend
 </p>
@@ -55,31 +53,31 @@ To get started, you'll need to have Node.js (v14 or above) and npm installed.
      npm run start:dev
    ```
 
-4. **Running All Services**:
+3. **Running All Services**:
 
    ```bash
      npm run start:dev:all
    ```
 
-5. **Running All Tests**:
+4. **Running All Tests**:
 
    ```bash
      npm run test
    ```
 
-6. **Running all E2E Tests**:
+5. **Running all E2E Tests**:
 
    ```bash
      npm run test:e2e
    ```
 
-7. **Prettier Format**:
+6. **Prettier Format**:
 
    ```bash
      npm run format
    ```
 
-8. **Start the Deployment Server**:
+7. **Start the Deployment Server**:
 
    ```bash
      npm run build; npm run start:prod
@@ -89,20 +87,17 @@ To get started, you'll need to have Node.js (v14 or above) and npm installed.
 
 You can customize the app behavior by editing the `.env` file. Remember that you must specify the required variables. Below are the key environment variables.:
 
-| Variable Name                | Description                     | Required                                 | Example            |
-| ---------------------------- | ------------------------------- | ---------------------------------------- | ------------------ |
-| `DATABASE_URL`               | Database connection string      | Yes                                      | `postgres://...`   |
-| `API_GATEWAY_PORT`           | Port for the API Gateway        | No                                       | `3000`             |
-| `CHAT_API_PORT`              | Port for the Chat service       | No                                       | `3001`             |
-| `ENROLLMENT_API_PORT`        | Port for the Enrollment service | No                                       | `3002`             |
-| `SYSTEM_MANAGEMENT_API_PORT` | Port for the System Management  | No                                       | `3003`             |
-| `METRICS_API_PORT`           | Port for the Metrics service    | No                                       | `3004`             |
-| `AUTH_API_PORT`              | Port for the Auth service       | No                                       | `3005`             |
-| `JWT_SECRET_KEY`             | Secret key for signing JWTs     | No (must be specified for auth to work)  | `your_jwt_secret`  |
-| `JWT_EXPIRATION`             | JWT token expiration time       | No (must be specified for auth to work)  | `1d`, `7d`         |
-| `RABBITMQ_URL`               | RabbitMQ connection string      | No (required in production environments) | `amqp://localhost` |
-| `GOOGLE_CLIENT_ID`               | Google client ID      | Yes                                      | `djbetdf45t...`   |
-| `GOOGLE_CLIENT_SECRET`               | Google client secret      | Yes                                      | `GOCS-wwdewr...`   |
+| Variable Name                | Description                        | Required                                 | Example                 |
+| ---------------------------- | ---------------------------------- | ---------------------------------------- | ----------------------- |
+| `PORT`                       | Port number the app will listen on | No                                      | `3000`                  |
+| `HOST`                       | Host IP to bind the server to      | No, but advisable in prod                                       | `192.168.1.43`          |
+| `CORS_ORIGIN`                | Allowed origins for CORS requests  | No, but advisable in prod                                      | `http://localhost:5173,http://localhost:5174` |
+| `DATABASE_URL`               | Database connection string         | Yes                                      | `postgres://...`        |
+| `JWT_SECRET_KEY`             | Secret key for signing JWTs        | No (must be specified for auth to work)  | `your_jwt_secret`       |
+| `JWT_EXPIRATION`             | JWT token expiration time          | No (must be specified for auth to work)  | `1d`, `7d`              |
+| `RABBITMQ_URL`               | RabbitMQ connection string         | No (required in production environments) | `amqp://localhost`      |
+| `GOOGLE_CLIENT_ID`           | Google client ID                   | Yes                                      | `djbetdf45t...`         |
+| `GOOGLE_CLIENT_SECRET`       | Google client secret               | Yes                                      | `GOCS-wwdewr...`        |
 
 > 🛡️ Keep sensitive values like `JWT_SECRET_KEY` secure and never commit them to version control.
 
