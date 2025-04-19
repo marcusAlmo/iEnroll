@@ -26,7 +26,7 @@ const PlanCapacity: React.FC = () => {
   const fetchData = async () => {
     try{
         const response = await requestData<PlanCapacityData>({
-            url: 'http://localhost:3000/metrics/plan-capacity/collection',
+            url: 'http://localhost:3000/api/metrics/plan-capacity/collection',
             method: 'GET'
         });
 

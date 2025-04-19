@@ -24,7 +24,7 @@ const DonutChart = () => {
   const fetchData = async () => {
     try {
       const response = await requestData<PieChartData>({
-        url: 'http://localhost:3000/metrics/pie-graph/data',
+        url: 'http://localhost:3000/api/metrics/pie-graph/data',
         method: 'GET'
       });
 

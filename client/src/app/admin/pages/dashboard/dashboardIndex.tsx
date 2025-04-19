@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
   const fetchEnrollmentData = async () => {
     try{
       const response = await requestData<enrollmentCardsData>({
-        url: 'http://localhost:3000/metrics/cards/data',
+        url: 'http://localhost:3000/api/metrics/cards/data',
         method: 'GET'
       });
 

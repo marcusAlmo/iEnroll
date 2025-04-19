@@ -35,7 +35,7 @@ const EnrollmentCountChart = () => {
   const fetchData = async () => {
     try{
       const response = await requestData<EnrollmentTrendResponse>({
-        url: 'http://localhost:3000/metrics/enrollment-trend-data/data',
+        url: 'http://localhost:3000/api/metrics/enrollment-trend-data/data',
         method: 'GET'
       });
 
