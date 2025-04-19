@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "./../../components/Navbar";
+//import Navbar from "./../../components/Navbar";
 import SubNavIndex from "./../../components/SubNav";
 import EnrollmentBreakdown from "@/app/admin/pages/dashboard/enrollment-breakdown/enrollmentbreakdown";
 import EnrollmentTrend from "@/app/admin/pages/dashboard/enrollment-trend/enrollmenttrend";
 import PlanCapacity from "@/app/admin/pages/dashboard/plan-capacity/plancapacity";
 import EnrollmentCount from "@/app/admin/pages/dashboard/enrollment-count/enrollmentcount";
-import { getEnrollmentData } from "./../../../routes/dataRoutes";
+//import { getEnrollmentData } from "./../../../routes/dataRoutes";
 import Refresh from "@/assets/images/refresh btn.svg"; 
 import { requestData } from "@/lib/dataRequester";
 

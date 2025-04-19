@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { PlanCapacityService } from './plan-capacity.service';
 import { User } from '@lib/decorators/user.decorator';
 
-@Controller('plan-capacity')
+@Controller('metrics/plan-capacity')
 //@UseGuards(JwtAuthGuard)
 export class PlanCapacityController {
   constructor(private readonly planCapacityService: PlanCapacityService) {}
