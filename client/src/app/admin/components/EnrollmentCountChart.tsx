@@ -1,7 +1,9 @@
-import React from "react";
+import { requestData } from "@/lib/dataRequester";
+import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 
-const data = [
+/**
+ * const data = [
   { grade: "Kinder", 2022: 92.7, 2023: 23.64, 2024: 88.1 },
   { grade: "Prep", 2022: 97.76, 2023: 58.05, 2024: 57.75 },
   { grade: "Grade 1", 2022: 20.87, 2023: 41.29, 2024: 31.84 },
@@ -11,14 +13,48 @@ const data = [
   { grade: "Grade 5", 2022: 39.43, 2023: 76.82, 2024: 67.46 },
   { grade: "Grade 6", 2022: 50, 2023: 56, 2024: 89 },
 ];
+ */
 
-const colors = {
-  2022: "#7868E6", 
-  2023: "#FF6B6B", 
-  2024: "#48CAE4", 
+type EnrollmentTrendData = {
+  [year: string]: number;
+} & {
+  grade: string;
 };
 
+type EnrollmentTrendResponse = {
+  record: EnrollmentTrendData[];
+  years: string[];
+}
+
+
 const EnrollmentCountChart = () => {
+
+  const [data, setData] = useState<EnrollmentTrendResponse['record']>([]);
+  const [years, setyears] = useState<string[]>([]);
+
+  const fetchData = async () => {
+    try{
+      const response = await requestData<EnrollmentTrendResponse>({
+        url: 'http://localhost:3000/metrics/enrollment-trend-data/data',
+        method: 'GET'
+      });
+
+      if(response){
+        console.log('response: ', response);
+        setyears(response.years.map(String));
+        setData(response.record);
+      }
+    }catch(err){
+      if(err instanceof Error)
+        console.log(err.message);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+
   return (
     <div className="p-6 w-full">
       <ResponsiveContainer width="100%" height={300}>
@@ -29,9 +65,9 @@ const EnrollmentCountChart = () => {
           <Tooltip />
           <Legend />
 
-          <Bar dataKey="2022" fill={colors[2022]} barSize={30} />
-          <Bar dataKey="2023" fill={colors[2023]} barSize={30} />
-          <Bar dataKey="2024" fill={colors[2024]} barSize={30} />
+          <Bar dataKey={years[0]} fill={"#7868E6"} barSize={30} />
+          <Bar dataKey={years[1]} fill={"#FF6B6B"} barSize={30} />
+          <Bar dataKey={years[2]} fill={"#48CAE4"} barSize={30} />
         </BarChart>
       </ResponsiveContainer>
     </div>
