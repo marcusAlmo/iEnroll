@@ -11,10 +11,11 @@ import {
 } from './file.types';
 import { lastValueFrom } from 'rxjs';
 import { join } from 'path';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ModulePluginOptions } from 'apps/file/src/interfaces/module-plugin-options.interface';
 import { TEMPDIR } from '@lib/constants/file.constants';
+import { Readable } from 'stream';
 
 @Injectable()
 export class FileService {
@@ -32,9 +33,17 @@ export class FileService {
   ) {
     const tempPathFileName = join(this.tempPath, uuidv4());
 
-    if (!existsSync(this.tempPath)) mkdirSync(this.tempPath);
+    if (!existsSync(this.tempPath)) {
+      mkdirSync(this.tempPath, { recursive: true });
+    }
 
-    writeFileSync(tempPathFileName, file.buffer);
+    await new Promise<void>((resolve, reject) => {
+      const readable = Readable.from(file.buffer);
+      const writeStream = createWriteStream(tempPathFileName);
+      readable.pipe(writeStream);
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+    });
 
     const payload = {
       filepath: tempPathFileName,
@@ -61,6 +70,7 @@ export class FileService {
           : payload,
       ),
     );
+
     return result;
   }
 
