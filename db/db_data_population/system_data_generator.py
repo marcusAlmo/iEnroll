@@ -9,6 +9,9 @@ The module ensures that all system-level data is properly initialized and mainta
 referential integrity across related tables.
 """
 
+from address_generator import generate_address
+from user_generator import encrypt_password
+
 def generate_system_initial_setup(cursor):
     """
     Main function to set up all initial system data.
@@ -31,15 +34,141 @@ def generate_system_initial_setup(cursor):
         requirement_group_mapping_generator(cursor)
         generate_plan(cursor)
         about_uppend(cursor)
+        generate_role(cursor)
+        generate_permission(cursor)
+        generate_role_permission_mapping(cursor)
+        generate_system_user(cursor)
         
         cursor.execute("COMMIT")
-        print("System initial setup completed successfully")
+        print("System initial setup completed.")
         
     except Exception as e:
         cursor.execute("ROLLBACK")
         print(f"Error in system initial setup: {e}")
 
 
+def generate_role(cursor):
+    """
+    Generates role data for the system.
+    Creates roles for:
+    - Administrator
+    - Student
+    - Parent
+    - Registrar
+    """
+    roles = [
+        ('ADM', 'administrator', 'Administrator'),
+        ('STU', 'student', 'Student'),
+        ('PAR', 'parent', 'Parent'),
+        ('REG', 'registrar', 'Registrar')
+    ]
+
+    try:
+        insert_query = """
+        INSERT INTO enrollment.role (role_code, name, description)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (role_code) DO NOTHING;
+        """
+        cursor.executemany(insert_query, roles)
+        cursor.connection.commit()
+        print("Successfully inserted roles")
+    except Exception as e:
+        cursor.connection.rollback()
+        print(f"Error inserting roles: {e}")
+
+
+def generate_permission(cursor):
+    """
+    Generates permission data for the system.
+    Creates permissions name and description
+    """
+
+    # List of permissions with their descriptions as tuples
+    permissions = [
+        ('dashboard', 'Allows access to the main dashboard of the application'),
+        ('subscription', 'Grants permission to manage subscriptions'),
+        ('school_details', 'Provides access to view and edit school details'),
+        ('enrollment_details', 'Allows users to manage enrollment details'),
+        ('payment_details', 'Grants access to payment-related information and actions'),
+        ('settings', 'Provides permission to change system settings'),
+        ('system_logs', 'Allows access to system logs for monitoring and auditing'),
+        ('chat', 'Grants permission to use the chat feature within the application'),
+        ('notification', 'Provides access to notifications for user updates and alerts'),
+        ('report', 'Allows users to generate and view reports'),
+        ('enrollment_review', 'Grants permission to review enrollment applications and statuses'),
+        ('student_details', 'Provides access to view and edit student details'), 
+        ('enrollment_application', 'Grants permission to apply for enrollment')
+    ]
+
+    try:
+        insert_query = """
+        INSERT INTO enrollment.permission (name, description)
+        VALUES (%s, %s)
+        ON CONFLICT (name) DO NOTHING;
+        """
+        cursor.executemany(insert_query, permissions)   
+        cursor.connection.commit()
+        print("Successfully inserted permissions")
+    except Exception as e:
+        cursor.connection.rollback()
+        print(f"Error inserting permissions: {e}")
+
+
+def generate_role_permission_mapping(cursor):
+    """
+    Generates role permission mappings for the system.
+    Creates associations between roles and permissions.
+    """
+    cursor.execute("SELECT permission_id, name FROM enrollment.permission")
+    permission_ids = cursor.fetchall()
+    # List of role permission mappings as tuples
+    role_permissions = [
+        ('ADM', 'dashboard'),
+        ('ADM', 'subscription'),
+        ('ADM', 'school_details'),
+        ('ADM', 'enrollment_details'),
+        ('ADM', 'payment_details'),
+        ('ADM', 'settings'),    
+        ('ADM', 'system_logs'),
+        ('ADM', 'chat'),
+        ('ADM', 'notification'),
+        ('ADM', 'report'),
+        ('ADM', 'enrollment_review'),
+        
+        ('PAR', 'student_details'),
+        ('PAR', 'enrollment_application'),
+
+        ('REG', 'enrollment_details'),
+        ('REG', 'payment_details'),
+        ('REG', 'settings'),
+        ('REG', 'system_logs'),
+        ('REG', 'chat'),
+        ('REG', 'notification'),
+        ('REG', 'report'),
+        ('REG', 'enrollment_review'),
+
+        ('STU', 'student_details'),
+        ('STU', 'enrollment_application'),    
+    ]
+
+    mapped_permissions = []
+    for role_code, permission_name in role_permissions:
+        permission_id = next((id for id, name in permission_ids if name == permission_name), None)
+        if permission_id:
+            mapped_permissions.append((role_code, permission_id))
+
+    try:
+        insert_query = """
+        INSERT INTO enrollment.role_permission (role_code, permission_id)
+        VALUES (%s, %s)
+        ON CONFLICT (role_code, permission_id) DO NOTHING;
+        """
+        cursor.executemany(insert_query, mapped_permissions)
+        cursor.connection.commit()
+        print("Successfully inserted role permissions")
+    except Exception as e:
+        cursor.connection.rollback()
+        print(f"Error inserting role permissions: {e}")
 
 
 def check_default_data(cursor):
@@ -263,7 +392,7 @@ def generate_common_enrollment_requirements(cursor):
     # SQL query to insert common enrollment requirements
     insert_query = """
     INSERT INTO system.common_enrollment_requirement 
-        (name, type, accepted_data_type, is_required, description)
+        (name, requirement_type, accepted_data_type, is_required, description)
     VALUES (%s, %s, %s, %s, %s)
     ON CONFLICT (name) DO NOTHING;
     """
@@ -441,7 +570,7 @@ def generate_plan(cursor):
 
     # SQL query to insert plans
     insert_query = """
-    INSERT INTO system.plan
+    INSERT INTO system.subscription_plan
         (plan_code, name, description, duration_days, discounted_price, discount_percent, original_price, 
          max_student_count, max_admin_count, max_form_field_count, max_image_upload_count, is_most_popular, is_active)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -523,3 +652,43 @@ def about_uppend(cursor):
         # Rollback in case of error
         cursor.connection.rollback()
         print(f"Error generating about us content: {e}")
+
+
+def generate_system_user(cursor):
+    """
+    Generates system user for the system.
+    """
+    try:
+        address_id = generate_address(cursor)
+        school_id = 0
+
+        # Create the school if it doesn't exist
+        cursor.execute(
+            "INSERT INTO enrollment.school (school_id, name, academic_year, school_type, email_address, contact_number, address_id) "
+            "VALUES (%s, 'iEnroll', '2024-2025', 'other', 'system@ienroll.com', '09123456789', %s) "
+            "ON CONFLICT (name) DO NOTHING;",
+            (school_id, address_id[1])
+        )
+        print("Successfully created or found iEnroll school.")
+
+        password = 'system'
+        password_hash = encrypt_password(password)
+
+        insert_query = """
+        INSERT INTO enrollment.user (first_name, middle_name, last_name, suffix, email_address, contact_number, username, password_visible, password_hash, gender, school_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (username) DO NOTHING;
+        """
+        cursor.execute(insert_query, (
+            'System', 'System', 'System', 'V1', 'system@ienroll.com', '09123456789', 'system', password, password_hash, 'Male', school_id
+        ))
+        
+        cursor.connection.commit()  # Commit the transaction
+        print("Successfully generated system user")
+
+    except Exception as e:
+        cursor.connection.rollback()  # Rollback the transaction on error
+        print(f"Error generating system user: {e}")
+
+
+
