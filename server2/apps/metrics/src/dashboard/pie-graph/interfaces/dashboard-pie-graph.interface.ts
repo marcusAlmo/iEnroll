@@ -5,8 +5,8 @@ export interface DashboardPieGraph {
 
   pieGraphData: {
     gradeEnrollmentCollections: Array<{
-      gradeLevel: string;
-      gradeEnrollmentCount: number;
+      name: string;
+      value: number;
     }>;
     totalEnrollmentCount: number;
   };

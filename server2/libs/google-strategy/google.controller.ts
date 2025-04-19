@@ -20,7 +20,7 @@ export class GoogleAuthController {
     const encryptedEmail = SecureUtilityService.encrypt(req.user.email);
 
     res.redirect(
-      `http://localhost:5174/admin-credentials?e=${encryptedEmail}&v=true`,
+      `http://localhost:5173/admin-credentials?e=${encryptedEmail}&v=true`,
     );
   }
 }

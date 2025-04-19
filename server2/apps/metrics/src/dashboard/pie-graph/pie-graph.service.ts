@@ -118,8 +118,8 @@ export class PieGraphService {
       totalCount += enrollmentCount;
 
       pieGraphData.push({
-        gradeLevel: g.gradeLevel,
-        gradeEnrollmentCount: enrollmentCount,
+        name: g.gradeLevel,
+        value: enrollmentCount /**5 */,
       });
     }
 
