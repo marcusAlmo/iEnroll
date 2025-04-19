@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ApiGatewayModule } from './api-gateway.module';
 import * as dotenv from 'dotenv';
-import { InternalServerErrorException, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import os from 'os';
 import 'multer';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -11,7 +11,10 @@ async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
   app.setGlobalPrefix('/api');
 
-  const ips = getLocalExternalIps();
+  const port = Number(process.env.PORT) || 3000;
+  const host = process.env.HOST || '0.0.0.0';
+
+  const ips = getLocalIps();
 
   const config = new DocumentBuilder()
     .setTitle('iEnroll API')
@@ -26,34 +29,10 @@ async function bootstrap() {
     'http://localhost:5174',
   ];
 
-  corsOrigins = [...corsOrigins, ...ips.map((ip) => `http://${ip}`)];
+  corsOrigins = [...corsOrigins, ...ips.map((ip) => `http://${ip}:${port}`)];
 
   app.enableCors({
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ): void => {
-      try {
-        const normalizedOrigin = origin
-          ? new URL(origin).origin.replace(/:\d+$/, '')
-          : undefined;
-
-        const allowed =
-          !normalizedOrigin ||
-          corsOrigins.some((allowedOrigin) => {
-            const base = new URL(allowedOrigin).origin.replace(/:\d+$/, '');
-            return base === normalizedOrigin;
-          });
-
-        if (allowed) {
-          callback(null, true);
-        } else {
-          callback(new InternalServerErrorException('Not allowed by CORS'));
-        }
-      } catch {
-        callback(new InternalServerErrorException('Invalid origin format'));
-      }
-    },
+    origin: corsOrigins,
     credentials: true,
   });
 
@@ -64,9 +43,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-
-  const port = Number(process.env.PORT) || 3000;
-  const host = process.env.HOST || '0.0.0.0';
 
   await app.listen(port, host);
 
@@ -80,22 +56,32 @@ bootstrap().catch((err) => {
   process.exit(1);
 });
 
-function getLocalExternalIps(): string[] {
+function getLocalIps(): string[] {
   const interfaces = os.networkInterfaces();
-  const addresses: string[] = [];
+  const seen = new Set<string>();
+  const ips: string[] = [];
 
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]!) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        addresses.push(iface.address);
+      if (
+        iface.family === 'IPv4' &&
+        !iface.internal &&
+        !seen.has(iface.address)
+      ) {
+        seen.add(iface.address);
+        ips.push(iface.address);
       }
     }
   }
 
   if (process.env.NODE_ENV !== 'production') {
-    addresses.unshift('127.0.0.1');
-    addresses.unshift('localhost');
+    ['localhost', '127.0.0.1'].forEach((local) => {
+      if (!seen.has(local)) {
+        seen.add(local);
+        ips.unshift(local);
+      }
+    });
   }
 
-  return addresses;
+  return ips;
 }
