@@ -1,10 +1,10 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { User } from '@lib/decorators/user.decorator';
-import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+//import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
 
 @Controller('metrics/cards')
-@UseGuards(JwtAuthGuard)
+//@UseGuards(JwtAuthGuard)
 export class CardsController {
   constructor(private readonly cardsService: CardsService) {}
 
