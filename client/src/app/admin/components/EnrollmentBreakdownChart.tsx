@@ -2,13 +2,7 @@ import { requestData } from '@/lib/dataRequester';
 import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
-/**
- * const data = [
-  { name: 'Kinder', value: 119 },
-  { name: 'Prep', value: 173 },
-];
 
- */
 type EnrollmentCollection = {
   name: string;
   value: number;
