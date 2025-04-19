@@ -180,7 +180,7 @@ export class EnrollService {
       }) => ({
         requirementId: requirement_id,
         name,
-        requirement_type,
+        requirementTypr: requirement_type,
         acceptedDataTypes: accepted_data_type,
         isRequired: is_required,
       }),
@@ -188,41 +188,43 @@ export class EnrollService {
   }
 
   async getPaymentMethodDetails(gradeSectionProgramId: number) {
-    const result = await this.prisma.enrollment_fee.findMany({
+    const enrollmentFees = await this.prisma.enrollment_fee.findMany({
       where: {
         grade_section_program_id: gradeSectionProgramId,
-        grade_section_program: {
-          grade_level_offered: {
-            school: {
-              school_payment_option: {
-                some: {
-                  is_available: true,
-                },
-              },
-            },
-          },
-        },
       },
       select: {
         name: true,
         amount: true,
         description: true,
         due_date: true,
-        grade_section_program: {
+      },
+    });
+
+    const paymentOptions = await this.prisma.grade_section_program.findFirst({
+      where: {
+        grade_section_program_id: gradeSectionProgramId,
+        grade_level_offered: {
+          school: {
+            school_payment_option: {
+              some: {
+                is_available: true,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        grade_level_offered: {
           select: {
-            grade_level_offered: {
+            school: {
               select: {
-                school: {
+                school_payment_option: {
                   select: {
-                    school_payment_option: {
-                      select: {
-                        payment_option_id: true,
-                        provider: true,
-                        account_name: true,
-                        account_number: true,
-                        instruction: true,
-                      },
-                    },
+                    payment_option_id: true,
+                    provider: true,
+                    account_name: true,
+                    account_number: true,
+                    instruction: true,
                   },
                 },
               },
@@ -232,32 +234,29 @@ export class EnrollService {
       },
     });
 
+    if (!paymentOptions)
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_PAYMENT_OPTION_NOT_FOUND',
+      });
+
     return {
-      fees: result.map(
-        ({
-          name,
-          amount,
-          description,
-          due_date,
-          grade_section_program: {
-            grade_level_offered: {
-              school: { school_payment_option },
-            },
-          },
-        }) => ({
-          name,
-          amount: amount.toNumber(),
-          description,
-          dueDate: due_date,
-          paymentOptions: school_payment_option.map((p) => ({
+      fees: enrollmentFees.map(({ name, amount, description, due_date }) => ({
+        name,
+        amount: amount.toNumber(),
+        description,
+        dueDate: due_date,
+      })),
+      paymentOptions:
+        paymentOptions?.grade_level_offered.school.school_payment_option.map(
+          (p) => ({
             id: p.payment_option_id,
             accountName: p.account_name,
             accountNumber: p.account_number,
             provider: p.provider,
             instruction: p.instruction,
-          })),
-        }),
-      ),
+          }),
+        ) ?? null,
     };
   }
 

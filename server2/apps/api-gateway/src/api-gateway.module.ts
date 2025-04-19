@@ -16,18 +16,18 @@ import { AuthService } from './auth/auth.service';
 import { AuthModule } from '@lib/auth/auth.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { rabbitMQConstants } from '@lib/constants/rabbit-mq.constants';
-import { DocumentModule } from './document/document.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { FileModule } from './file/file.module';
+// import { ServeStaticModule } from '@nestjs/serve-static';
+// import { join } from 'path';
 import { ImageModule } from './image/image.module';
 import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', '..', 'uploads'),
-      serveRoot: 'media',
-    }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', '..', '..', 'uploads'),
+    //   serveRoot: 'media',
+    // }),
     AuthModule,
     ClientsModule.register([
       rabbitMQConstants.CHAT,
@@ -35,12 +35,12 @@ import { MetricsModule } from './metrics/metrics.module';
       rabbitMQConstants.METRICS,
       rabbitMQConstants.SYSTEM_MANAGEMENT,
       rabbitMQConstants.AUTH,
-      rabbitMQConstants.DOCUMENT,
+      rabbitMQConstants.FILE,
       rabbitMQConstants.IMAGE,
     ]),
     GoogleStrategyModule,
     EnrollmentModule,
-    DocumentModule,
+    FileModule,
     ImageModule,
     MetricsModule,
   ],

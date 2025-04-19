@@ -4,18 +4,18 @@ import { EnrollService } from './enroll.service';
 import { AuthModule } from '@lib/auth/auth.module';
 import { ClientsModule } from '@nestjs/microservices';
 import { rabbitMQConstants } from '@lib/constants/rabbit-mq.constants';
-import { DocumentModule } from '../../document/document.module';
-import { DocumentService } from '../../document/document.service';
+import { FileModule } from '../../file/file.module';
+import { FileService } from '../../file/file.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 
 @Module({
   imports: [
     AuthModule,
     ClientsModule.register([rabbitMQConstants.ENROLLMENT]),
-    ClientsModule.register([rabbitMQConstants.DOCUMENT]),
-    DocumentModule,
+    ClientsModule.register([rabbitMQConstants.FILE]),
+    FileModule,
   ],
   controllers: [EnrollController],
-  providers: [EnrollService, DocumentService, PrismaService],
+  providers: [EnrollService, FileService, PrismaService],
 })
 export class EnrollModule {}

@@ -38,13 +38,13 @@
         "tsConfigPath": "apps/chat/tsconfig.app.json"
       }
     },
-    "document": {
+    "file": {
       "type": "application",
-      "root": "apps/document",
+      "root": "apps/file",
       "entryFile": "main",
-      "sourceRoot": "apps/document/src",
+      "sourceRoot": "apps/file/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/document/tsconfig.app.json"
+        "tsConfigPath": "apps/file/tsconfig.app.json"
       }
     },
     "dtos": {

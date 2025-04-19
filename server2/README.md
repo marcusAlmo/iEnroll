@@ -15,8 +15,6 @@
   </a>
 </p>
 
-
-
 <p align="center">
 By Uppend
 </p>
@@ -41,70 +39,115 @@ Before setting up the project, make sure the following software is installed on 
 
 ## Installation
 
-To get started, you'll need to have Node.js (v14 or above) and npm installed.
+Ensure you have Node.js (v14 or above) and npm installed on your system.
 
-1. **Install dependencies:**
-
-   ```bash
-    npm i
-   ```
-
-2. **Start the Development Server**:
+1. **Install all dependencies:**
 
    ```bash
-     npm run start:dev
+   npm install
    ```
 
-4. **Running All Services**:
+## Initialization
+
+Before running the server, you'll need to initialize and configure your **Prisma** setup.
+
+### Initialize Prisma
+
+1. **Initialize Prisma schema:**
+
+   This step applies any schema changes to your database. It will run migrations or set up your database based on the defined schema in your project.
 
    ```bash
-     npm run start:dev:all
+   npm run prisma:schema
    ```
 
-5. **Running All Tests**:
+2. **Update Prisma Client Types**
+
+   Generate Prisma Client Types:
+   After making schema changes (e.g., adding models or changing data types), update the Prisma client types to reflect the changes. This ensures the Prisma client is in sync with your schema.
 
    ```bash
-     npm run test
+   npm run prisma:generate
    ```
 
-6. **Running all E2E Tests**:
+   > ⚠️ It’s important to run `prisma:generate` whenever the schema changes to ensure type safety when interacting with your database.
 
-   ```bash
-     npm run test:e2e
-   ```
+## Running the Server
 
-7. **Prettier Format**:
+### Start a Single Service in Development
 
-   ```bash
-     npm run format
-   ```
+You can run individual services using:
 
-8. **Start the Deployment Server**:
+```bash
+npm run start:dev:<service-name>
+```
 
-   ```bash
-     npm run build; npm run start:prod
-   ```
+For example:
+
+```bash
+npm run start:dev:api-gateway
+npm run start:dev:auth
+```
+
+### Start All Services in Development
+
+```bash
+npm run start:dev:all
+```
+
+## Running Tests
+
+### Unit Tests
+
+```bash
+npm run test
+```
+
+### End-to-End (E2E) Tests
+
+```bash
+npm run test:e2e
+```
+
+## Code Formatting
+
+To format the project using Prettier:
+
+```bash
+npm run format
+```
+
+## Production Build & Start
+
+To build and start the server in production mode:
+
+```bash
+npm run build
+npm run start:prod
+```
 
 ## Configuration
 
 You can customize the app behavior by editing the `.env` file. Remember that you must specify the required variables. Below are the key environment variables.:
 
-| Variable Name                | Description                     | Required                                 | Example            |
-| ---------------------------- | ------------------------------- | ---------------------------------------- | ------------------ |
-| `DATABASE_URL`               | Database connection string      | Yes                                      | `postgres://...`   |
-| `API_GATEWAY_PORT`           | Port for the API Gateway        | No                                       | `3000`             |
-| `CHAT_API_PORT`              | Port for the Chat service       | No                                       | `3001`             |
-| `ENROLLMENT_API_PORT`        | Port for the Enrollment service | No                                       | `3002`             |
-| `SYSTEM_MANAGEMENT_API_PORT` | Port for the System Management  | No                                       | `3003`             |
-| `METRICS_API_PORT`           | Port for the Metrics service    | No                                       | `3004`             |
-| `AUTH_API_PORT`              | Port for the Auth service       | No                                       | `3005`             |
-| `JWT_SECRET_KEY`             | Secret key for signing JWTs     | No (must be specified for auth to work)  | `your_jwt_secret`  |
-| `JWT_EXPIRATION`             | JWT token expiration time       | No (must be specified for auth to work)  | `1d`, `7d`         |
-| `RABBITMQ_URL`               | RabbitMQ connection string      | No (required in production environments) | `amqp://localhost` |
-| `GOOGLE_CLIENT_ID`               | Google client ID      | Yes                                      | `djbetdf45t...`   |
-| `GOOGLE_CLIENT_SECRET`               | Google client secret      | Yes                                      | `GOCS-wwdewr...`   |
+| Variable Name          | Description                         | Required                                 | Example                                                            |
+| ---------------------- | ----------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
+| `PORT`                 | Port number the app will listen on  | No                                       | `3000`                                                             |
+| `HOST`                 | Host IP to bind the server to       | No, but advisable in prod                | `192.168.1.43`                                                     |
+| `CORS_ORIGIN`          | Allowed origins for CORS requests   | No, but advisable in prod                | `http://localhost:5173,http://localhost:5174`                      |
+| `DATABASE_URL`         | Database connection string          | Yes                                      | `postgres://...`                                                   |
+| `JWT_SECRET_KEY`       | Secret key for signing JWTs         | No (must be specified for auth to work)  | `your_jwt_secret`                                                  |
+| `JWT_EXPIRATION`       | JWT token expiration time           | No (must be specified for auth to work)  | `1d`, `7d`                                                         |
+| `RABBITMQ_URL`         | RabbitMQ connection string          | No (required in production environments) | `amqp://localhost`                                                 |
+| `GOOGLE_CLIENT_ID`     | Google client ID                    | Yes                                      | `djbetdf45t...`                                                    |
+| `GOOGLE_CLIENT_SECRET` | Google client secret                | Yes                                      | `GOCS-wwdewr...`                                                   |
+| `MASTER_FILE_KEY`      | 32-byte hex key for file encryption | No (required in production environments) | `0000000000000000000000000000000000000000000000000000000000000000` |
 
 > 🛡️ Keep sensitive values like `JWT_SECRET_KEY` secure and never commit them to version control.
+
+## API Documentation
+
+You can read the API documentation by clicking [here.](./API.md)
 
 ## Contributors
 
@@ -130,15 +173,3 @@ You can customize the app behavior by editing the `.env` file. Remember that you
     </div>
   </div>
 </p>
-
----
-
-### Additional Tips
-
-- Ensure you have the latest version of Node.js and npm.
-
----
-
-### Getting Help
-
-For any questions or issues, feel free to open a new issue on our GitHub repository or reach out to our community forum.
