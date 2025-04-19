@@ -51,15 +51,33 @@ const DonutChart = () => {
   }, []);
 
   return (
-    <PieChart width={348} height={348}>
-      <Pie data={data} cx="50%" cy="50%" innerRadius={80} outerRadius={120} fill="#8884d8" dataKey="value">
-        {data.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-        ))}
-      </Pie>
-      <Tooltip />
-      <Legend layout="vertical" align="right" verticalAlign="middle" />
-    </PieChart>
+    <div>
+      {
+        data == undefined ? (
+          <div className="flex justify-center items-center h-full">Loading chart...</div>
+      ): data.length == 0 ? (
+        <div className="flex justify-center items-center h-full">No Data</div>
+      ): (
+        <PieChart width={360} height={348}>
+          <Pie data={data} cx="50%" cy="50%" innerRadius={80} outerRadius={120} fill="#8884d8" dataKey="value">
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip />
+          <Legend 
+            layout="vertical" 
+            align="right" 
+            verticalAlign="middle"
+            wrapperStyle={{
+              paddingLeft: 25,
+              lineHeight: '24px'
+            }}
+          />
+        </PieChart>
+      )
+    }
+    </div>
   );
 };
 

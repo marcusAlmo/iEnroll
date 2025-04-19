@@ -119,7 +119,7 @@ export class PieGraphService {
 
       pieGraphData.push({
         name: g.gradeLevel,
-        value: enrollmentCount /**5 */,
+        value: 5,
       });
     }
 
