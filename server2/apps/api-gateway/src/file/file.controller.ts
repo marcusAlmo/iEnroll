@@ -15,6 +15,7 @@ import {
   BadRequestException,
   Res,
   ParseUUIDPipe,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './file.service';
@@ -141,7 +142,6 @@ export class FileController {
     if (!file) {
       throw new BadRequestException('ERR_FILE_NOT_FOUND');
     }
-
     return this.fileService.uploadFile(file, schoolId, {
       ocrEnabled: ocr,
       blurEnabled: blurry,
@@ -183,9 +183,10 @@ export class FileController {
       }),
     )
     download: boolean,
+    @Req() req: Request,
     @Res() res: Response,
   ) {
-    const file = await this.fileService.getFileByUUID({ uuid });
+    const file = await this.fileService.getFileByUUID({ uuid, schoolId });
     const filePath = join(UPLOADDIR, file.path);
     const key = Buffer.from(CryptoUtils.getUserKey(schoolId));
     const iv = Buffer.from(file.iv, 'hex');
@@ -194,6 +195,38 @@ export class FileController {
       filePath,
       key,
       iv,
+    });
+
+    stream.on('error', (err: any) => {
+      // Basic logging (optional)
+      console.error('[STREAM ERROR]', {
+        code: err.code,
+        message: err.message,
+        stack: err.stack,
+      });
+
+      if (!res.headersSent) {
+        const isJson = req.headers['accept']?.includes('application/json');
+
+        // Ensure proper content-type for JSON clients
+        if (isJson) res.setHeader('Content-Type', 'application/json');
+
+        if (err.code === 'ENOENT') {
+          res.status(404).json({
+            statusCode: 404,
+            message: 'ERR_UPLOAD_FILE_NOT_EXIST',
+            error: 'File not found on disk',
+          });
+        } else {
+          res.status(500).json({
+            statusCode: 500,
+            message: 'ERR_FILE_DECRYPTION_FAILED',
+            error: err.message || 'Unknown stream error',
+          });
+        }
+      } else {
+        res.end(); // if headers already sent, just terminate the stream
+      }
     });
 
     res

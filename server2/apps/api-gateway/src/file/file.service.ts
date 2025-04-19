@@ -90,13 +90,13 @@ export class FileService {
     return result;
   }
 
-  async getFileByUUID(payload: { uuid: string }) {
+  async getFileByUUID(payload: FileUUIDParams) {
     const result: FileUUIDReturn = await lastValueFrom(
       this.client.send(
         {
           cmd: 'get_file_by_uuid',
         },
-        payload as FileUUIDParams,
+        payload,
       ),
     );
     return result;
