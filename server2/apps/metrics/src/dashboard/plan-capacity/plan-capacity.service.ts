@@ -2,6 +2,7 @@ import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { MicroserviceUtilityService } from '@lib/microservice-utility/microservice-utility.service';
 import { PlanCapacity } from './interface/plan-capacity.interface';
+import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 
 @Injectable()
 export class PlanCapacityService {
@@ -10,25 +11,36 @@ export class PlanCapacityService {
     private readonly microserviceUtilityService: MicroserviceUtilityService,
   ) {}
 
-  public async getPlanCapacity(schoolId: number) {
-    
+  public async getPlanCapacity(
+    schoolId: number,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const downloadUploadCapacity =
+      await this.getDownloadAndUploadCount(schoolId);
+    const adminCount = await this.getAdminCount(schoolId);
+    const studentEnrollmentCapacity =
+      await this.getStudentEnrollmentCapacity(schoolId);
+    const remainingDays = await this.getRemainingDays(schoolId);
+
+    const finalData = {
+      downloadUploadCapacity: downloadUploadCapacity,
+      adminCount: adminCount,
+      studentEnrollmentCapacity: studentEnrollmentCapacity,
+      remainingDays: remainingDays,
+    };
+
+    return this.microserviceUtilityService.returnSuccess(finalData);
   }
 
   private async getRemainingDays(
     schoolId: number,
-  ): Promise<PlanCapacity['subDays']> {
+  ): Promise<PlanCapacity['univCounting']> {
     const durationDays = await this.prisma.school_subscription.findFirst({
-      where: {
-        school_id: schoolId,
-      },
-      select: {
-        start_datetime: true,
-        end_datetime: true,
-      },
+      where: { school_id: schoolId, plan: { is_active: true } },
+      select: { start_datetime: true, end_datetime: true },
       orderBy: { subscription_id: 'desc' },
     });
 
-    if (!durationDays) return { remainingDays: 0, totalDays: 0 };
+    if (!durationDays) return { total: 0, max: 0 };
 
     const endDate = new Date(durationDays.end_datetime);
     const startDate = new Date(durationDays.start_datetime);
@@ -42,8 +54,8 @@ export class PlanCapacityService {
     );
 
     return {
-      remainingDays: remainingDays > 0 ? remainingDays : 0,
-      totalDays,
+      total: remainingDays > 0 ? remainingDays : 0,
+      max: totalDays,
     };
   }
 
@@ -71,7 +83,7 @@ export class PlanCapacityService {
 
     const downloadAndUploadTotal =
       await this.prisma.school_subscription.findFirst({
-        where: { school_id: schoolId },
+        where: { school_id: schoolId, plan: { is_active: true } },
         select: {
           plan: {
             select: { max_download_count: true, max_image_upload_count: true },
@@ -101,7 +113,7 @@ export class PlanCapacityService {
 
   private async getAdminCount(
     schoolId: number,
-  ): Promise<PlanCapacity['adminCount']> {
+  ): Promise<PlanCapacity['univCounting']> {
     const count = await this.prisma.user.count({
       where: {
         school_id: schoolId,
@@ -114,7 +126,7 @@ export class PlanCapacityService {
     });
 
     const max = await this.prisma.school_subscription.findFirst({
-      where: { school_id: schoolId },
+      where: { school_id: schoolId, plan: { is_active: true } },
       select: {
         plan: {
           select: { max_admin_count: true },
@@ -131,7 +143,36 @@ export class PlanCapacityService {
     };
   }
 
-  
+  private async getStudentEnrollmentCapacity(
+    schoolId: number,
+  ): Promise<PlanCapacity['univCounting']> {
+    const count = await this.prisma.enrollment_data.findFirst({
+      where: { school_acad_year: { school_id: schoolId } },
+      select: {
+        approved_application_count: true,
+      },
+      orderBy: { enrollment_data_id: 'desc' },
+    });
+
+    if (!count) return { total: 0, max: 0 };
+
+    const enrollmentMax = await this.prisma.school_subscription.findFirst({
+      where: { school_id: schoolId, plan: { is_active: true } },
+      select: {
+        plan: {
+          select: { max_student_count: true },
+        },
+      },
+      orderBy: { subscription_id: 'desc' },
+    });
+
+    if (!enrollmentMax) return { total: 0, max: 0 };
+
+    return {
+      total: count.approved_application_count,
+      max: enrollmentMax.plan.max_student_count,
+    };
+  }
 
   private get24Hour(): number {
     return 1000 * 60 * 60 * 24;

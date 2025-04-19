@@ -2,23 +2,24 @@ import { ExceptionCheckerService } from '@lib/exception-checker/exception-checke
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { EnrollmentDataInterface } from 'apps/metrics/src/dashboard/cards/interfaces/cards.interface';
+import { PlanCapacity } from 'apps/metrics/src/dashboard/plan-capacity/interface/plan-capacity.interface';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()
-export class CardsService {
+export class PlanCapacityService {
   constructor(
     @Inject('METRICS_SERVICE') private readonly client: ClientProxy,
-    private readonly exceptionCheckerService: ExceptionCheckerService,
+    private readonly exceptionChecker: ExceptionCheckerService,
   ) {}
 
-  async getEnrollmentData(payload: object): Promise<EnrollmentDataInterface> {
+  async getPlanCapacity(payload: object): Promise<PlanCapacity['finalOutput']> {
+    console.log('payload', payload);
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'data' }, payload),
+      this.client.send({ cmd: 'plan-capacity' }, payload),
     );
 
-    await this.exceptionCheckerService.checker(result);
+    await this.exceptionChecker.checker(result);
 
-    return result.data as EnrollmentDataInterface;
+    return result.data as PlanCapacity['finalOutput'];
   }
 }

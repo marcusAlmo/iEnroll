@@ -8,20 +8,8 @@ import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
 export class CardsController {
   constructor(private readonly cardsService: CardsService) {}
 
-  @Get('enrollment-total')
-  async getEnrollmentTotal(@User('school_id') schoolId: number) {
-    return await this.cardsService.getEnrollmentTotal({ schoolId });
-  }
-
-  @Get('successful-enrollment-total')
-  async getAcceptedEnrollmentTotal(@User('school_id') schoolId: number) {
-    return await this.cardsService.getAcceptedEnrollmentTotal({ schoolId });
-  }
-
-  @Get('failed-enrollment-total')
-  async getInvalidOrDeniedEnrollmentTotal(@User('school_id') schoolId: number) {
-    return await this.cardsService.getInvalidOrDeniedEnrollmentTotal({
-      schoolId,
-    });
+  @Get('data')
+  async getEnrollmentData(@User('school_id') schoolId: number) {
+    return await this.cardsService.getEnrollmentData({ schoolId });
   }
 }

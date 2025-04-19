@@ -5,8 +5,10 @@ export interface academic_year {
   end: Date;
 }
 
-export interface EnrollmentTotal {
-  enrollment_total: number;
+export interface EnrollmentDataInterface {
+  enrollmentTotal: number;
+  successfullEnrollmentTotal: number;
+  invalidOrDeniedEnrollmentTotal: number;
 }
 
 // eslint-disable-next-line

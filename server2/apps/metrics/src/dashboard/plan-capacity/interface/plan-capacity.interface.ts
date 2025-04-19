@@ -1,9 +1,4 @@
 export interface PlanCapacity {
-  subDays: {
-    remainingDays: number;
-    totalDays: number;
-  };
-
   downloadAndUploadCount: {
     downloadCount: {
       total: number;
@@ -15,8 +10,15 @@ export interface PlanCapacity {
     };
   };
 
-  adminCount: {
+  univCounting: {
     total: number;
     max: number;
+  };
+
+  finalOutput: {
+    downloadUploadCapacity: PlanCapacity['downloadAndUploadCount'];
+    adminCount: PlanCapacity['univCounting'];
+    studentEnrollmentCapacity: PlanCapacity['univCounting'];
+    remainingDays: PlanCapacity['univCounting'];
   };
 }
