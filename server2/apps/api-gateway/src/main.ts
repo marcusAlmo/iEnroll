@@ -12,6 +12,8 @@ async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
   app.setGlobalPrefix('/api');
 
+  const SWAGGER_ENDPOINT = 'api/docs';
+
   const port = Number(process.env.PORT) || 3000;
   const host = process.env.HOST || '0.0.0.0';
   const isProd = process.env.NODE_ENV === 'production';
@@ -27,7 +29,7 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('api/docs', app, document);
+    SwaggerModule.setup(SWAGGER_ENDPOINT, app, document);
   }
 
   // CORS
@@ -59,7 +61,9 @@ async function bootstrap() {
   });
 
   if (!isProd) {
-    console.log(`🧪 Swagger docs: http://localhost:${port}/api/docs`);
+    console.log(
+      `🧪 Swagger docs: http://localhost:${port}/${SWAGGER_ENDPOINT}`,
+    );
   }
 }
 
