@@ -239,6 +239,7 @@ model school {
   creation_datetime     DateTime?               @default(now()) @db.Timestamp(6)
   update_datetime       DateTime?               @default(now()) @db.Timestamp(6)
   banner                banner?
+  file                  file[]
   grade_level_offered   grade_level_offered[]
   address               address                 @relation(fields: [address_id], references: [address_id], map: "fk_school_address_id")
   school_file           school_file[]
@@ -711,6 +712,7 @@ model subscription_plan {
   creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
   max_image_upload_count Int
+  max_download_count     BigInt
   school_subscription    school_subscription[]
 
   @@schema("system")
@@ -723,8 +725,12 @@ model file {
   type                   String                   @db.VarChar(100)
   size                   Int
   creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
+  school_id              Int
+  iv                     String                   @db.VarChar(255)
+  uuid                   String?                  @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   application_attachment application_attachment[]
   enrollment_fee_payment enrollment_fee_payment?
+  school                 school                   @relation(fields: [school_id], references: [school_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_file_school_id")
   school_file            school_file[]
 
   @@unique([name, path, type], map: "uq_file")

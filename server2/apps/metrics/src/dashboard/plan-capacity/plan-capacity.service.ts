@@ -14,7 +14,9 @@ export class PlanCapacityService {
     
   }
 
-  private async getRemainingDays(schoolId: number): Promise<PlanCapacity['subDays']> {
+  private async getRemainingDays(
+    schoolId: number,
+  ): Promise<PlanCapacity['subDays']> {
     const durationDays = await this.prisma.school_subscription.findFirst({
       where: {
         school_id: schoolId,
@@ -23,6 +25,7 @@ export class PlanCapacityService {
         start_datetime: true,
         end_datetime: true,
       },
+      orderBy: { subscription_id: 'desc' },
     });
 
     if (!durationDays) return { remainingDays: 0, totalDays: 0 };
@@ -47,52 +50,90 @@ export class PlanCapacityService {
   private async getDownloadAndUploadCount(
     schoolId: number,
   ): Promise<PlanCapacity['downloadAndUploadCount']> {
-    // eslint-disable-next-line
-    const downloadAndUploadCount = await this.prisma.school_acad_year.findFirst({
-        where: { school_id: schoolId },
-        select: {
-          consumption_data: {
-            select: {
-              download_count: true,
-              upload_count: true,
-            },
-          },
+    const count = await this.prisma.school_acad_year.findFirst({
+      where: { school_id: schoolId },
+      select: {
+        consumption_data: {
+          select: { download_count: true, upload_count: true },
+          orderBy: { consumption_data_id: 'desc' },
+          take: 1,
         },
-        take: 1,
+      },
+      take: 1,
+      orderBy: { school_acad_year_id: 'desc' },
     });
 
-    if (!downloadAndUploadCount)
+    if (!count)
       return {
-        downloadCount: {
-          remaining: 0,
-          total: 0,
-        },
-        uploadCount: {
-          remaining: 0,
-          total: 0,
-        },
+        downloadCount: { total: 0, max: 0 },
+        uploadCount: { total: 0, max: 0 },
       };
 
-    const downloadAndUploadTotal = this.prisma.school_subscription.findFirst({
+    const downloadAndUploadTotal =
+      await this.prisma.school_subscription.findFirst({
         where: { school_id: schoolId },
         select: {
-          
-        }
-    })
+          plan: {
+            select: { max_download_count: true, max_image_upload_count: true },
+          },
+        },
+        orderBy: { subscription_id: 'desc' },
+        take: 1,
+      });
+
+    if (!downloadAndUploadTotal)
+      return {
+        downloadCount: { total: 0, max: 0 },
+        uploadCount: { total: 0, max: 0 },
+      };
 
     return {
       downloadCount: {
-        remaining: 0,
-        total: 0,
+        total: count.consumption_data[0].download_count,
+        max: Number(downloadAndUploadTotal.plan.max_download_count),
       },
       uploadCount: {
-        remaining: 0,
-        total: 0,
+        total: count.consumption_data[0].upload_count,
+        max: Number(downloadAndUploadTotal.plan.max_image_upload_count),
       },
     };
   }
 
+  private async getAdminCount(
+    schoolId: number,
+  ): Promise<PlanCapacity['adminCount']> {
+    const count = await this.prisma.user.count({
+      where: {
+        school_id: schoolId,
+        user_role_user_role_assigned_byTouser: {
+          some: {
+            role_code: 'adm',
+          },
+        },
+      },
+    });
+
+    const max = await this.prisma.school_subscription.findFirst({
+      where: { school_id: schoolId },
+      select: {
+        plan: {
+          select: { max_admin_count: true },
+        },
+      },
+      orderBy: { subscription_id: 'desc' },
+    });
+
+    if (!max) return { total: 0, max: 0 };
+
+    return {
+      total: count,
+      max: Number(max.plan.max_admin_count),
+    };
+  }
+
+  
+
   private get24Hour(): number {
-    return (1000 * 60 * 60 * 24);
+    return 1000 * 60 * 60 * 24;
   }
 }
