@@ -238,7 +238,26 @@ GET /api/file/:uuid/meta
 
     ✅ **Fix**: Ensure that the `uuid` field exists on file, and matches with its corresponding `schoolId` field derived from the session.
 
-3.  `500 Internal Server Error`
+3.  `403 Forbidden`
+
+    a. **File Access Denied**
+
+    **Occurs when:**
+
+    - The file the user is attempting to access does not belong to the user's school, so access is denied.
+
+    **Response:**
+
+    ```json
+    {
+      "statusCode": 404,
+      "message": "ERR_FILE_ACCESS_DENIED",
+    }
+    ```
+
+    ✅ **Fix**: Ensure users can only open files that are linked to their respective school.
+
+4.  `500 Internal Server Error`
 
     **Occurs when:**
 
@@ -359,11 +378,67 @@ The response will stream the file content based on the specified download parame
 
     ✅ **Fix**: Ensure that the `uuid` field exists on file, and matches with its corresponding `schoolId` field derived from the session.
 
-3.  `500 Internal Server Error`
+3.  `400 Bad Request`
+
+    These errors indicate something is wrong with the request input.
+
+    a. **Upload File Not Exist**
 
     **Occurs when:**
 
-    - An unexpected error happens on the server (e.g., disk issues, stream failures, unknown bugs).
+    - The file recorded on the database does not exist on the `uploads/` folder.
+
+    **Response:**
+
+    ```json
+    {
+      "statusCode": 404,
+      "message": "ERR_UPLOAD_FILE_NOT_EXIST",
+      "error": "File not found on disk"
+    }
+    ```
+
+    ✅ **Fix**: You are working with stale data. Please delete the records associated with that file. If this happens unintentionally, try to track how the file was deleted from the `uploads/` folder, or contact the development team if the issue persists.
+
+4.  `403 Forbidden`
+
+    a. **File Access Denied**
+
+    **Occurs when:**
+
+    - The file the user is attempting to access does not belong to the user's school, so access is denied.
+
+    **Response:**
+
+    ```json
+    {
+      "statusCode": 404,
+      "message": "ERR_FILE_ACCESS_DENIED",
+    }
+    ```
+
+    ✅ **Fix**: Ensure users can only open files that are linked to their respective school.
+
+5.  `500 Internal Server Error`
+
+    a. **Decryption Failure**
+
+    **Occurs when:**
+
+    - There is an error on the file decryption process.
+
+    **Response:**
+
+    ```json
+    {
+      "statusCode": 500,
+      "message": "ERR_FILE_DECRYPTION_FAILED"
+    }
+    ```
+
+    ✅ **Fix**: Kindly report the error immidiately to the dev team.
+
+    b. **Unexpected Error**
 
     **Response:**
 
