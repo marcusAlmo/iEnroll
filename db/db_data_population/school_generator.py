@@ -99,7 +99,7 @@ def generate_school_subscription(cursor, school_id):
             raise Exception("Failed to generate invoice")
 
         plan_code = random.choice(['FRE', 'BAS', 'PRO', 'ENT'])
-        cursor.execute("SELECT duration_days FROM system.plan WHERE plan_code = %s", (plan_code,))
+        cursor.execute("SELECT duration_days FROM system.subscription_plan WHERE plan_code = %s", (plan_code,))
         duration_days = cursor.fetchone()[0]
         
         start_datetime = datetime.now()
@@ -144,14 +144,15 @@ def generate_school(cursor):
         cursor.execute("BEGIN")
         
         # Generate address first
-        address_id = generate_address(cursor)
+        result = generate_address(cursor)
+        address_id = result[1]
+        address = result[0]
         if not address_id:
             raise Exception("Failed to generate address")
 
         # Get school details
-        school_name = input("Enter the name of the school to generate: ")
-        if not school_name.strip():
-            raise ValueError("School name cannot be empty")
+        school_name = f"{address} School"
+        print(school_name)
 
         # Generate other details
         academic_year = get_academic_year()
@@ -167,7 +168,7 @@ def generate_school(cursor):
                 school_id,
                 name, 
                 academic_year, 
-                type, 
+                school_type, 
                 email_address, 
                 contact_number, 
                 website_url,
@@ -230,7 +231,7 @@ def generate_grade_level_offered(cursor, school_id):
         list: List of generated grade_level_offered_ids if successful, None if failed
     """
     try:
-        academic_levels = ['KGT', 'ELE', 'JHS', 'SHS', 'TER']
+        academic_levels = ['ELE', 'JHS', 'SHS', 'TER']
         chosen_academic_level = random.choice(academic_levels)
 
         cursor.execute("""
@@ -279,49 +280,50 @@ def generate_grade_section_type(cursor, grade_level_offered_id):
         grade_level_offered_id (int): The ID of the grade level offering
         
     Returns:
-        int: The generated grade_section_type_id if successful, None if failed
+        int: The generated grade_section_program_id if successful, None if failed
     """
     try:
-        section_types = ['special', 'regular']
-        chosen_section_type = random.choice(section_types)
+        cursor.execute("""SELECT program_id FROM system.academic_program""")
+        acad_programs = cursor.fetchall()
+        chosen_section_program = random.choice(acad_programs)
         
         cursor.execute("""
-            INSERT INTO enrollment.grade_section_type 
-            (grade_level_offered_id, section_type)
+            INSERT INTO enrollment.grade_section_program 
+            (grade_level_offered_id, program_id)
             VALUES (%s, %s)
-            ON CONFLICT (grade_level_offered_id, section_type) DO NOTHING
-            RETURNING grade_section_type_id
-        """, (grade_level_offered_id, chosen_section_type))
+            ON CONFLICT (grade_level_offered_id, program_id) DO NOTHING
+            RETURNING grade_section_program_id
+        """, (grade_level_offered_id, chosen_section_program))
         
-        grade_section_type_id = cursor.fetchone()[0]
+        grade_section_program_id = cursor.fetchone()[0]
         
         # Generate related records
-        fee_ids = generate_enrollment_fee(cursor, grade_section_type_id)
+        fee_ids = generate_enrollment_fee(cursor, grade_section_program_id)
         if not fee_ids:
             raise Exception("Failed to generate enrollment fees")
             
-        requirement_ids = generate_enrollment_requirement(cursor, grade_section_type_id)
+        requirement_ids = generate_enrollment_requirement(cursor, grade_section_program_id)
         if not requirement_ids:
             raise Exception("Failed to generate enrollment requirements")
             
-        section_id = generate_grade_section(cursor, grade_section_type_id)
+        section_id = generate_grade_section(cursor, grade_section_program_id)
         if not section_id:
             raise Exception("Failed to generate grade section")
 
-        print(f"Generated section type '{chosen_section_type}' - ID: {grade_section_type_id}")
-        return grade_section_type_id
+        print(f"Generated section program '{chosen_section_program}' - ID: {grade_section_program_id}")
+        return grade_section_program_id
 
     except Exception as e:
         print(f"Error generating grade section type: {str(e)}")
         return None
 
-def generate_grade_section(cursor, grade_section_type_id):
+def generate_grade_section(cursor, grade_section_program_id):
     """
-    Generates sections for a grade section type.
+    Generates sections for a grade section program.
     
     Args:
         cursor: Database cursor for executing SQL queries
-        grade_section_type_id (int): The ID of the grade section type
+        grade_section_program_id (int): The ID of the grade section program
         
     Returns:
         int: The generated grade_section_id if successful, None if failed
@@ -334,11 +336,11 @@ def generate_grade_section(cursor, grade_section_type_id):
         
         cursor.execute("""
             INSERT INTO enrollment.grade_section 
-            (grade_section_type_id, section_name, adviser, slot, max_application_slot)
+            (grade_section_program_id, section_name, adviser, slot, max_application_slot)
             VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (grade_section_type_id, section_name) DO NOTHING
+            ON CONFLICT (grade_section_program_id, section_name) DO NOTHING
             RETURNING grade_section_id
-        """, (grade_section_type_id, section_name, adviser, slot_count, max_application_slot))
+        """, (grade_section_program_id, section_name, adviser, slot_count, max_application_slot))
         
         grade_section_id = cursor.fetchone()[0]
         print(f"Generated section '{section_name}' - ID: {grade_section_id}")
@@ -348,13 +350,13 @@ def generate_grade_section(cursor, grade_section_type_id):
         print(f"Error generating grade section: {str(e)}")
         return None
 
-def generate_enrollment_fee(cursor, grade_section_type_id):
+def generate_enrollment_fee(cursor, grade_section_program_id):
     """
-    Generates enrollment fees for a grade section type.
+    Generates enrollment fees for a grade section program.
     
     Args:
         cursor: Database cursor for executing SQL queries
-        grade_section_type_id (int): The ID of the grade section type
+        grade_section_program_id (int): The ID of the grade section program
         
     Returns:
         list: List of generated fee_ids if successful, None if failed
@@ -370,13 +372,14 @@ def generate_enrollment_fee(cursor, grade_section_type_id):
         
         fee_ids = []
         for name, amount, description in fees:
+            due_date = datetime.now() + timedelta(days=15)
             cursor.execute("""
                 INSERT INTO enrollment.enrollment_fee 
-                (grade_section_type_id, name, amount, description)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (grade_section_type_id, name) DO NOTHING
+                (grade_section_program_id, name, amount, description, due_date)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (grade_section_program_id, name) DO NOTHING
                 RETURNING fee_id
-            """, (grade_section_type_id, name, amount, description))
+            """, (grade_section_program_id, name, amount, description, due_date))
             
             fee_ids.append(cursor.fetchone()[0])
 
@@ -387,20 +390,20 @@ def generate_enrollment_fee(cursor, grade_section_type_id):
         print(f"Error generating enrollment fees: {str(e)}")
         return None
 
-def generate_enrollment_requirement(cursor, grade_section_type_id):
+def generate_enrollment_requirement(cursor, grade_section_program_id):
     """
-    Generates enrollment requirements for a grade section type.
+    Generates enrollment requirements for a grade section program.
     
     Args:
         cursor: Database cursor for executing SQL queries
-        grade_section_type_id (int): The ID of the grade section type
+        grade_section_program_id (int): The ID of the grade section program
         
     Returns:
         list: List of generated requirement_ids if successful, None if failed
     """
     try:
         cursor.execute("""
-            SELECT requirement_id, name, type, accepted_data_type, is_required, description 
+            SELECT requirement_id, name, requirement_type, accepted_data_type, is_required, description 
             FROM system.common_enrollment_requirement
             ORDER BY RANDOM()
             LIMIT 3
@@ -414,11 +417,11 @@ def generate_enrollment_requirement(cursor, grade_section_type_id):
         for requirement_id, name, type, accepted_data_type, is_required, description in requirements:
             cursor.execute("""
                 INSERT INTO enrollment.enrollment_requirement 
-                (grade_section_type_id, name, type, accepted_data_type, is_required, description)
+                (grade_section_program_id, name, requirement_type, accepted_data_type, is_required, description)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (requirement_id) DO NOTHING
                 RETURNING requirement_id
-            """, (grade_section_type_id, name, type, accepted_data_type, is_required, description))
+            """, (grade_section_program_id, name, type, accepted_data_type, is_required, description))
             
             requirement_ids.append(cursor.fetchone()[0])
 
@@ -443,14 +446,15 @@ def generate_enrollment_schedule(cursor, grade_level_offered_id):
     try:
         start_datetime = datetime.now()
         end_datetime = start_datetime + timedelta(days=30)  # 30-day enrollment period
+        application_slot = random.randint(100, 1000)
         
         cursor.execute("""
             INSERT INTO enrollment.enrollment_schedule 
-            (grade_level_offered_id, start_datetime, end_datetime)
-            VALUES (%s, %s, %s)
+            (grade_level_offered_id, application_slot, start_datetime, end_datetime)
+            VALUES (%s, %s, %s, %s)
             ON CONFLICT (schedule_id) DO NOTHING
             RETURNING schedule_id
-        """, (grade_level_offered_id, start_datetime, end_datetime))
+        """, (grade_level_offered_id, application_slot, start_datetime, end_datetime))
         
         schedule_id = cursor.fetchone()[0]
         print(f"Generated enrollment schedule - ID: {schedule_id}")

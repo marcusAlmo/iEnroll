@@ -40,7 +40,7 @@ def generate_address(cursor):
         
         address_id = cursor.fetchone()[0]
         print(f"Generated address in {municipality}, {province}")
-        return address_id
+        return [municipality, address_id]
         
     except Exception as e:
         print(f"Error generating address: {str(e)}")

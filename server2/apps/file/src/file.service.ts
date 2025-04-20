@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { v4 as uuidv4 } from 'uuid';
 import sanitize from 'sanitize-filename';
@@ -190,12 +190,22 @@ export class FileService {
 
   async getFileByUUID({ uuid, schoolId }: { uuid: string; schoolId: number }) {
     const file = await this.prisma.file.findFirst({
-      where: { uuid, school_id: schoolId },
+      where: { uuid },
     });
     if (!file) {
       throw new RpcException({
         statusCode: 404,
         message: 'ERR_FILE_NOT_FOUND',
+      });
+    }
+
+    console.log(schoolId, file.school_id);
+
+    if (!(schoolId === file.school_id)) {
+      throw new RpcException({
+        statusCode: HttpStatus.FORBIDDEN,
+        message: 'ERR_FILE_ACCESS_DENIED',
+        error: `Access to file ${uuid} is denied for school ID ${schoolId}.`,
       });
     }
 

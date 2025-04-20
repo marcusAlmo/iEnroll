@@ -33,8 +33,9 @@ async function bootstrap() {
   }
 
   // CORS
-  let corsOrigins =
-    process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()) || [];
+  let corsOrigins = process.env.CORS_ORIGINS?.split(',').map((o) =>
+    o.trim(),
+  ) || ['http://localhost:5173'];
 
   const ipOrigins = ips.map((ip) => `http://${ip}:${port}`);
   corsOrigins = Array.from(new Set([...corsOrigins, ...ipOrigins]));

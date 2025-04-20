@@ -2,6 +2,7 @@ import psycopg2
 import os
 import school_generator
 import system_data_generator
+import user_generator
 import re
 from dotenv import load_dotenv
 
@@ -82,10 +83,11 @@ if __name__ == '__main__':
         exit(1)
 
     menu = Menu()
-    action = 1
-    # action = menu.action_menu()
-    # entity = menu.entity_menu()
-    entity = 2
+    action = menu.action_menu()
+    entity = menu.entity_menu()
+
+    # action = 1
+    # entity = 2
 
     try:
         if action == 1:
@@ -93,15 +95,23 @@ if __name__ == '__main__':
                 school_id = school_generator.generate_school(cursor)
                 print(f"School {school_id} created successfully")
             elif entity == 2:
+                approach = int(input("""Choose approach:
+                    [1] Generate users for a specific school
+                    [2] Generate users for all schools
+                Choice: """))
+                school_id = 0
+                if approach == 1:
+                    school_id = int(input("Enter school id: "))
+                else: school_id = 0
                 user_type = int(input("""Choose user type:
                     [1] Admin
                     [2] Student
                 Choice: """))
                 user_count = int(input("Enter number of users to generate: "))
                 if user_type == 1:
-                    user_generator.generate_admin_user(cursor, user_count)
+                    user_generator.UserGenerator(cursor, user_count, school_id).generate_admin_user()
                 elif user_type == 2:
-                    user_generator.generate_student_user(cursor, user_count)
+                    user_generator.UserGenerator(cursor, user_count, school_id).generate_student_user()
             elif entity == 3:
                 # user_generator.generate_user_log(cursor)
                 pass
