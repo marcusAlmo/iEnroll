@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MetricsService } from './metrics.service';
+import { PieGraphService } from './pie-graph.service';
 
-describe('MetricsService', () => {
-  let service: MetricsService;
+describe('PieGraphService', () => {
+  let service: PieGraphService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MetricsService],
+      providers: [PieGraphService],
     }).compile();
 
-    service = module.get<MetricsService>(MetricsService);
+    service = module.get<PieGraphService>(PieGraphService);
   });
 
   it('should be defined', () => {

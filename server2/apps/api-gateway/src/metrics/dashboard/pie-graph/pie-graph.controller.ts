@@ -1,0 +1,19 @@
+import { Controller, Get } from '@nestjs/common';
+import { PieGraphService } from './pie-graph.service';
+import { User } from '@lib/decorators/user.decorator';
+
+@Controller('metrics/pie-graph')
+export class PieGraphController {
+  constructor(private readonly pieGraphService: PieGraphService) {}
+
+  @Get('all-grades')
+  async getAllGrades(@User('school_id') schoolId: number) {
+    return await this.pieGraphService.getAllGrades({ schoolId });
+  }
+
+  @Get('data')
+  async getPieGraphData(@User('school_id') schoolId: number) {
+    schoolId = 762306;
+    return await this.pieGraphService.getPieGraphData({ schoolId });
+  }
+}
