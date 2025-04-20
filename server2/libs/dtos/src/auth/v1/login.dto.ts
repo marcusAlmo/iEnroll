@@ -20,7 +20,10 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsStrongPassword()
+  @IsStrongPassword({
+    minSymbols: 0,
+    minLength: 8,
+  })
   password!: string;
 }
 

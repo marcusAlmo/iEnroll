@@ -7,6 +7,7 @@ import {
   IsPhoneNumber,
   IsNumber,
   IsDate,
+  IsStrongPassword,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { IsPastDate } from '../../../../decorators/is-past-date.decorator';
@@ -32,6 +33,10 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsStrongPassword({
+    minSymbols: 0,
+    minLength: 8,
+  })
   password!: string;
 
   @IsString()
