@@ -137,3 +137,46 @@ CREATE TABLE IF NOT EXISTS system.academic_program (
     constraint uq_academic_program UNIQUE (program, description)
 );
 
+
+-- street
+CREATE TABLE IF NOT EXISTS system.street (
+    street_id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    street VARCHAR(100) NOT NULL,
+    district_id INT NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE NOT NULL,
+
+    CONSTRAINT pk_street PRIMARY KEY(street_id),
+    CONSTRAINT uq_street_district UNIQUE(street, district_id)
+);
+
+-- district
+CREATE TABLE IF NOT EXISTS system.district (
+    district_id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    district VARCHAR(100) NOT NULL,
+    municipality_id INT NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE NOT NULL,
+
+    CONSTRAINT pk_district PRIMARY KEY(district_id),
+    CONSTRAINT uq_district_municipality UNIQUE(district, municipality_id)
+);
+
+-- municipality
+CREATE TABLE IF NOT EXISTS system.municipality (
+    municipality_id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    municipality VARCHAR(100) NOT NULL,
+    province_id INT NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE NOT NULL,
+
+    CONSTRAINT pk_municipality PRIMARY KEY(municipality_id),
+    CONSTRAINT uq_municipality_province UNIQUE(municipality, province_id)
+);
+
+-- province 
+CREATE TABLE IF NOT EXISTS system.province (
+    province_id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    province VARCHAR(100) NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE NOT NULL,
+
+    CONSTRAINT pk_province PRIMARY KEY(province_id),
+    CONSTRAINT uq_province UNIQUE(province)
+);
