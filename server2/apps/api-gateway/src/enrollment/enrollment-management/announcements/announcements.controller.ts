@@ -8,7 +8,7 @@ export class AnnouncementsController {
   @Post('create')
   async createAnnouncement(
     @Body('property',
-        pipes)() announcement: ReceveInput) {
+        pipes)() announcement: ReceiveInpu) {
     return this.announcementsService.createAnnouncement(announcement);
   }
 }
