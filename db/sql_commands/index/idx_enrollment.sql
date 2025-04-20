@@ -11,7 +11,7 @@ CREATE INDEX idx_user_role_assigned_by ON enrollment.user_role(assigned_by);
 CREATE INDEX idx_school_file_school_id ON enrollment.school_file(school_id);
 
 -- school_file_access table indexes
-CREATE INDEX idx_school_file_access_file_id ON enrollment.school_file_access(file_id);
+CREATE INDEX idx_school_file_access_file_id ON enrollment.school_file_access(school_file_id);
 CREATE INDEX idx_school_file_access_student_id ON enrollment.school_file_access(student_id);
 CREATE INDEX idx_school_file_access_issuer_id ON enrollment.school_file_access(issuer_id);
 
@@ -38,17 +38,17 @@ CREATE INDEX idx_grade_level_offered_grade_level_code ON enrollment.grade_level_
 CREATE INDEX idx_enrollment_schedule_grade_level_offered_id ON enrollment.enrollment_schedule(grade_level_offered_id);
 
 -- grade_section_type table indexes
-CREATE INDEX idx_grade_section_type_grade_level_offered_id ON enrollment.grade_section_type(grade_level_offered_id);
-CREATE INDEX idx_grade_section_type_section_type ON enrollment.grade_section_type(section_type);
+CREATE INDEX idx_grade_section_type_grade_level_offered_id ON enrollment.grade_section_program(grade_level_offered_id);
+CREATE INDEX idx_grade_section_program ON enrollment.grade_section_program(program_id);
 
 -- grade_section table indexes
-CREATE INDEX idx_grade_section_grade_section_type_id ON enrollment.grade_section(grade_section_type_id);
+CREATE INDEX idx_grade_section_grade_section_type_id ON enrollment.grade_section(grade_section_program_id);
 
 -- enrollment_requirement table indexes
-CREATE INDEX idx_enrollment_requirement_grade_section_type_id ON enrollment.enrollment_requirement(grade_section_type_id);
+CREATE INDEX idx_enrollment_requirement_grade_section_type_id ON enrollment.enrollment_requirement(grade_section_program_id);
 
 -- enrollment_fee table indexes
-CREATE INDEX idx_enrollment_fee_grade_section_type_id ON enrollment.enrollment_fee(grade_section_type_id);
+CREATE INDEX idx_enrollment_fee_grade_section_type_id ON enrollment.enrollment_fee(grade_section_program_id);
 
 -- school_subscription table indexes
 CREATE INDEX idx_school_subscription_school_id ON enrollment.school_subscription(school_id);

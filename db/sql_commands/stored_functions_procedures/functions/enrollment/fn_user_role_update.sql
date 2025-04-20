@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_user_role_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_user_role_update()
 RETURNS TRIGGER AS $$
 /**
  * Restricts updates to user role records, allowing only is_active column modifications.

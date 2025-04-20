@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_grade_level_offered_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_grade_level_offered_update()
 RETURNS TRIGGER AS $$
 /**
  * Manages updates to grade levels offered with strict data integrity rules.

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_school_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_school_update()
 RETURNS TRIGGER AS $$
 /**
  * Restricts updates to school records with active enrollment applications.

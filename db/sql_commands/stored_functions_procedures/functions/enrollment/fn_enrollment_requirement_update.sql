@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_enrollment_requirement_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_enrollment_requirement_update()
 RETURNS TRIGGER AS $$
 /**
  * Prevents updates to enrollment requirements with active applications.

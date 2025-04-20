@@ -1,5 +1,5 @@
 -- update function
-CREATE OR REPLACE FUNCTION fn_update_datetime()
+CREATE OR REPLACE FUNCTION system.fn_update_datetime()
 RETURNS TRIGGER AS $$
 /**
  * Automatically updates the modification timestamp for database records.

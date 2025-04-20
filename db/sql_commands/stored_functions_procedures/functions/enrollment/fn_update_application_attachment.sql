@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_update_application_attachment()
+CREATE OR REPLACE FUNCTION enrollment.fn_update_application_attachment()
 RETURNS TRIGGER AS $$
 /**
  * Manages updates to enrollment application attachments with specific business rules.
