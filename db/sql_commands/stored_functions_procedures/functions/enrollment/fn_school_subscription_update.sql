@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_school_subscription_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_school_subscription_update()
 RETURNS TRIGGER AS $$
 /**
  * School Subscription Update Validation Trigger

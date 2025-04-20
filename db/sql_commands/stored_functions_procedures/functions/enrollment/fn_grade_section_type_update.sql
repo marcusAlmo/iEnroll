@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_grade_section_type_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_grade_section_type_update()
 RETURNS TRIGGER AS $$
 /**
  * Prevents updates to grade section types with active enrollment applications.

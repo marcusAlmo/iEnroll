@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS enrollment.role_permission (
 );
 
 -- gender_enum
-CREATE TYPE enrollment.gender AS ENUM ('Male', 'Female', 'Other');
+CREATE TYPE enrollment.gender AS ENUM ('male', 'female', 'other');
 -- user
 CREATE TABLE IF NOT EXISTS enrollment.user (
     user_id INT GENERATED ALWAYS AS IDENTITY,
@@ -129,10 +129,7 @@ CREATE TABLE IF NOT EXISTS enrollment.school_file_access (
 CREATE TABLE IF NOT EXISTS enrollment.address (
     address_id INT GENERATED ALWAYS AS IDENTITY,
     address_line_1 VARCHAR(100),
-    street VARCHAR(100) NOT NULL,
-    district VARCHAR(100) NOT NULL,
-    municipality VARCHAR(100) NOT NULL,
-    province VARCHAR(100) NOT NULL,
+    street_id INT NOT NULL,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_address PRIMARY KEY (address_id)
@@ -161,7 +158,7 @@ CREATE TABLE IF NOT EXISTS enrollment.application_attachment (
     requirement_id INT NOT NULL,
     text_content TEXT,
     file_id INT,
-    type enrollment.attachment_type NOT NULL,
+    attachment_type enrollment.attachment_type NOT NULL,
     status enrollment.attachment_status NOT NULL,
     reviewer_id INT,
     review_datetime TIMESTAMP,
@@ -184,16 +181,17 @@ CREATE TABLE IF NOT EXISTS enrollment.student_enrollment (
 );
 
 -- school
-CREATE TYPE enrollment.school_type AS ENUM ('public', 'private', 'other');
+CREATE TYPE enrollment.school_type AS ENUM ('public', 'private', 'others');
 CREATE TABLE IF NOT EXISTS enrollment.school (
     school_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    academic_year VARCHAR(9) NOT NULL,
+    academic_year CHAR(9) NOT NULL,
     school_type enrollment.school_type NOT NULL,
     email_address VARCHAR(100) NOT NULL,
     contact_number CHAR(11) NOT NULL,
     website_url VARCHAR(255),
     address_id INT NOT NULL,
+    supported_acad_level JSONB,
     is_active BOOLEAN DEFAULT TRUE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -231,6 +229,7 @@ CREATE TABLE IF NOT EXISTS enrollment.grade_level_offered (
 CREATE TABLE IF NOT EXISTS enrollment.enrollment_schedule (
     schedule_id INT NOT NULL,
     grade_level_offered_id INT NOT NULL,
+    application_slot INT NOT NULL,
     start_datetime TIMESTAMP NOT NULL,
     end_datetime TIMESTAMP NOT NULL,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -239,33 +238,32 @@ CREATE TABLE IF NOT EXISTS enrollment.enrollment_schedule (
     constraint pk_enrollment_schedule PRIMARY KEY (schedule_id)
 );
 
--- grade_section_type
-CREATE TYPE enrollment.section_type AS ENUM ('regular', 'special');
-CREATE TABLE IF NOT EXISTS enrollment.grade_section_type (
-    grade_section_type_id INT GENERATED ALWAYS AS IDENTITY,
+-- grade_section_program
+CREATE TABLE IF NOT EXISTS enrollment.grade_section_program(
+    grade_section_program_id INT GENERATED ALWAYS AS IDENTITY,
     grade_level_offered_id INT NOT NULL,
-    section_type enrollment.section_type NOT NULL,
+    program_id INT NOT NULL,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    constraint pk_grade_section_type PRIMARY KEY (grade_section_type_id),
-    constraint uq_grade_section_type UNIQUE (grade_section_type_id, section_type)
+    constraint pk_grade_section_program PRIMARY KEY (grade_section_program_id),
+    constraint uq_grade_section_program UNIQUE (grade_level_offered_id, program_id)
 );
 
 -- grade_section
 CREATE TABLE IF NOT EXISTS enrollment.grade_section (
     grade_section_id INT GENERATED ALWAYS AS IDENTITY,
-    grade_section_type_id INT NOT NULL,
+    grade_section_program_id INT NOT NULL,
     section_name VARCHAR(100) NOT NULL,
     adviser VARCHAR(100) NOT NULL,
-    slot INT NOT NULL,
+    admission_slot INT NOT NULL,
     max_application_slot INT NOT NULL,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_grade_section PRIMARY KEY (grade_section_id),
-    constraint uq_grade_section UNIQUE (grade_section_type_id, section_name),
-    constraint ck_grade_section CHECK (slot > 0 AND max_application_slot > 0),
-    constraint ck_max_application_slot CHECK (max_application_slot >= slot)
+    constraint uq_grade_section UNIQUE (grade_section_program_id, section_name),
+    constraint ck_admission_slot CHECK (admission_slot > 0),
+    constraint ck_max_application_slot CHECK (max_application_slot >= admission_slot)
 );
 
 -- enrollment_requirement
@@ -331,13 +329,13 @@ CREATE TABLE IF NOT EXISTS enrollment.enrollment_fee_payment (
     constraint uq_enrollment_fee_payment UNIQUE (file_id)
 );
 
-CREATE TYPE enrollment.payment_option_type AS ENUM ('credit_card', 'debit_card', 'e-wallet', 'bank_transfer', 'crypto');
+CREATE TYPE enrollment.payment_option AS ENUM ('credit_card', 'debit_card', 'e-wallet', 'bank_transfer', 'crypto');
 
 -- school_payment_option
 CREATE TABLE IF NOT EXISTS enrollment.school_payment_option (
     payment_option_id INT GENERATED ALWAYS AS IDENTITY,
     school_id INT NOT NULL,
-    payment_option_type enrollment.payment_option_type NOT NULL,
+    payment_option enrollment.payment_option NOT NULL,
     provider VARCHAR(255) NOT NULL,
     account_number VARCHAR(40) NOT NULL,
     account_name VARCHAR(100) NOT NULL,
@@ -348,16 +346,19 @@ CREATE TABLE IF NOT EXISTS enrollment.school_payment_option (
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_school_payment_option PRIMARY KEY (payment_option_id),
-    constraint uq_school_payment_option UNIQUE (school_id, payment_option_type)
+    constraint uq_school_payment_option UNIQUE (school_id, payment_option)
 );
 
 -- file
 CREATE TABLE IF NOT EXISTS enrollment.file (
     file_id INT GENERATED ALWAYS AS IDENTITY,
+    uuid UUID NOT NULL DEFAULT gen_random_uuid(),
+    school_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     path VARCHAR(255) NOT NULL,
     type VARCHAR(100) NOT NULL,
     size INT NOT NULL,
+    iv VARCHAR(255) NOT NULL,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_file PRIMARY KEY (file_id),
@@ -369,6 +370,7 @@ CREATE TABLE IF NOT EXISTS enrollment.file (
 CREATE TABLE IF NOT EXISTS enrollment.aux_schedule_slot (
     schedule_id INT NOT NULL,
     application_slot_left INT NOT NULL,
+    grade_level_offered_id INT NOT NULL,
     start_datetime TIMESTAMP NOT NULL,
     end_datetime TIMESTAMP NOT NULL,
     is_closed BOOLEAN NOT NULL DEFAULT FALSE,

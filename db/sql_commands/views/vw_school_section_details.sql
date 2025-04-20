@@ -20,11 +20,11 @@ WITH school_data AS (
         gl.grade_level_code,
         gl.grade_level as grade_level_name,
         gl.academic_level_code,
-        gst.program_id,    
-        gs.grade_section_id,
+        gsp.program_id,    
+        gs.grade_section_program_id,
         gs.section_name,
         gs.adviser,
-        gs.slot,
+        gs.admission_slot,
         gs.max_application_slot,
         es.schedule_id,
         es.start_datetime as enrollment_start,
@@ -42,16 +42,15 @@ WITH school_data AS (
     LEFT JOIN enrollment.school_subscription ss ON s.school_id = ss.school_id
     LEFT JOIN enrollment.grade_level_offered glo ON s.school_id = glo.school_id
     LEFT JOIN system.grade_level gl ON glo.grade_level_code = gl.grade_level_code
-    LEFT JOIN enrollment.grade_section_program gst ON glo.grade_level_offered_id = gst.grade_level_offered_id
-    LEFT JOIN enrollment.grade_section gs ON gst.grade_section_program_id = gs.grade_section_program_id
-    LEFT JOIN enrollment.enrollment_schedule es ON glo.grade_level_offered_id = es.grade_level_offered_id
-    LEFT JOIN enrollment.enrollment_fee ef ON gst.grade_section_program_id = ef.grade_section_program_id
-    LEFT JOIN enrollment.enrollment_requirement er ON gst.grade_section_program_id = er.grade_section_program_id
-    WHERE s.school_id = 762306
+    LEFT JOIN enrollment.grade_section_program gsp ON glo.grade_level_offered_id = gsp.grade_level_offered_id
+    LEFT JOIN enrollment.grade_section gs ON gsp.grade_section_program_id = gs.grade_section_program_id
+    LEFT JOIN enrollment.enrollment_schedule es ON gsp.grade_level_offered_id = es.grade_level_offered_id
+    LEFT JOIN enrollment.enrollment_fee ef ON gsp.grade_section_program_id = ef.grade_section_program_id
+    LEFT JOIN enrollment.enrollment_requirement er ON gsp.grade_section_program_id = er.grade_section_program_id
     ORDER BY 
         gl.academic_level_code,
         gl.grade_level_code,
-        gst.program_id,
+        gsp.program_id,
         gs.section_name
 )
 SELECT 
@@ -74,10 +73,10 @@ SELECT
     grade_level_name,
     academic_level_code,
     program_id,
-    grade_section_id,
+    grade_section_program_id,
     section_name,
     adviser,
-    slot,
+    admission_slot,
     max_application_slot,
     schedule_id,
     enrollment_start,
@@ -120,10 +119,10 @@ GROUP BY
     grade_level_name,
     academic_level_code,
     program_id,
-    grade_section_id,
+    grade_section_program_id,
     section_name,
     adviser,
-    slot,
+    admission_slot,
     max_application_slot,
     schedule_id,
     enrollment_start,

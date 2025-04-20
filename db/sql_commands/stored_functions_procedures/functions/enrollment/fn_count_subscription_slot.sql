@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_count_subscription_slot(p_school_id INTEGER, p_slot_type TEXT)
+CREATE OR REPLACE FUNCTION enrollment.fn_count_subscription_slot(p_school_id INTEGER, p_slot_type TEXT)
 RETURNS INTEGER AS $$
 /**
  * Comprehensive Subscription Slot Allocation Retriever

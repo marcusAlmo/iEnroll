@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_enrollment_schedule_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_enrollment_schedule_update()
 RETURNS TRIGGER AS $$
 /**
  * Validates and manages updates to enrollment schedule timestamps.

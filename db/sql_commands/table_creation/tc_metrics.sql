@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS metrics.consumption_data (
     school_acad_year_id INT NOT NULL,
     date DATE NOT NULL,
     slot_used INT NOT NULL,
-    upload_count INT NOT NULL,
-    download_count INT NOT NULL,
+    file_upload_count INT NOT NULL,
+    file_download_count INT NOT NULL,
     generation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_consumption_data PRIMARY KEY (consumption_data_id),

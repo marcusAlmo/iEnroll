@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_grade_section_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_grade_section_update()
 RETURNS TRIGGER AS $$
 /**
  * Grade Section Update Validation Trigger
