@@ -26,7 +26,7 @@ def generate_system_initial_setup(cursor):
     try:
         cursor.execute("BEGIN")
         
-        generate_address(cursor)
+        generate_system_address_data(cursor)
         generate_academic_levels(cursor)
         generate_grade_levels(cursor)
         generate_system_settings(cursor)
@@ -667,9 +667,9 @@ def generate_system_user(cursor):
         # Create the school if it doesn't exist
         cursor.execute(
             "INSERT INTO enrollment.school (school_id, name, academic_year, school_type, email_address, contact_number, address_id) "
-            "VALUES (%s, 'iEnroll', '2024-2025', 'other', 'system@ienroll.com', '09123456789', %s) "
+            "VALUES (%s, 'iEnroll', '2024-2025', 'others', 'system@ienroll.com', '09123456789', %s) "
             "ON CONFLICT (name) DO NOTHING;",
-            (school_id, address_id[1])
+            (school_id, address_id)
         )
         print("Successfully created or found iEnroll school.")
 
@@ -682,7 +682,7 @@ def generate_system_user(cursor):
         ON CONFLICT (username) DO NOTHING;
         """
         cursor.execute(insert_query, (
-            'System', 'System', 'System', 'V1', 'system@ienroll.com', '09123456789', 'system', password, password_hash, 'Male', school_id
+            'System', 'System', 'System', 'V1', 'system@ienroll.com', '09123456789', 'system', password, password_hash, 'male', school_id
         ))
         
         cursor.connection.commit()  # Commit the transaction
@@ -695,80 +695,86 @@ def generate_system_user(cursor):
 
 def generate_system_address_data(cursor):
     
-    insert_province = """
-    INSERT INTO system.province (province, is_default)
-    VALUES (%s, %s)
-    ON CONFLICT (province) DO NOTHING;
-    """
-    
-    insert_municipality = """
-    INSERT INTO system.municipality (municipality, province_id, is_default)
-    VALUES (%s, %s, %s)
-    ON CONFLICT (municipality, province_id) DO NOTHING;
-    """
-    
-    insert_district = """
-    INSERT INTO system.district (district, municipality_id, is_default)
-    VALUES (%s, %s, %s)
-    ON CONFLICT (district, municipality_id) DO NOTHING;
-    """
+    try:
+        insert_province = """
+        INSERT INTO system.province (province, is_default)
+        VALUES (%s, %s)
+        ON CONFLICT (province) DO NOTHING;
+        """
+        
+        insert_municipality = """
+        INSERT INTO system.municipality (municipality, province_id, is_default)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (municipality, province_id) DO NOTHING;
+        """
+        
+        insert_district = """
+        INSERT INTO system.district (district, municipality_id, is_default)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (district, municipality_id) DO NOTHING;
+        """
 
-    insert_street = """
-    INSERT INTO system.street (street, district_id, is_default)
-    VALUES (%s, %s, %s)
-    ON CONFLICT (street, district_id) DO NOTHING;
-    """
+        insert_street = """
+        INSERT INTO system.street (street, district_id, is_default)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (street, district_id) DO NOTHING;
+        """
 
-    sample_streets = [
-        ('Purok 1', 1, True),
-        ('Purok 2', 1, False),
-        ('Purok 3', 2, False),
-        ('Purok 4', 2, True),
-        ('Purok 5', 3, True),
-        ('Purok 6', 3, False),
-        ('Purok 7', 4, True),
-        ('Purok 8', 4, False),
-        ('Purok 9', 5, True),
-        ('Purok 10', 5, False),
-    ]
+        sample_streets = [
+            ('Purok 1', 1, True),
+            ('Purok 2', 1, False),
+            ('Purok 3', 2, False),
+            ('Purok 4', 2, True),
+            ('Purok 5', 3, True),
+            ('Purok 6', 3, False),
+            ('Purok 7', 4, True),
+            ('Purok 8', 4, False),
+            ('Purok 9', 5, True),
+            ('Purok 10', 5, False),
+        ]
 
-    sample_districts = [
-        ('District 1', 1, True),
-        ('District 2', 2, False),
-        ('District 3', 3, False),
-        ('District 4', 4, True),
-        ('District 5', 5, True),
-        ('District 6', 5, False),
-        ('District 7', 6, True),
-        ('District 8', 6, False),
-    ]
+        sample_districts = [
+            ('District 1', 1, True),
+            ('District 2', 2, False),
+            ('District 3', 3, False),
+            ('District 4', 4, True),
+            ('District 5', 5, True),
+            ('District 6', 5, False),
+            ('District 7', 6, True),
+            ('District 8', 6, False),
+        ]
 
-    sample_municipalities = [
-        ('Municipality 1', 1, True),
-        ('Municipality 2', 2, False),
-        ('Municipality 3', 3, False),
-        ('Municipality 4', 4, True),
-        ('Municipality 5', 5, True),
-        ('Municipality 6', 5, False),
-        ('Municipality 7', 6, True),
-        ('Municipality 8', 6, False),
-    ]
+        sample_municipalities = [
+            ('Municipality 1', 1, True),
+            ('Municipality 2', 2, False),
+            ('Municipality 3', 3, False),
+            ('Municipality 4', 4, True),
+            ('Municipality 5', 5, True),
+            ('Municipality 6', 5, False),
+            ('Municipality 7', 6, True),
+            ('Municipality 8', 6, False),
+        ]
 
-    sample_provinces = [
-        ('Province 1', True),
-        ('Province 2', False),
-        ('Province 3', False),
-        ('Province 4', True),
-        ('Province 5', True),
-        ('Province 6', False),
-        ('Province 7', True),
-        ('Province 8', False),
-    ]
-    
-    
-    cursor.executemany(insert_street, sample_streets)
-    cursor.executemany(insert_district, sample_districts)
-    cursor.executemany(insert_municipality, sample_municipalities)
-    cursor.executemany(insert_province, sample_provinces)
-    
-    
+        sample_provinces = [
+            ('Province 1', True),
+            ('Province 2', False),
+            ('Province 3', False),
+            ('Province 4', True),
+            ('Province 5', True),
+            ('Province 6', False),
+            ('Province 7', True),
+            ('Province 8', False),
+        ]
+        
+        cursor.executemany(insert_province, sample_provinces)
+        cursor.executemany(insert_municipality, sample_municipalities)
+        cursor.executemany(insert_district, sample_districts)
+        cursor.executemany(insert_street, sample_streets)
+        print('System address data generated succesfully.')
+    except Exception as e:
+        cursor.connection.rollback()  # Rollback the transaction on error
+        print(f"Error generating system user: {e}")
+
+
+        
+        
