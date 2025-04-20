@@ -43,11 +43,12 @@ model message {
 model address {
   address_id      Int       @id(map: "pk_address") @default(autoincrement())
   address_line_1  String?   @db.VarChar(100)
-  street          String    @db.VarChar(100)
+  street_id       Int
   district        String    @db.VarChar(100)
   municipality    String    @db.VarChar(100)
   update_datetime DateTime? @default(now()) @db.Timestamp(6)
   province        String    @db.VarChar(100)
+  street          street    @relation(fields: [street_id], references: [street_id], map: "fk_address_street_id")
   school          school[]
   student         student[]
 
@@ -240,6 +241,7 @@ model school {
   is_active             Boolean?                @default(true)
   creation_datetime     DateTime?               @default(now()) @db.Timestamp(6)
   update_datetime       DateTime?               @default(now()) @db.Timestamp(6)
+  supported_acad_level  Json?
   banner                banner?
   file                  file[]
   grade_level_offered   grade_level_offered[]
@@ -770,6 +772,51 @@ model aux_schedule_slot {
   enrollment_application enrollment_application[]
 
   @@schema("enrollment")
+}
+
+model district {
+  district_id     Int          @id(map: "pk_district") @default(autoincrement())
+  district        String       @db.VarChar(100)
+  municipality_id Int
+  is_default      Boolean      @default(false)
+  municipality    municipality @relation(fields: [municipality_id], references: [municipality_id], map: "fk_district_municipality_id")
+  street          street[]
+
+  @@unique([district, municipality_id], map: "uq_district_municipality")
+  @@schema("system")
+}
+
+model municipality {
+  municipality_id Int        @id(map: "pk_municipality") @default(autoincrement())
+  municipality    String     @db.VarChar(100)
+  province_id     Int
+  is_default      Boolean
+  district        district[]
+  province        province   @relation(fields: [province_id], references: [province_id], map: "fk_municipality_province_id")
+
+  @@unique([municipality, province_id], map: "uq_municipality_province")
+  @@schema("system")
+}
+
+model province {
+  province_id  Int            @id(map: "pk_province") @default(autoincrement())
+  province     String         @unique(map: "uq_province") @db.VarChar(100)
+  is_default   Boolean        @default(false)
+  municipality municipality[]
+
+  @@schema("system")
+}
+
+model street {
+  street_id   Int       @id(map: "pk_street") @default(autoincrement())
+  street      String    @db.VarChar(100)
+  district_id Int
+  is_default  Boolean   @default(false)
+  address     address[]
+  district    district  @relation(fields: [district_id], references: [district_id], map: "fk_street_district_id")
+
+  @@unique([street, district_id], map: "uq_street_district")
+  @@schema("system")
 }
 
 enum accepted_data_type {
