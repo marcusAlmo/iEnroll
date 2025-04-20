@@ -5,6 +5,7 @@ import { EnrollModule } from './enroll/enroll.module';
 import { LandingModule } from './landing/landing.module';
 import { RouterModule } from '@nestjs/core';
 import { mapModulesToBasePath } from '@lib/utils/router.utils';
+import { EnrollmentManagementModule } from './enrollment-management/enrollment-management.module';
 
 const BASE_PATH = 'enrollment';
 
@@ -22,6 +23,7 @@ const BASE_PATH = 'enrollment';
         LandingModule,
       ]),
     ),
+    EnrollmentManagementModule,
   ],
 })
 export class EnrollmentModule {}
