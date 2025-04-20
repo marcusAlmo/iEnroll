@@ -17,7 +17,6 @@ export class PieGraphService {
   public async getAllGrades(
     payload: object,
   ): Promise<DashboardPieGraph['gradeLevels']> {
-    console.log('payload1', payload);
     const result: DashboardPieGraph['gradeLevels'] = await lastValueFrom(
       this.client.send({ cmd: 'get-all-grades' }, payload),
     );

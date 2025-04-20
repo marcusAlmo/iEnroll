@@ -13,7 +13,6 @@ export class PlanCapacityService {
   ) {}
 
   async getPlanCapacity(payload: object): Promise<PlanCapacity['finalOutput']> {
-    console.log('payload', payload);
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
       this.client.send({ cmd: 'plan-capacity' }, payload),
     );

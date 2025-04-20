@@ -15,7 +15,6 @@ export class EnrollmentTrendDataService {
   async getEnrollmentTrendData(
     payload: object,
   ): Promise<EnrollmentTrendData['enrollmentRecord'][]> {
-    console.log('payload: ', payload);
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
       this.client.send({ cmd: 'enrollment-trend-data' }, payload),
     );

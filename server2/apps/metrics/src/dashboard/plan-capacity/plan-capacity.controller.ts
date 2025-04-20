@@ -8,7 +8,6 @@ export class PlanCapacityController {
 
   @MessagePattern({ cmd: 'plan-capacity' })
   async getPlanCapacity(@Payload() payload: { schoolId: number }) {
-    console.log('payload', payload);
     return await this.planCapacityService.getPlanCapacity(payload.schoolId);
   }
 }

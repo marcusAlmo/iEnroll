@@ -42,7 +42,6 @@ export class CardsService {
   public async getAcademicYear(
     schoolId: number,
   ): Promise<AcademicYear['returnValue']['data']> {
-    console.log('schoolId2', schoolId);
     const academicYear = await this.prisma.school.findFirst({
       where: {
         school_id: schoolId,
@@ -51,8 +50,6 @@ export class CardsService {
         academic_year: true,
       },
     });
-
-    console.log('academicYear', academicYear);
 
     if (!academicYear) return null;
 

@@ -8,7 +8,6 @@ export class PieGraphController {
 
   @MessagePattern({ cmd: 'get-all-grades' })
   async getAllGrades(payload: { schoolId: number }) {
-    console.log('payload2', payload);
     return await this.pieGraphService.getAllGrades(payload.schoolId);
   }
 
