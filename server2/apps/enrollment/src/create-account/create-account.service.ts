@@ -121,6 +121,50 @@ export class CreateAccountService {
     });
   }
 
+  async getAllAddresses() {
+    const result = await this.prisma.province.findMany({
+      select: {
+        province: true,
+        province_id: true,
+        municipality: {
+          select: {
+            municipality_id: true,
+            municipality: true,
+            district: {
+              select: {
+                district_id: true,
+                district: true,
+                street: {
+                  select: {
+                    street_id: true,
+                    street: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return result.map((provinceItem) => ({
+      provinceId: provinceItem.province_id,
+      province: provinceItem.province,
+      municipalities: provinceItem.municipality.map((municipalityItem) => ({
+        municipalityId: municipalityItem.municipality_id,
+        municipality: municipalityItem.municipality,
+        districts: municipalityItem.district.map((districtItem) => ({
+          districtId: districtItem.district_id,
+          district: districtItem.district,
+          streets: districtItem.street.map((streetItem) => ({
+            streetId: streetItem.street_id,
+            street: streetItem.street,
+          })),
+        })),
+      })),
+    }));
+  }
+
   private parseGender(gender: 'M' | 'F' | 'O') {
     switch (gender) {
       case 'M':
