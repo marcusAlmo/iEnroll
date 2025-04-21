@@ -712,7 +712,6 @@ model subscription_plan {
   is_active              Boolean?              @default(true)
   creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  max_download_count     Int
   school_subscription    school_subscription[]
 
   @@schema("system")
