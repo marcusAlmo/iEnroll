@@ -18,12 +18,12 @@ export class AuthController {
 
     if (user === -1)
       throw new RpcException({
-        statusCode: 401,
+        statusCode: 400,
         message: 'ERR_USER_NOT_FOUND',
       });
     else if (user === -2)
       throw new RpcException({
-        statusCode: 401,
+        statusCode: 400,
         message: 'ERR_INVALID_PASSWORD',
       });
     else if (

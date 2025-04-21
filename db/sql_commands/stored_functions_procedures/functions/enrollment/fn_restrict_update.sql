@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_restrict_update()
+CREATE OR REPLACE FUNCTION system.fn_restrict_update()
 RETURNS TRIGGER AS $$
 /**
  * Prevents updates to specific system tables and logs unauthorized update attempts.

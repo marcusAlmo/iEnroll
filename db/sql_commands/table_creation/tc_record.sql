@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS record;
 -- student_list
 CREATE TABLE IF NOT EXISTS record.student_list (
     school_acad_year_id INT NOT NULL,
-    grade_level VARCHAR(50) NOT NULL,
+    grade_level VARCHAR(30) NOT NULL,
     section VARCHAR(100) NOT NULL,
     adviser VARCHAR(100) NOT NULL,
     student_detail JSONB NOT NULL,      
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS record.invoice (
     created_by VARCHAR(100) NOT NULL,
     payer_name VARCHAR(100) NOT NULL,
     payer_address VARCHAR(255) NOT NULL,
-    payer_contact_number VARCHAR(11) NOT NULL,
+    payer_contact_number CHAR(11) NOT NULL,
     payer_email_address VARCHAR(100) NOT NULL,
     seller_name VARCHAR(100) NOT NULL,
     bir_accreditation_number VARCHAR(30) NOT NULL,

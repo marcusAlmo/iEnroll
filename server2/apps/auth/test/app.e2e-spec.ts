@@ -33,27 +33,27 @@ describe('AuthController (e2e)', () => {
       expect(typeof response.body.access_token).toBe('string');
     });
 
-    it('should return 401 if user does not exist', async () => {
+    it('should return 400 if user does not exist', async () => {
       const response = await request(app.getHttpServer())
         .post('/login')
         .send({ username: 'nonexistent', password: 'whatever' })
-        .expect(401);
+        .expect(400);
 
       expect(response.body).toEqual({
-        statusCode: 401,
+        statusCode: 400,
         error: 'ERR_USER_NOT_FOUND',
         message: 'User does not exist',
       });
     });
 
-    it('should return 401 if password is incorrect', async () => {
+    it('should return 400 if password is incorrect', async () => {
       const response = await request(app.getHttpServer())
         .post('/login')
         .send({ username: 'john', password: 'wrongpassword' })
-        .expect(401);
+        .expect(400);
 
       expect(response.body).toEqual({
-        statusCode: 401,
+        statusCode: 400,
         error: 'ERR_INVALID_PASSWORD',
         message: 'Invalid password',
       });

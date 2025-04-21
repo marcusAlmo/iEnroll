@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { ExceptionCheckerService } from '@lib/exception-checker/exception-checker.service';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 import { Inject, Injectable } from '@nestjs/common';
@@ -32,3 +33,9 @@ export class AnnouncementsService {
     )
   }
 }
+=======
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AnnouncementsService {}
+>>>>>>> b8d262f438509b0d5617d2b04ef8c4e9f95f96e8

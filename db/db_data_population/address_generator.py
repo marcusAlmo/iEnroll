@@ -23,24 +23,29 @@ def generate_address(cursor):
         int: The generated address_id if successful, None if failed
     """
     try:
-        # Select random province and municipality
-        province = random.choice(list(PH_LOCATIONS.keys()))
-        municipality = random.choice(PH_LOCATIONS[province])
+        cursor.execute("""
+            SELECT s.street_id, d.district 
+            FROM system.street s
+            JOIN system.district d ON s.district_id = d.district_id
+            WHERE s.is_default = TRUE
+        """)
+        street_ids = cursor.fetchall()
+        chosen_street_district = random.choice(street_ids)
+        street_id = chosen_street_district[0]
+        district = chosen_street_district[1]
         
         # Generate address details
         address_line_1 = f"{random.randint(1, 9999)} {fake.street_name()}"
-        street = fake.street_name()
-        district = f"District {random.randint(1, 12)}"
         
         cursor.execute("""
-            INSERT INTO enrollment.address (address_line_1, street, district, municipality, province)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO enrollment.address (address_line_1, street_id)
+            VALUES (%s, %s)
             RETURNING address_id
-        """, (address_line_1, street, district, municipality, province))
+        """, (address_line_1, street_id))
         
         address_id = cursor.fetchone()[0]
-        print(f"Generated address in {municipality}, {province}")
-        return [municipality, address_id]
+        print(f"Generated address in {district}")
+        return [district, address_id]
         
     except Exception as e:
         print(f"Error generating address: {str(e)}")

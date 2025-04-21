@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_count_slots_used(p_school_id INTEGER, p_slot_type TEXT)
+CREATE OR REPLACE FUNCTION enrollment.fn_count_slots_used(p_school_id INTEGER, p_slot_type TEXT)
 RETURNS INTEGER AS $$
 /**
  * Advanced Slot Utilization Tracker for Enrollment System

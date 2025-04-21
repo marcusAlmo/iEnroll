@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_update_student_enrollment()
+CREATE OR REPLACE FUNCTION enrollment.fn_update_student_enrollment()
 RETURNS TRIGGER AS $$
 /**
  * Manages student enrollment updates with section capacity validation.

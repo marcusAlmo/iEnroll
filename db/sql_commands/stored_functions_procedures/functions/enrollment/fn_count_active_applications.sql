@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_count_active_applications(p_grade_level_offered_id INT)
+CREATE OR REPLACE FUNCTION enrollment.fn_count_active_applications(p_grade_level_offered_id INT)
 RETURNS INTEGER AS $$
 /**
  * Counts the number of active enrollment applications for a specific grade level.

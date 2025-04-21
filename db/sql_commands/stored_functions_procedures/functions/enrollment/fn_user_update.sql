@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_user_update()
+CREATE OR REPLACE FUNCTION enrollment.fn_user_update()
 RETURNS TRIGGER AS $$
 /**
  * Prevents updates to user records with active enrollment applications.
