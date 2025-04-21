@@ -1,74 +1,90 @@
-import { Navigate } from "react-router";
-import { Form } from "@/components/ui/form";
-import { useScreenSize } from "@/contexts/useScreenSize";
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { signInSchema } from "./schema/signInSchema";
-import CustomInput from "@/components/CustomInput";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Navigate, useNavigate } from "react-router";
+import { AxiosError } from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { Button } from "@/components/ui/button";
-import CustomCarousel from "@/components/CustomCarousel";
-import announcements from "@/test/data/banner-items.json";
+
+import { useScreenSize } from "@/contexts/useScreenSize";
 import { useAuth } from "@/contexts/useAuth";
-import { AxiosError } from "axios";
+import { getAnnoucements } from "@/services/mobile-web-app/landing";
+
+import { Form } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import CustomInput from "@/components/CustomInput";
+import CustomCarousel from "@/components/CustomCarousel";
+
+import { signInSchema } from "./schema/signInSchema";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const { mobile } = useScreenSize();
   const { loginMobile } = useAuth();
 
-  // States
-  const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
-  const [showModal, setShowModal] = useState<boolean>(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState<string>();
 
-  // Define form default values
+  const { data: announcements, error: announcementError } = useQuery({
+    queryKey: ["announcements"],
+    queryFn: getAnnoucements,
+    select: (data) =>
+      data.data.map((a, idx) => ({
+        id: idx,
+        subject: a.subject,
+        message: a.message,
+      })),
+  });
+
+  useEffect(() => {
+    if (announcementError) setError(announcementError.message);
+  }, [announcementError]);
+
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
-    defaultValues: {
-      username: "",
-      password: "",
+    defaultValues: { username: "", password: "" },
+  });
+
+  const { mutate: login, isPending: isLoginPending } = useMutation({
+    mutationFn: ({ username, password }: { username: string; password: string }) =>
+      loginMobile(username, password),
+    onSuccess: () => navigate("/student/dashboard"),
+    onError: (err) => {
+      if (err instanceof AxiosError) {
+        let msg = err.response?.data.message;
+        if (msg === "ERR_USER_NOT_FOUND") msg = "User not found.";
+        if (msg === "ERR_INVALID_PASSWORD") msg = "Password not matched.";
+        setError(msg);
+      } else {
+        setError((err as Error).message);
+      }
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof signInSchema>) => {
-    console.log(data);
-    try {
-      await loginMobile(data.username, data.password);
-
-      return <Navigate to="/student/dashboard" />;
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        let msg = error.response?.data.message;
-
-        switch (msg) {
-          case "ERR_USER_NOT_FOUND":
-            msg = "User not found";
-            break;
-          case "ERR_INVALID_PASSWORD":
-            msg = "User not found";
-        }
-        setError(msg);
-      } else setError(error.message);
-    }
+  const onSubmit = (data: z.infer<typeof signInSchema>) => {
+    setError(undefined);
+    login(data);
   };
 
-  const handleToggleVisibility = () => {
+  const togglePasswordVisibility = () => {
     setPasswordVisible((prev) => !prev);
   };
 
-  // If screen size not mobile, redirect to Warning Page
   if (!mobile) return <Navigate to="/iEnroll" />;
 
-  // Else display the following TSX
   return (
     <div className="flex flex-col items-center justify-center py-12">
       <h2 className="text-accent text-3xl font-semibold">Announcements</h2>
 
       <div className="mt-8 mb-16 flex w-screen justify-center">
-        <CustomCarousel carouselItems={announcements} />
+        {announcements?.length ? (
+          <CustomCarousel carouselItems={announcements} />
+        ) : (
+          <div>No announcements found.</div>
+        )}
       </div>
 
       <div>
@@ -103,27 +119,30 @@ const LoginPage = () => {
                   />
                   <FontAwesomeIcon
                     icon={passwordVisible ? faEyeSlash : faEye}
-                    className="text-text-2 absolute top-9.5 right-4 w-4"
-                    onClick={() => handleToggleVisibility()}
+                    className="text-text-2 absolute top-9.5 right-4 w-4 cursor-pointer"
+                    onClick={togglePasswordVisibility}
                   />
                 </div>
                 <div
-                  className="self-end text-xs font-semibold text-[#DD3545]/70"
+                  className="cursor-pointer self-end text-xs font-semibold text-[#DD3545]/70"
                   onClick={() => setShowModal(true)}
                 >
                   Forgot password?
                 </div>
               </div>
+
               {error && (
-                <div>
+                <div className="text-center text-sm text-red-500">
                   <p>{error}</p>
                 </div>
               )}
+
               <Button
                 className="bg-accent mt-[30px] w-full py-6 text-base"
                 type="submit"
+                disabled={isLoginPending}
               >
-                Log in
+                {isLoginPending ? "Logging in..." : "Log in"}
               </Button>
             </form>
           </Form>
