@@ -42,7 +42,9 @@ export class PlanCapacityService {
 
     if (!durationDays) return { total: 0, max: 0 };
 
+    // eslint-disable-next-line
     const endDate = new Date(durationDays.end_datetime);
+    // eslint-disable-next-line
     const startDate = new Date(durationDays.start_datetime);
 
     const remainingDays = Math.ceil(
@@ -66,7 +68,7 @@ export class PlanCapacityService {
       where: { school_id: schoolId },
       select: {
         consumption_data: {
-          select: { download_count: true, upload_count: true },
+          select: { file_download_count: true, file_upload_count: true },
           orderBy: { consumption_data_id: 'desc' },
           take: 1,
         },
@@ -101,11 +103,11 @@ export class PlanCapacityService {
 
     return {
       downloadCount: {
-        total: count.consumption_data[0].download_count,
+        total: count.consumption_data[0].file_download_count,
         max: Number(downloadAndUploadTotal.plan.max_download_count),
       },
       uploadCount: {
-        total: count.consumption_data[0].upload_count,
+        total: count.consumption_data[0].file_upload_count,
         max: Number(downloadAndUploadTotal.plan.max_image_upload_count),
       },
     };

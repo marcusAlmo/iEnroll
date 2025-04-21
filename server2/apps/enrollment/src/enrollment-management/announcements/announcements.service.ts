@@ -13,25 +13,26 @@ export class AnnouncementsService {
 
   public async fetchAnnouncement(
     schoolId: number,
-  ): Promise<Announcements['announcementFormat']> {
-    const announcement = await this.retrieveAnnouncement(schoolId);
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const announcement: Announcements['prismaReturn'] | null =
+      await this.retrieveAnnouncement(schoolId);
 
     if (!announcement)
-      return {
+      return this.microserviceUtilityService.returnSuccess({
         isActive: false,
         subject: '',
         contents: '',
-      };
+      });
 
-    return {
+    return this.microserviceUtilityService.returnSuccess({
       isActive: announcement.is_active,
       subject: announcement.subject,
       contents: announcement.message,
-    };
+    });
   }
 
   public async receiveAnnouncement(
-    receiveInput: Announcements['announcementFormat'],
+    receiveInput: Announcements['receiveInput'],
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
     const isExists = await this.retrieveAnnouncement(schoolId);
@@ -57,21 +58,26 @@ export class AnnouncementsService {
 
   // UTILITY FUNCTIONS
 
-  private async retrieveAnnouncement(schoolId: number) {
-    return await this.prisma.banner.findFirst({
-      where: {
-        school_id: schoolId,
-      },
-      select: {
-        is_active: true,
-        subject: true,
-        message: true,
-      },
-    });
+  private async retrieveAnnouncement(
+    schoolId: number,
+  ): Promise<Announcements['prismaReturn'] | null> {
+    const result: Announcements['prismaReturn'] | null =
+      await this.prisma.banner.findFirst({
+        where: {
+          school_id: schoolId,
+        },
+        select: {
+          is_active: true,
+          subject: true,
+          message: true,
+        },
+      });
+
+    return result;
   }
 
   private async createAnnouncement(
-    receivedInput: Announcements['announcementFormat'],
+    receivedInput: Announcements['receiveInput'],
     schoolId: number,
   ) {
     const result = await this.prisma.banner.create({
@@ -87,7 +93,7 @@ export class AnnouncementsService {
   }
 
   private async updateAnnouncement(
-    receivedInput: Announcements['announcementFormat'],
+    receivedInput: Announcements['receiveInput'],
     schoolId: number,
   ) {
     const result = await this.prisma.banner.update({

@@ -1,8 +1,7 @@
-<<<<<<< HEAD
 import { ExceptionCheckerService } from '@lib/exception-checker/exception-checker.service';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 import { Inject, Injectable } from '@nestjs/common';
-import { ClientProxy, Payload } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { Announcements } from 'apps/enrollment/src/enrollment-management/announcements/interface/announcements.interface';
 import { lastValueFrom } from 'rxjs';
 
@@ -15,27 +14,30 @@ export class AnnouncementsService {
 
   public async getAnnouncements(
     payload: object,
-  ): Promise<Announcements['announcementFormat']> {
+  ): Promise<Announcements['receiveInput']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'get-announcements' }, payload),
+      this.client.send({ cmd: 'get-announcement' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as Announcements['announcementFormat'];
+    return result.data as Announcements['receiveInput'];
   }
 
   public async receiveAnnouncements(
     payload: object,
-  ): Promise<MicroserviceUtility['returnValue']['message']> {
+  ): Promise<MicroserviceUtility['successDataFormat']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      await this.client.send({ cmd: ''})
-    )
+      this.client.send(
+        {
+          cmd: 'receive-announcement',
+        },
+        payload,
+      ),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as MicroserviceUtility['successDataFormat'];
   }
 }
-=======
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class AnnouncementsService {}
->>>>>>> b8d262f438509b0d5617d2b04ef8c4e9f95f96e8

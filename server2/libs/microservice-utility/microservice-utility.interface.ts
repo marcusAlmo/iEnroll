@@ -4,4 +4,9 @@ export interface MicroserviceUtility<T = any> {
     message: string;
     data: T;
   };
+
+  successDataFormat: {
+    message: string;
+    timeExecuted: Date;
+  };
 }

@@ -1,20 +1,28 @@
+import { User } from '@lib/decorators/user.decorator';
 import { Controller } from '@nestjs/common';
-<<<<<<< HEAD
-
-@Controller('announcements')
-export class AnnouncementsController {}
-=======
-import { Post, Body } from '@nestjs/common';
+import { Post, Body, Get } from '@nestjs/common';
+import { AnnouncementsService } from './announcements.service';
+import { ReceveInput } from './dto/announcements.dto';
 
 @Controller('announcements')
 export class AnnouncementsController {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 
-  @Post('create')
-  async createAnnouncement(
-    @Body('property',
-        pipes)() announcement: ReceiveInpu) {
-    return this.announcementsService.createAnnouncement(announcement);
+  @Get('fetch')
+  async fetchAnnouncements(@User('school_id') schoolId: number) {
+    schoolId = 0;
+    return await this.announcementsService.getAnnouncements({ schoolId });
+  }
+
+  @Post('receive')
+  async receiveAnnouncement(
+    @User('school_id') schoolId: number,
+    @Body() receiveInput: ReceveInput,
+  ) {
+    schoolId = 0;
+    return await this.announcementsService.receiveAnnouncements({
+      receiveInput: receiveInput,
+      schoolId,
+    });
   }
 }
->>>>>>> b8d262f438509b0d5617d2b04ef8c4e9f95f96e8

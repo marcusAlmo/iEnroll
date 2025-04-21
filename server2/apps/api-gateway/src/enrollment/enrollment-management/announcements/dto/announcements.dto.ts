@@ -1,12 +1,21 @@
-import { IsBoolean, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class ReceveInput {
   @IsBoolean()
-  isActive: boolean;
+  @IsNotEmpty()
+  isActive!: boolean;
 
   @IsString()
-  subject: string;
+  @MaxLength(50, {
+    message: 'Max length should be no longer than 50 characters',
+  })
+  @IsNotEmpty()
+  subject!: string;
 
   @IsString()
-  contents: string;
+  @IsNotEmpty()
+  @MaxLength(255, {
+    message: 'Contents must be at most 255 characters long.',
+  })
+  contents!: string;
 }

@@ -7,14 +7,14 @@ import { Announcements } from './interface/announcements.interface';
 export class AnnouncementsController {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 
-  @MessagePattern({ cmd: 'get_announcement' })
-  async getAnnouncement(payload: { id: number }) {
-    return await this.announcementsService.fetchAnnouncement(payload.id);
+  @MessagePattern({ cmd: 'get-announcement' })
+  async getAnnouncement(payload: { schoolId: number }) {
+    return await this.announcementsService.fetchAnnouncement(payload.schoolId);
   }
 
-  @MessagePattern({ cmd: 'receive_announcement' })
+  @MessagePattern({ cmd: 'receive-announcement' })
   async receiveAnnouncement(payload: {
-    receiveInput: Announcements['announcementFormat'];
+    receiveInput: Announcements['receiveInput'];
     schoolId: number;
   }) {
     return await this.announcementsService.receiveAnnouncement(
