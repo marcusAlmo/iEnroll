@@ -49,11 +49,12 @@ export class AnnouncementsService {
         );
     }
 
-    return this.microserviceUtilityService.returnSuccess(
-      isExists
+    return this.microserviceUtilityService.returnSuccess({
+      message: isExists
         ? 'Announcement has been update successfully'
         : 'Announcement created successfuilly',
-    );
+      timeExecuted: new Date(),
+    });
   }
 
   // UTILITY FUNCTIONS

@@ -1,21 +1,100 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from "@/components/ui/form"; // Import the Form wrapper
 import InfoIcon from '@/assets/images/info icon.svg';
 import { Switch } from '@headlessui/react';
 import CustomInput from '@/components/CustomInput';
+import { requestData } from '@/lib/dataRequester';
 
 interface FormData {
   subject: string;
   content: string;
 }
 
-export default function Announcement() {
-  const [enabled, setEnabled] = useState(true); // Default switch to enabled (right)
-  const form = useForm<FormData>(); // Using form object for react-hook-form
+interface RetrievedDataInterface {
+  isActive: boolean;
+  subject: string;
+  contents: string;
+}
 
-  const onSubmit = (data: FormData) => {
-    console.log('Form Submitted:', data);
+interface SendDataResponse {
+  message: string;
+  timeExecuted: Date;
+}
+
+export default function Announcement() {
+  const [enabled, setEnabled] = useState(false); // Default switch to enabled (right)
+
+  const form = useForm<FormData>({
+    defaultValues: {
+      subject: '',
+      content: '',
+    },
+  }); // Using form object for react-hook-form
+
+  const { reset } = form;
+
+  // Holder for the value retrieved from the microservice
+  const [announcement, setAnnouncement] = useState<RetrievedDataInterface | null>({
+    isActive: false,
+    subject: '',
+    contents: '',
+  });
+
+  useEffect(() => {
+    if (announcement) {
+      setEnabled(announcement.isActive);
+      reset({
+        subject: announcement.subject || '',
+        content: announcement.contents || '',
+      });
+    }
+  }, [announcement]);
+
+  // method for receiving the data from the server
+  const retrieveData = async () => {
+    try{
+      const res = await requestData<RetrievedDataInterface>({
+        url: 'http://localhost:3000/api/announcements/fetch',
+        method: 'GET'
+      });
+
+      if(res){
+        console.log(res);
+        setAnnouncement(res);
+      }
+    }catch(err) {
+      if(err instanceof Error) console.error(err.message);
+      else console.error(err);
+    }
+  }
+
+  // execute upon render
+  useEffect(() => {
+    retrieveData();
+  }, []);
+
+  // submits the data to the server
+  const onSubmit = async (data: FormData) => {
+    try{
+      console.log(enabled);
+      const res = await requestData<SendDataResponse>({
+        url: 'http://localhost:3000/api/announcements/receive',
+        method: 'POST',
+        body: {
+          isActive: enabled,
+          subject: data.subject,
+          contents: data.content,
+        }
+      });
+
+      if(res){
+        console.log(res);
+      }
+    }catch(err) {
+      if(err instanceof Error) console.error(err.message);
+      else console.error(err);
+    }
   };
 
   return (
@@ -23,10 +102,10 @@ export default function Announcement() {
       <div className="flex justify-center items-center">
         <div className="rounded-[10px] max-h-[72px] p-2 bg-amber-100">
           <div className="flex flex-row items-center">
-            <img 
-              src={InfoIcon} 
+            <img
+              src={InfoIcon}
               alt="Information Icon"
-              className="w-8 h-8 mr-2" 
+              className="w-8 h-8 mr-2"
             />
             <h1 className="text-primary font-semibold">
               Please use this to publish official school announcements.

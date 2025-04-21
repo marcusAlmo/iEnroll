@@ -1,8 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { PieGraphService } from './pie-graph.service';
 import { User } from '@lib/decorators/user.decorator';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
 
 @Controller('metrics/pie-graph')
+@UseGuards(JwtAuthGuard)
 export class PieGraphController {
   constructor(private readonly pieGraphService: PieGraphService) {}
 
