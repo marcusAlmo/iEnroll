@@ -4,26 +4,30 @@ export interface SchoolClassification {
     acadLevels: string[];
   };
 
+  getSchoolClassification: {
+    schoolType: string;
+    acadLevels: string[];
+    gradeLevels: string[];
+  };
+
+  successMessage: {
+    message: string;
+  };
+
   schoolInfoParam: {
     schoolType: string;
     acadLevels: string[];
-  };
-
-  savingGradeLevels: {
-    status: boolean;
-    message: string;
-    data: {
-      offeredGradeLevels: string[];
-      ids: {
-        toBeUpdated: number[];
-        toBeDeleted: number[];
-      };
-    };
+    gradeLevels: string[];
   };
 
   savingGradeLevelsStatus: {
     success: boolean;
     message: string;
+  };
+
+  idObject: {
+    toBeUpdated: number[];
+    toBeDeleted: number[];
   };
 
   repeatedBaseSelect: {
@@ -46,9 +50,11 @@ export interface SchoolClassification {
 
   notMatchedGradeLevels: {
     grades: SchoolClassification['fetchedOfferedGrades'][];
-    ids: {
-      toBeUpdated: number[];
-      toBeDeleted: number[];
-    };
+    ids: SchoolClassification['idObject'];
+  };
+
+  deletableReturn: {
+    grades: string[];
+    ids: number[];
   };
 }

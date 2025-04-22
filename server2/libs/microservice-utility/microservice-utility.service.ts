@@ -61,6 +61,7 @@ export class MicroserviceUtilityService {
     return {
       statusCode: 409,
       message: message,
+      data: null,
     };
   }
 
@@ -68,6 +69,7 @@ export class MicroserviceUtilityService {
     return {
       statusCode: 422,
       message: message,
+      data: null,
     };
   }
 }
