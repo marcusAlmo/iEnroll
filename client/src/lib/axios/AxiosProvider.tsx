@@ -9,6 +9,8 @@ type Props = {
   children: ReactNode;
 };
 
+const CHECK_STATUS = !import.meta.env.DEV;
+
 export const AxiosProvider = ({ token, logout, children }: Props) => {
   const interceptorsRegistered = useRef(false);
   const checking = useRef(false);
@@ -72,12 +74,12 @@ export const AxiosProvider = ({ token, logout, children }: Props) => {
   }, [token, logout]);
 
   useEffect(() => {
-    if (ready) checkServerStatus(true);
+    if (CHECK_STATUS && ready) checkServerStatus(true);
   }, [ready, checkServerStatus]);
 
   if (!ready) return null;
 
-  if (serverDown) {
+  if (CHECK_STATUS && serverDown) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
         <div className="text-center">
