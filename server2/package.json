@@ -99,6 +99,7 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
+    "silent": false,
     "moduleFileExtensions": [
       "js",
       "json",
