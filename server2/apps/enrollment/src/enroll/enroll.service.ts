@@ -47,7 +47,6 @@ export class EnrollService {
               select: {
                 grade_section_id: true,
                 section_name: true,
-                slot: true,
                 max_application_slot: true,
               },
             },
@@ -89,7 +88,6 @@ export class EnrollService {
           sections: program.grade_section.map((section) => ({
             id: section.grade_section_id,
             name: section.section_name,
-            slot: section.slot,
             max_slot: section.max_application_slot,
           })),
         }));
@@ -144,7 +142,6 @@ export class EnrollService {
               sections: {
                 id: number;
                 name: string;
-                slot: number;
                 max_slot: number;
               }[];
             }[];
@@ -296,6 +293,7 @@ export class EnrollService {
           requirement_id: p.requirementId,
           text_content: p.textContent,
           type: p.type,
+          attachment_type: p.type,
           file_id: p.fileId,
           status: $Enums.attachment_status.pending,
         })),
