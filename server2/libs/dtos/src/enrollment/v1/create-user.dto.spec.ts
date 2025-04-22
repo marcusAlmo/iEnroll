@@ -36,17 +36,6 @@ describe('CreateUserDto - Address Validation (Edge & Invalid Cases)', () => {
         provinceId: 4,
       });
 
-      // This should actually be valid based on your logic, adjust if needed
-      const errors = await validate(dto);
-      expect(errors.length).toBe(0);
-    });
-
-    it('should fail if streetId is present but no other IDs', async () => {
-      const dto = Object.assign(new CreateUserDto(), {
-        ...baseUser(),
-        streetId: 1,
-      });
-
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
     });
@@ -145,9 +134,9 @@ describe('CreateUserDto - Address Validation (Edge & Invalid Cases)', () => {
       const dto = Object.assign(new CreateUserDto(), {
         ...baseUser(),
         streetId: 5,
-        districtId: 10,
-        municipalityId: 15,
-        provinceId: 20,
+        // districtId: 10,
+        // municipalityId: 15,
+        // provinceId: 20,
       });
 
       const errors = await validate(dto);
@@ -170,7 +159,7 @@ describe('CreateUserDto - Address Validation (Edge & Invalid Cases)', () => {
     it('should pass if provinceId + municipalityId + string district and street are provided', async () => {
       const dto = Object.assign(new CreateUserDto(), {
         ...baseUser(),
-        provinceId: 1,
+        // provinceId: 1,
         municipalityId: 2,
         district: 'Barangay Central',
         street: 'Aguinaldo Ave',
@@ -183,8 +172,8 @@ describe('CreateUserDto - Address Validation (Edge & Invalid Cases)', () => {
     it('should pass if provinceId + municipalityId + districtId + string street are provided', async () => {
       const dto = Object.assign(new CreateUserDto(), {
         ...baseUser(),
-        provinceId: 1,
-        municipalityId: 2,
+        // provinceId: 1,
+        // municipalityId: 2,
         districtId: 3,
         street: 'A. Mabini St.',
       });
@@ -200,19 +189,6 @@ describe('CreateUserDto - Address Validation (Edge & Invalid Cases)', () => {
         district: 'Barangay Uno',
         municipality: 'San Pablo City',
         province: 'Laguna',
-      });
-
-      const errors = await validate(dto);
-      expect(errors.length).toBe(0);
-    });
-
-    it('should pass if all required address IDs are present and valid, and all name fields are missing', async () => {
-      const dto = Object.assign(new CreateUserDto(), {
-        ...baseUser(),
-        provinceId: 10,
-        municipalityId: 11,
-        districtId: 12,
-        streetId: 13,
       });
 
       const errors = await validate(dto);

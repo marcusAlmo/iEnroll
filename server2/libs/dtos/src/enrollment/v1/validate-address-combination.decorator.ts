@@ -3,6 +3,7 @@ import {
   ValidationOptions,
   ValidationArguments,
 } from 'class-validator';
+import { CreateUserDto } from './create-account.dto';
 
 export function IsValidAddressCombination(
   validationOptions?: ValidationOptions,
@@ -15,7 +16,7 @@ export function IsValidAddressCombination(
       options: validationOptions,
       validator: {
         validate(_: any, args: ValidationArguments): boolean {
-          const o = args.object as any;
+          const o = args.object as CreateUserDto;
 
           // Full names only
           if (
@@ -45,40 +46,46 @@ export function IsValidAddressCombination(
 
           // Province ID + Municipality ID + names
           if (
-            o.provinceId &&
+            // o.provinceId && // ? I commented this because in municipality id, province is already determined there
             o.municipalityId &&
             o.district &&
             o.street &&
             !o.streetId &&
             !o.districtId &&
             !o.municipality &&
-            !o.province
+            !o.province &&
+            !o.provinceId // ? Since i commented it, it must be unavailable
           )
             return true;
 
           // Province ID + Municipality ID + District ID + name
           if (
-            o.provinceId &&
-            o.municipalityId &&
+            // o.provinceId && //? Same logic here, data here is predetermined in the ditrict
+            // o.municipalityId &&
             o.districtId &&
             o.street &&
             !o.streetId &&
             !o.district &&
             !o.municipality &&
-            !o.province
+            !o.province &&
+            !o.provinceId && // ? I included them since they must be ommitted
+            !o.municipalityId
           )
             return true;
 
           // All IDs only
           if (
-            o.provinceId &&
-            o.municipalityId &&
-            o.districtId &&
+            // o.provinceId && // ? Same logic here
+            // o.municipalityId &&
+            // o.districtId &&
             o.streetId &&
             !o.street &&
             !o.district &&
             !o.municipality &&
-            !o.province
+            !o.province &&
+            !o.provinceId && // Same logic here
+            !o.municipalityId &&
+            !o.districtId
           )
             return true;
 
