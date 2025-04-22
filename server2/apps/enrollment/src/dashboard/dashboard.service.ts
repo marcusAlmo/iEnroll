@@ -24,7 +24,9 @@ export class DashboardService {
               application_id: true,
             },
           },
-          user_student_student_idTouser: {
+          // Enroller refers to the student themselves.
+          // As a result, this version only supports self-enrollment, not enrollment by parents or guardians.
+          user_student_enroller_idTouser: {
             select: {
               school: {
                 select: {
@@ -45,8 +47,8 @@ export class DashboardService {
         //?      And also, application id is refferred to as student id in the initial db design
         enrollmentId:
           result.enrollment_application?.application_id ?? studentId,
-        schoolId: result.user_student_student_idTouser.school.school_id,
-        schoolName: result.user_student_student_idTouser.school.name,
+        schoolId: result.user_student_enroller_idTouser.school.school_id,
+        schoolName: result.user_student_enroller_idTouser.school.name,
       };
     }
   }
