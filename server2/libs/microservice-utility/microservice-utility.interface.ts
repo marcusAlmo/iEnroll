@@ -6,7 +6,7 @@ export interface MicroserviceUtility<T = any> {
   };
 
   successDataFormat: {
+    statusCode: number;
     message: string;
-    timeExecuted: Date;
   };
 }

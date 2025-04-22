@@ -17,7 +17,7 @@ interface enrollmentCardsData {
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("enrollment-breakdown");
-  
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [enrollmentData, setEnrollmentData] = useState<enrollmentCardsData>({
     enrollmentTotal: 0,
@@ -52,7 +52,7 @@ const Dashboard: React.FC = () => {
   const handleRefreshClick = async () => {
     setIsRefreshing(true);
     await fetchEnrollmentData();
-    setIsRefreshing(false); 
+    setIsRefreshing(false);
   };
 
   const renderTabContent = () => {
