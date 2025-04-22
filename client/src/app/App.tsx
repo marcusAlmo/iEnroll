@@ -5,13 +5,10 @@ import { AxiosProvider } from "@/lib/axios/AxiosProvider";
 function App() {
   const { accessToken, logout } = useAuth();
 
-  /**
-   * <AxiosProvider token={accessToken} logout={logout}>
+  return (
+    <AxiosProvider token={accessToken} logout={logout}>
       <AppRouter />
     </AxiosProvider>
-   */
-  return (
-    <AppRouter />
   );
 }
 
