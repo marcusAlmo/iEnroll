@@ -4,13 +4,16 @@ import {
   removeAuthToken,
 } from "@/services/common/auth-token";
 import { login } from "@/services/mobile-web-app/auth";
-import { ReactNode, useState, useCallback } from "react";
+import { ReactNode, useState, useCallback, useRef } from "react";
 import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Pa-change na lang ulit to false
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [accessToken, setAccessToken] = useState(getAuthToken());
+  const initialAuthToken = useRef(getAuthToken());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    !!initialAuthToken.current,
+  );
+  const [accessToken, setAccessToken] = useState(initialAuthToken.current);
 
   // First name of the student
   // Kindly modify default value during backend integration
