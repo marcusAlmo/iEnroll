@@ -138,7 +138,7 @@ model enrollment_requirement {
 }
 
 model enrollment_schedule {
-  schedule_id            Int                 @id(map: "pk_enrollment_schedule")
+  schedule_id            Int                 @id(map: "pk_enrollment_schedule") @default(autoincrement())
   grade_level_offered_id Int
   application_slot       Int
   start_datetime         DateTime            @db.Timestamp(6)
@@ -692,6 +692,7 @@ model academic_program {
   grade_section_program grade_section_program[]
 
   @@unique([program, description], map: "uq_academic_program")
+  @@unique([program, description], map: "uq_program_description")
   @@schema("system")
 }
 
@@ -712,7 +713,7 @@ model subscription_plan {
   is_active              Boolean?              @default(true)
   creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  max_download_count     Int
+  max_download_count     Int                   @default(0)
   school_subscription    school_subscription[]
 
   @@schema("system")

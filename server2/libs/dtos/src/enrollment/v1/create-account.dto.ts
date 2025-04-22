@@ -8,9 +8,11 @@ import {
   IsNumber,
   IsDate,
   IsStrongPassword,
+  ValidateIf,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { IsPastDate } from '../../../../decorators/is-past-date.decorator';
+import { IsValidAddressCombination } from './validate-address-combination.decorator';
 
 export class CreateUserDto {
   @IsString()
@@ -21,11 +23,10 @@ export class CreateUserDto {
   email!: string;
 
   @IsPhoneNumber('PH')
-  @Transform(({ value }) => {
+  @Transform(({ value }): string => {
     if (typeof value === 'string' && value.startsWith('+63')) {
       return '0' + value.slice(3);
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return value;
   })
   @IsNotEmpty()
@@ -55,9 +56,8 @@ export class CreateUserDto {
   @IsOptional()
   suffix?: string;
 
-  @Transform(({ value }) =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    typeof value === 'string' ? new Date(value) : value,
+  @Transform(
+    ({ value }): Date => (typeof value === 'string' ? new Date(value) : value),
   )
   @IsDate()
   @IsPastDate(false, {
@@ -68,35 +68,53 @@ export class CreateUserDto {
   @IsEnum(['M', 'F', 'O'])
   gender!: 'M' | 'F' | 'O';
 
-  // @IsString()
-  // @IsNotEmpty()
-  // address: string;
-
   @IsNumber()
   @IsNotEmpty()
   schoolId!: number;
 
-  // @IsNumber()
-  // @IsNotEmpty()
-  // addressId: number;
+  // -------------------------
+  // Conditional Address Logic
+  // -------------------------
+
+  @ValidateIf((o) => !o.street && !o.district && !o.municipality && !o.province)
+  @IsNumber()
+  @IsOptional()
+  streetId?: number;
+
+  @IsNumber()
+  @IsOptional()
+  districtId?: number;
+
+  @IsNumber()
+  @IsOptional()
+  municipalityId?: number;
+
+  @IsNumber()
+  @IsOptional()
+  provinceId?: number;
 
   @IsString()
-  @IsNotEmpty()
-  street!: string;
+  @IsOptional()
+  street?: string;
 
   @IsString()
-  @IsNotEmpty()
-  district!: string;
+  @IsOptional()
+  district?: string;
 
   @IsString()
-  @IsNotEmpty()
-  municipality!: string;
+  @IsOptional()
+  municipality?: string;
 
   @IsString()
-  @IsNotEmpty()
-  province!: string;
+  @IsOptional()
+  province?: string;
 
   @IsNumber()
   @IsOptional()
   enrollerId?: number;
+
+  @IsValidAddressCombination({
+    message: 'Please enter a valid address combination.',
+  })
+  _?: any; // can be any property, class-validator needs a property to attach to
 }
