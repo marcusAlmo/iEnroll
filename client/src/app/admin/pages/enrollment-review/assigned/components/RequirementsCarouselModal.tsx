@@ -1,0 +1,245 @@
+import React, { useState, useRef } from 'react';
+import { Input } from '@headlessui/react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleArrowLeft, faCircleArrowRight, faCheckSquare, faSquareXmark, faDownload, faMagnifyingGlassPlus, faMagnifyingGlassMinus } from "@fortawesome/free-solid-svg-icons";
+import { useEnrollmentReview } from '../../../../context/enrollmentReviewContext';
+
+export const RequirementsCarouselModal: React.FC = () => {
+  const {
+    selectedRequirement,
+    requirements,
+    handleNext,
+    handlePrevious,
+    handleRequirementStatus,
+    isModalOpen,
+    setIsModalOpen,
+  } = useEnrollmentReview();
+  // local declaration here kasi nagkakaproblema sa context nagstastale
+  const [showDenialReason, setShowDenialReason] = useState(false);
+  const [denialReason, setDenialReason] = useState(''); // State to store the denial reason
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleDownload = () => {
+    if (selectedRequirement?.imageUrl) {
+      window.open(selectedRequirement.imageUrl, '_blank');
+    }
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3));
+    setPosition({ x: 0, y: 0 }); // Reset position when zooming
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
+    setPosition({ x: 0, y: 0 }); // Reset position when zooming
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel > 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoomLevel > 1) {
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+      
+      // Calculate bounds based on zoom level
+      const maxOffset = (zoomLevel - 1) * 250; // 250 is half of the image width
+      const boundedX = Math.max(Math.min(newX, maxOffset), -maxOffset);
+      const boundedY = Math.max(Math.min(newY, maxOffset), -maxOffset);
+      
+      setPosition({ x: boundedX, y: boundedY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  if (!isModalOpen || !requirements.length || !selectedRequirement) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+      <div className="flex justify-end">
+        <button
+          className="absolute top-2 right-2 cursor-pointer rounded-[10px] bg-danger px-4 py-2 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:bg-red-950 hover:scale-115"
+          onClick={() => setIsModalOpen(false)}
+        >
+          Exit
+        </button>
+      </div>
+
+      <div className="mb-4 flex w-full flex-row items-center justify-between px-5">
+        <FontAwesomeIcon
+          icon={faCircleArrowLeft}
+          onClick={() => {
+            handlePrevious();
+            setShowDenialReason(false);
+          }}
+          className="cursor-pointer text-7xl text-white transition-all duration-300 ease-in-out hover:scale-115 hover:text-accent"
+        />
+
+        <div className="flex w-full flex-row items-center justify-center p-10">
+          {selectedRequirement.requirementType === "image" ? (
+            <div className="relative overflow-hidden" ref={imageContainerRef}>
+              <div className="absolute top-5 right-0 z-10 flex flex-col gap-2">
+                <button
+                  onClick={handleDownload}
+                  className="button-transition cursor-pointer rounded-full bg-white px-[7px] py-[5px] text-accent hover:bg-accent hover:text-white"
+                  title="Download Image"
+                >
+                  <FontAwesomeIcon icon={faDownload} className="text-base" />
+                </button>
+                <button
+                  onClick={handleZoomIn}
+                  className="button-transition cursor-pointer rounded-full bg-white px-[7px] py-[5px] text-accent hover:bg-accent hover:text-white"
+                  title="Zoom In"
+                >
+                  <FontAwesomeIcon icon={faMagnifyingGlassPlus} className="text-xl" />
+                </button>
+                <button
+                  onClick={handleZoomOut}
+                  className="button-transition cursor-pointer rounded-full bg-white px-[7px] py-[5px] text-accent hover:bg-accent hover:text-white"
+                  title="Zoom Out"
+                >
+                  <FontAwesomeIcon icon={faMagnifyingGlassMinus} className="text-xl" />
+                </button>
+              </div>
+              <div 
+                className="mt-5 h-[700px] w-[600px] cursor-grab active:cursor-grabbing rounded-[10px]"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
+              >
+                <img
+                  src={selectedRequirement.imageUrl}
+                  alt={selectedRequirement.requirementName}
+                  className="h-full w-full object-contain transition-transform duration-300"
+                  style={{ 
+                    transform: `scale(${zoomLevel}) translate(${position.x / zoomLevel}px, ${position.y / zoomLevel}px)`,
+                    transformOrigin: 'center center'
+                  }}
+                  draggable="false"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="ml-4 flex h-auto w-xl flex-col justify-between rounded-[10px] bg-white p-10">
+              <label htmlFor="requirementType" className="font-semibold text-primary mb-2">
+                {selectedRequirement.requirementName}
+              </label>
+              <Input
+                id="requirementType"
+                type="text"
+                value={selectedRequirement.userInput}
+                readOnly
+                className="block w-full rounded-[10px] border-2 border-text-2 px-4 py-2 focus:border-accent focus:ring-accent sm:text-sm"
+                />
+              {/* <div className="flex flex-row items-center justify-between">
+                <h2 className="font-bold text-primary mb-5">Requirements</h2>
+                <h2 className="font-bold text-primary mb-5">Select All</h2>
+              </div>
+              {requirements
+                .filter(req => req.requirementType === "input")
+                .map((req, index) => (
+                  <div key={req.requirementName} className="flex flex-row items-center justify-between">
+                    <div className="mb-4 w-full">
+                      <label className="block text-sm font-semibold text-text">
+                        {req.requirementName}
+                      </label>
+                      <Input
+                        type="text"
+                        defaultValue={req.userInput || ""}
+                        className="mt-1 px-4 py-2 block w-full rounded-[10px] border-2 border-text-2 focus:border-accent focus:ring-accent sm:text-sm"
+                        onChange={(e) => {
+                          console.log(`Input for ${req.requirementName}:`, e.target.value);
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <FontAwesomeIcon
+                        icon={faCheckSquare}
+                        className="mt-2 ml-5 cursor-pointer text-[46px] text-text-2 transition-all duration-500 ease-in-out hover:text-accent"
+                      />
+                    </div>
+                  </div>
+                ))} */}
+            </div>
+          )}
+
+          <div className="ml-4 flex h-auto w-2xl flex-col items-center justify-center rounded-[10px] bg-white p-5">
+            <div className="flex flex-row items-center justify-center gap-x-5 font-semibold text-center">
+              <button
+                onClick={() => {
+                  handleRequirementStatus(true);
+                  setShowDenialReason(false);
+                }}
+                className="flex cursor-pointer items-center rounded-[10px] border-2 border-success px-4 py-2 text-base font-semibold text-success transition-all duration-300 ease-in-out hover:scale-115 hover:bg-success hover:text-white"
+              >
+                APPROVED
+                <FontAwesomeIcon icon={faCheckSquare} className="ml-2 text-xl" />
+              </button>
+
+              <button
+                onClick={() => setShowDenialReason(true)}
+                className="flex cursor-pointer items-center rounded-[10px] border-2 border-danger px-9 py-2 text-base font-semibold text-danger transition-all duration-300 ease-in-out hover:scale-115 hover:bg-danger hover:text-white"
+              >
+                DENY
+                <FontAwesomeIcon icon={faSquareXmark} className="ml-2 text-xl" />
+              </button>
+            </div>
+
+            {showDenialReason && (
+              <>
+                <Input
+                  type="text"
+                  placeholder="Please state the reason for the denial."
+                  className="mt-1 h-[150px] px-4 py-2 block w-full rounded-[10px] border-2 border-text-2 focus:border-accent focus:ring-accent sm:text-sm"
+                  onChange={(e) => setDenialReason(e.target.value)} // Update denial reason state
+                />
+                <button
+                  onClick={() => {
+                    console.log("Submitting denial reason:", denialReason); // Log the denial reason
+                    handleRequirementStatus(false, denialReason); // Pass the denial reason to the handler
+                    setShowDenialReason(false);
+                  }}
+                  className="mt-5 cursor-pointer rounded-[10px] bg-accent px-4 py-2 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:bg-primary"
+                >
+                  I confirm, deny requirement
+                </button>
+              </>
+            )}
+            <p className="text-text-2 px-10 text-center mt-5">
+              Upon denial, the student will receive an automated request to resubmit the application with necessary corrections.
+            </p>
+          </div>
+        </div>
+
+        <FontAwesomeIcon
+          icon={faCircleArrowRight}
+          onClick={() => {
+            handleNext();
+            setShowDenialReason(false);
+          }}
+          className="cursor-pointer text-7xl text-white transition-all duration-300 ease-in-out hover:scale-115 hover:text-accent"
+        />
+      </div>
+    </div>
+  );
+};
