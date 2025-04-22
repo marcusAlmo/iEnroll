@@ -1,16 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from '@lib/dtos/src/enrollment/v1/create-account.dto';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
-import { $Enums, Prisma, PrismaClient } from '@prisma/client';
+import { $Enums } from '@prisma/client';
 import { AuthService } from '@lib/auth/auth.service';
 import { UserExists } from './enums/user-exists.enum';
 import { RpcException } from '@nestjs/microservices';
-import { DefaultArgs } from '@prisma/client/runtime/library';
-
-type Transaction = Omit<
-  PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
-  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
->;
+import { Transaction } from '@lib/prisma/src/types/Transaction';
 
 @Injectable()
 export class CreateAccountService {
@@ -85,37 +80,46 @@ export class CreateAccountService {
       province?: string;
     },
   ) {
+    const streetName = `${
+      payload.street
+        ? payload.street
+        : (await tx.street.findFirst({
+            select: { street: true },
+            where: { street_id: payload.streetId },
+          }))!.street
+    }`;
+    const districtName = `${
+      payload.district
+        ? payload.district
+        : (await tx.district.findFirst({
+            select: { district: true },
+            where: { district_id: payload.districtId },
+          }))!.district
+    }`;
+    const municipalityName = `${
+      payload.municipality
+        ? payload.municipality
+        : (await tx.municipality.findFirst({
+            select: { municipality: true },
+            where: { municipality_id: payload.municipalityId },
+          }))!.municipality
+    }`;
+    const provinceName = `${
+      payload.province
+        ? payload.province
+        : (await tx.province.findFirst({
+            select: { province: true },
+            where: { province_id: payload.districtId },
+          }))!.province
+    }`;
+
     return await tx.address.create({
       data: {
-        address_line_1: `${
-          payload.street
-            ? payload.street
-            : (await tx.street.findFirst({
-                select: { street: true },
-                where: { street_id: payload.streetId },
-              }))!.street
-        } ${
-          payload.district
-            ? payload.district
-            : (await tx.district.findFirst({
-                select: { district: true },
-                where: { district_id: payload.districtId },
-              }))!.district
-        }, ${
-          payload.municipality
-            ? payload.municipality
-            : (await tx.municipality.findFirst({
-                select: { municipality: true },
-                where: { municipality_id: payload.municipalityId },
-              }))!.municipality
-        }, ${
-          payload.province
-            ? payload.province
-            : (await tx.province.findFirst({
-                select: { province: true },
-                where: { province_id: payload.districtId },
-              }))!.province
-        }`,
+        address_line_1: [
+          `${streetName} ${districtName}`.trim(),
+          municipalityName.trim(),
+          provinceName.trim(),
+        ].join(', '),
         street_id: payload.streetId,
       },
     });
