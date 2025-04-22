@@ -3,8 +3,8 @@ import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { ConfigModule /**, ConfigService */ } from '@nestjs/config';
 import configuration from './config/configuration';
-import { PrismaModule } from 'libs/prisma/src/prisma.module';
-import { HealthModule } from 'libs/health/src/health.module';
+import { PrismaModule } from '@lib/prisma/src/prisma.module';
+import { HealthModule } from '@lib/health/src/health.module';
 
 @Module({
   imports: [

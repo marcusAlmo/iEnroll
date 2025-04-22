@@ -1,5 +1,5 @@
 import { Navigate } from "react-router";
-import { useScreenSize } from "../../../contexts/ScreenSizeContext";
+import { useScreenSize } from "@/contexts/useScreenSize";
 import { signUpSchema } from "./schema/signUpSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,23 +32,24 @@ const SignUpPage = () => {
       sexAssignedAtBirth: "",
       street: "",
       district: "",
-      municipality: ""
+      municipality: "",
     },
   });
 
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState<boolean>(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] =
+    useState<boolean>(false);
 
   const handleToggleVisibility = (field: string) => {
     if (field === "password") {
       setPasswordVisible((prev) => !prev);
     } else {
-      setConfirmPasswordVisible((prev) => !prev)
+      setConfirmPasswordVisible((prev) => !prev);
     }
   };
 
   const onSubmit = (values: z.infer<typeof signUpSchema>) => {
-    console.log(values)
+    console.log(values);
   };
 
   // Redirect to warning page if screen size is not mobile
@@ -58,13 +59,17 @@ const SignUpPage = () => {
     <div className="my-8 flex flex-col items-center">
       <div className="flex flex-col items-center gap-y-8">
         <h2 className="text-accent text-3xl font-semibold">Uy! Ka-iEnroll?</h2>
-        <p className="text-text-2 font-semibold text-sm">Please fill the form to create an account.</p>
+        <p className="text-text-2 text-sm font-semibold">
+          Please fill the form to create an account.
+        </p>
       </div>
 
-      <div className="flex flex-col gap-y-5 mt-[30px] w-screen px-14">
+      <div className="mt-[30px] flex w-screen flex-col gap-y-5 px-14">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <div className="text-base text-primary font-semibold">Account Information</div>
+            <div className="text-primary text-base font-semibold">
+              Account Information
+            </div>
             <CustomInput
               control={form.control}
               name="username"
@@ -105,11 +110,11 @@ const SignUpPage = () => {
 
               <FontAwesomeIcon
                 icon={passwordVisible ? faEyeSlash : faEye}
-                className="absolute top-9.5 right-4 text-text-2 w-4"
+                className="text-text-2 absolute top-9.5 right-4 w-4"
                 onClick={() => handleToggleVisibility("password")}
               />
             </div>
-            
+
             <div className="relative">
               <CustomInput
                 control={form.control}
@@ -123,12 +128,14 @@ const SignUpPage = () => {
 
               <FontAwesomeIcon
                 icon={confirmPasswordVisible ? faEyeSlash : faEye}
-                className="absolute top-9.5 right-4 text-text-2 w-4"
+                className="text-text-2 absolute top-9.5 right-4 w-4"
                 onClick={() => handleToggleVisibility("confirmPassword")}
               />
             </div>
 
-            <div className="text-base text-primary font-semibold mt-10">Personal Information</div>
+            <div className="text-primary mt-10 text-base font-semibold">
+              Personal Information
+            </div>
             <CustomInput
               control={form.control}
               name="firstName"
@@ -177,7 +184,9 @@ const SignUpPage = () => {
               labelClassName="text-sm text-text-2"
             />
 
-            <div className="text-base text-primary font-semibold mt-10">Address</div>
+            <div className="text-primary mt-10 text-base font-semibold">
+              Address
+            </div>
             <CustomInput
               control={form.control}
               name="street"
@@ -206,7 +215,7 @@ const SignUpPage = () => {
             />
 
             <Button
-              className="bg-accent py-6 mt-[30px] text-base w-full"
+              className="bg-accent mt-[30px] w-full py-6 text-base"
               type="submit"
             >
               Create account
@@ -214,13 +223,15 @@ const SignUpPage = () => {
           </form>
         </Form>
 
-        <div className="text-sm text-center font-semibold text-text-2">
-          Already have an account? <a className="text-accent" href="/log-in">Log in</a>
+        <div className="text-text-2 text-center text-sm font-semibold">
+          Already have an account?{" "}
+          <a className="text-accent" href="/log-in">
+            Log in
+          </a>
         </div>
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default SignUpPage
+export default SignUpPage;

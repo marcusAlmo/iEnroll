@@ -1,22 +1,23 @@
 import { Outlet, Navigate } from "react-router";
-import { useScreenSize } from "../../../contexts/ScreenSizeContext";
-import { useAuth } from "../../../contexts/AuthContext";
+import { useScreenSize } from "@/contexts/useScreenSize";
+import { useAuth } from "@/contexts/useAuth";
 
 const ProtectedStudentRoute = () => {
   // Get username from context
-  const { firstName } = useAuth();
+  const { isAuthenticated, accessToken } = useAuth();
 
   // Get screen size
   const { mobile } = useScreenSize();
-  
+
   // If user is authenticated and size is mobile, display
-  if (firstName && mobile) return <Outlet />;
+  if (isAuthenticated && accessToken && mobile) return <Outlet />;
 
   // If user is authenticated but size is NOT mobile, navigate to Warning Page
-  if (firstName && !mobile) return <Navigate to="/iEnroll" />;
+  if (isAuthenticated && accessToken && !mobile)
+    return <Navigate to="/iEnroll" />;
 
   // Else, navigate to log-in
   return <Navigate to="/log-in" />;
-}
+};
 
-export default ProtectedStudentRoute
+export default ProtectedStudentRoute;

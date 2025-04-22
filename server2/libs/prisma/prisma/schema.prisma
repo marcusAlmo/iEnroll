@@ -11,7 +11,7 @@ datasource db {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model conversation {
-  conversation_id                       Int       @id(map: "pk_conversation")
+  conversation_id                       Int       @id(map: "pk_conversation") @default(autoincrement())
   participant_1                         Int
   participant_2                         Int
   creation_datetime                     DateTime? @default(now()) @db.Timestamp(6)
@@ -43,9 +43,7 @@ model message {
 model address {
   address_id      Int       @id(map: "pk_address") @default(autoincrement())
   address_line_1  String?   @db.VarChar(100)
-  street          String    @db.VarChar(100)
-  district        String    @db.VarChar(100)
-  municipality    String    @db.VarChar(100)
+  street_id       Int
   update_datetime DateTime? @default(now()) @db.Timestamp(6)
   school          school[]
   student         student[]
@@ -56,14 +54,16 @@ model address {
 model application_attachment {
   application_id         Int
   requirement_id         Int
-  attachment             String                 @db.VarChar(255)
-  type                   attachment_type
+  text_content           String?
+  file_id                Int?
+  attachment_type        attachment_type
   status                 attachment_status
   reviewer_id            Int?
   review_datetime        DateTime?              @db.Timestamp(6)
   upload_datetime        DateTime?              @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?              @default(now()) @db.Timestamp(6)
   enrollment_application enrollment_application @relation(fields: [application_id], references: [application_id], map: "fk_application_attachment_application_id")
+  file                   file?                  @relation(fields: [file_id], references: [file_id], onDelete: Restrict, map: "fk_application_attachment_file_id")
   enrollment_requirement enrollment_requirement @relation(fields: [requirement_id], references: [requirement_id], map: "fk_application_attachment_requirement_id")
   user                   user?                  @relation(fields: [reviewer_id], references: [user_id], onDelete: Restrict, map: "fk_application_attachment_reviewer_id")
 
@@ -86,12 +86,14 @@ model banner {
 model enrollment_application {
   application_id         Int                      @id(map: "pk_enrollment_application")
   grade_level_offered_id Int
-  status                 application_status
+  schedule_id            Int
+  status                 application_status       @default(pending)
   remarks                String?
   application_datetime   DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
   application_attachment application_attachment[]
   grade_level_offered    grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_enrollment_application_grade_level_offered_id")
+  aux_schedule_slot      aux_schedule_slot        @relation(fields: [schedule_id], references: [schedule_id], map: "fk_enrollment_application_schedule_id")
   student                student                  @relation(fields: [application_id], references: [student_id], map: "fk_enrollment_application_student_id")
   student_enrollment     student_enrollment?
 
@@ -102,44 +104,48 @@ model enrollment_application {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model enrollment_fee {
-  fee_id                Int                @id(map: "pk_enrollment_fee")
-  grade_section_type_id Int
-  name                  String             @db.VarChar(30)
-  amount                Decimal            @db.Decimal(10, 2)
-  description           String?            @db.VarChar(100)
-  creation_datetime     DateTime?          @default(now()) @db.Timestamp(6)
-  update_datetime       DateTime?          @default(now()) @db.Timestamp(6)
-  grade_section_type    grade_section_type @relation(fields: [grade_section_type_id], references: [grade_section_type_id], map: "fk_enrollment_fee_grade_section_type_id")
+  fee_id                   Int                   @id(map: "pk_enrollment_fee") @default(autoincrement())
+  grade_section_program_id Int
+  name                     String                @db.VarChar(30)
+  amount                   Decimal               @db.Decimal(10, 2)
+  description              String?               @db.VarChar(100)
+  due_date                 DateTime              @db.Date
+  creation_datetime        DateTime?             @default(now()) @db.Timestamp(6)
+  update_datetime          DateTime?             @default(now()) @db.Timestamp(6)
+  grade_section_program    grade_section_program @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_enrollment_fee_grade_section_type_id")
 
-  @@unique([grade_section_type_id, name], map: "uq_enrollment_fee")
-  @@index([grade_section_type_id], map: "idx_enrollment_fee_grade_section_type_id")
+  @@unique([grade_section_program_id, name], map: "uq_enrollment_fee")
+  @@index([grade_section_program_id], map: "idx_enrollment_fee_grade_section_type_id")
   @@schema("enrollment")
 }
 
 model enrollment_requirement {
-  requirement_id         Int                      @id(map: "pk_enrollment_requirement")
-  grade_section_type_id  Int
-  name                   String                   @db.VarChar(50)
-  type                   requirement_type
-  accepted_data_type     accepted_data_type
-  is_required            Boolean?                 @default(true)
-  creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
-  update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
-  application_attachment application_attachment[]
-  grade_section_type     grade_section_type       @relation(fields: [grade_section_type_id], references: [grade_section_type_id], map: "fk_enrollment_requirement_grade_section_type_id")
+  requirement_id           Int                      @id(map: "pk_enrollment_requirement") @default(autoincrement())
+  grade_section_program_id Int
+  name                     String                   @db.VarChar(50)
+  requirement_type         requirement_type
+  accepted_data_type       accepted_data_type
+  is_required              Boolean?                 @default(true)
+  description              String?                  @db.VarChar(255)
+  creation_datetime        DateTime?                @default(now()) @db.Timestamp(6)
+  update_datetime          DateTime?                @default(now()) @db.Timestamp(6)
+  application_attachment   application_attachment[]
+  grade_section_program    grade_section_program    @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_enrollment_requirement_grade_section_type_id")
 
-  @@unique([grade_section_type_id, name], map: "uq_enrollment_requirement")
-  @@index([grade_section_type_id], map: "idx_enrollment_requirement_grade_section_type_id")
+  @@unique([grade_section_program_id, name], map: "uq_enrollment_requirement")
+  @@index([grade_section_program_id], map: "idx_enrollment_requirement_grade_section_type_id")
   @@schema("enrollment")
 }
 
 model enrollment_schedule {
-  schedule_id            Int                 @id(map: "pk_enrollment_schedule")
+  schedule_id            Int                 @id(map: "pk_enrollment_schedule") @default(autoincrement())
   grade_level_offered_id Int
+  application_slot       Int
   start_datetime         DateTime            @db.Timestamp(6)
   end_datetime           DateTime            @db.Timestamp(6)
   creation_datetime      DateTime?           @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?           @default(now()) @db.Timestamp(6)
+  aux_schedule_slot      aux_schedule_slot?
   grade_level_offered    grade_level_offered @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_enrollment_schedule_grade_level_offered_id")
 
   @@index([grade_level_offered_id], map: "idx_enrollment_schedule_grade_level_offered_id")
@@ -147,17 +153,18 @@ model enrollment_schedule {
 }
 
 model grade_level_offered {
-  grade_level_offered_id Int                      @id(map: "pk_grade_level_offered")
+  grade_level_offered_id Int                      @id(map: "pk_grade_level_offered") @default(autoincrement())
   school_id              Int
   grade_level_code       String                   @db.Char(3)
+  is_active              Boolean                  @default(true)
   creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
-  is_active              Boolean                  @default(true)
+  aux_schedule_slot      aux_schedule_slot[]
   enrollment_application enrollment_application[]
   enrollment_schedule    enrollment_schedule[]
   grade_level            grade_level              @relation(fields: [grade_level_code], references: [grade_level_code], map: "fk_grade_level_offered_grade_level_code")
   school                 school                   @relation(fields: [school_id], references: [school_id], map: "fk_grade_level_offered_school_id")
-  grade_section_type     grade_section_type[]
+  grade_section_program  grade_section_program[]
 
   @@unique([school_id, grade_level_code], map: "uq_grade_level_offered")
   @@index([grade_level_code], map: "idx_grade_level_offered_grade_level_code")
@@ -167,35 +174,19 @@ model grade_level_offered {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model grade_section {
-  grade_section_id      Int                  @id(map: "pk_grade_section")
-  grade_section_type_id Int
-  section_name          String               @db.VarChar(100)
-  adviser               String               @db.VarChar(100)
-  slot                  Int
-  max_application_slot  Int
-  creation_datetime     DateTime?            @default(now()) @db.Timestamp(6)
-  update_datetime       DateTime?            @default(now()) @db.Timestamp(6)
-  grade_section_type    grade_section_type   @relation(fields: [grade_section_type_id], references: [grade_section_type_id], map: "fk_grade_section_grade_section_type_id")
-  student_enrollment    student_enrollment[]
+  grade_section_id         Int                   @id(map: "pk_grade_section") @default(autoincrement())
+  grade_section_program_id Int
+  section_name             String                @db.VarChar(100)
+  adviser                  String                @db.VarChar(100)
+  admission_slot           Int
+  max_application_slot     Int
+  creation_datetime        DateTime?             @default(now()) @db.Timestamp(6)
+  update_datetime          DateTime?             @default(now()) @db.Timestamp(6)
+  grade_section_program    grade_section_program @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_grade_section_grade_section_type_id")
+  student_enrollment       student_enrollment[]
 
-  @@unique([grade_section_type_id, section_name], map: "uq_grade_section")
-  @@index([grade_section_type_id], map: "idx_grade_section_grade_section_type_id")
-  @@schema("enrollment")
-}
-
-model grade_section_type {
-  grade_section_type_id  Int                      @id(map: "pk_grade_section_type")
-  grade_level_offered_id Int
-  section_type           section_type
-  update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
-  enrollment_fee         enrollment_fee[]
-  enrollment_requirement enrollment_requirement[]
-  grade_section          grade_section[]
-  grade_level_offered    grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_grade_section_type_grade_level_offered_id")
-
-  @@unique([grade_level_offered_id, section_type], map: "uq_grade_section_type")
-  @@index([grade_level_offered_id], map: "idx_grade_section_type_grade_level_offered_id")
-  @@index([section_type], map: "idx_grade_section_type_section_type")
+  @@unique([grade_section_program_id, section_name], map: "uq_grade_section")
+  @@index([grade_section_program_id], map: "idx_grade_section_grade_section_type_id")
   @@schema("enrollment")
 }
 
@@ -235,57 +226,62 @@ model role_permission {
 }
 
 model school {
-  school_id           Int                   @id(map: "pk_school")
-  name                String                @unique(map: "uq_school_name") @db.VarChar(255)
-  academic_year       String                @db.VarChar(9)
-  type                school_type
-  email_address       String                @db.VarChar(100)
-  contact_number      String                @db.Char(11)
-  website_url         String?               @db.VarChar(255)
-  address_id          Int
-  is_active           Boolean?              @default(true)
-  creation_datetime   DateTime?             @default(now()) @db.Timestamp(6)
-  update_datetime     DateTime?             @default(now()) @db.Timestamp(6)
-  banner              banner?
-  grade_level_offered grade_level_offered[]
-  address             address               @relation(fields: [address_id], references: [address_id], map: "fk_school_address_id")
-  school_file         school_file[]
-  user                user[]
+  school_id             Int                     @id(map: "pk_school")
+  name                  String                  @unique(map: "uq_school_name") @db.VarChar(255)
+  academic_year         String                  @db.Char(9)
+  school_type           school_type
+  email_address         String                  @db.VarChar(100)
+  contact_number        String                  @db.Char(11)
+  website_url           String?                 @db.VarChar(255)
+  address_id            Int
+  supported_acad_level  Json?
+  is_active             Boolean?                @default(true)
+  creation_datetime     DateTime?               @default(now()) @db.Timestamp(6)
+  update_datetime       DateTime?               @default(now()) @db.Timestamp(6)
+  banner                banner?
+  file                  file[]
+  grade_level_offered   grade_level_offered[]
+  address               address                 @relation(fields: [address_id], references: [address_id], map: "fk_school_address_id")
+  school_file           school_file[]
+  school_payment_option school_payment_option[]
+  school_subscription   school_subscription[]
+  user                  user[]
 
   @@index([address_id], map: "idx_school_address_id")
   @@schema("enrollment")
 }
 
 model school_file {
-  file_id            Int                  @id(map: "pk_school_file") @default(autoincrement())
+  school_file_id     Int                  @id(map: "pk_school_file") @default(autoincrement())
   school_id          Int
-  name               String               @db.VarChar(255)
-  file_path          String               @db.VarChar(255)
-  description        String
+  file_id            Int
+  description        String               @db.VarChar(255)
   access_type        access_type
   upload_datetime    DateTime?            @default(now()) @db.Timestamp(6)
   update_datetime    DateTime?            @default(now()) @db.Timestamp(6)
+  file               file                 @relation(fields: [file_id], references: [file_id], map: "fk_school_file_file_id")
   school             school               @relation(fields: [school_id], references: [school_id], map: "fk_school_file_school_id")
   school_file_access school_file_access[]
 
+  @@unique([school_id, file_id], map: "uq_school_file")
   @@index([school_id], map: "idx_school_file_school_id")
   @@schema("enrollment")
 }
 
 model school_file_access {
   file_access_id      Int         @id(map: "pk_school_file_access") @default(autoincrement())
-  file_id             Int
+  school_file_id      Int
   student_id          Int
   issuer_id           Int
   access_datetime     DateTime?   @db.Timestamp(6)
   issue_datetime      DateTime    @db.Timestamp(6)
   access_end_datetime DateTime    @db.Timestamp(6)
   update_datetime     DateTime?   @default(now()) @db.Timestamp(6)
-  school_file         school_file @relation(fields: [file_id], references: [file_id], map: "fk_school_file_access_file_id")
   user                user        @relation(fields: [issuer_id], references: [user_id], map: "fk_school_file_access_issuer_id")
+  school_file         school_file @relation(fields: [school_file_id], references: [school_file_id], map: "fk_school_file_access_school_file_id")
   student             student     @relation(fields: [student_id], references: [student_id], map: "fk_school_file_access_student_id")
 
-  @@index([file_id], map: "idx_school_file_access_file_id")
+  @@index([school_file_id], map: "idx_school_file_access_file_id")
   @@index([issuer_id], map: "idx_school_file_access_issuer_id")
   @@index([student_id], map: "idx_school_file_access_student_id")
   @@schema("enrollment")
@@ -293,17 +289,18 @@ model school_file_access {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model school_subscription {
-  subscription_id   Int       @id(map: "pk_school_subscription") @default(autoincrement())
-  plan_code         String    @db.VarChar(3)
+  subscription_id   Int               @id(map: "pk_school_subscription") @default(autoincrement())
+  plan_code         String            @db.Char(3)
   school_id         Int
   duration_days     Int
-  start_datetime    DateTime  @db.Timestamp(6)
-  end_datetime      DateTime  @db.Timestamp(6)
+  start_datetime    DateTime          @db.Timestamp(6)
+  end_datetime      DateTime          @db.Timestamp(6)
   invoice_id        BigInt
-  is_active         Boolean?  @default(true)
-  creation_datetime DateTime? @default(now()) @db.Timestamp(6)
-  update_datetime   DateTime? @default(now()) @db.Timestamp(6)
-  plan              plan      @relation(fields: [plan_code], references: [plan_code], map: "fk_school_subscription_plan_code")
+  is_active         Boolean?          @default(true)
+  creation_datetime DateTime?         @default(now()) @db.Timestamp(6)
+  update_datetime   DateTime?         @default(now()) @db.Timestamp(6)
+  plan              subscription_plan @relation(fields: [plan_code], references: [plan_code], map: "fk_school_subscription_plan_code")
+  school            school            @relation(fields: [school_id], references: [school_id], map: "fk_school_subscription_school_id")
 
   @@index([plan_code], map: "idx_school_subscription_plan_code")
   @@index([school_id], map: "idx_school_subscription_school_id")
@@ -312,17 +309,17 @@ model school_subscription {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model student {
-  student_id                     Int                     @id(map: "pk_student")
+  student_id                     Int                     @id(map: "pk_student") @default(autoincrement())
   address_id                     Int
   enroller_id                    Int
   birthdate                      DateTime                @db.Date
   has_enrolled                   Boolean?                @default(false)
   update_datetime                DateTime?               @default(now()) @db.Timestamp(6)
   enrollment_application         enrollment_application?
+  enrollment_fee_payment         enrollment_fee_payment?
   school_file_access             school_file_access[]
   address                        address                 @relation(fields: [address_id], references: [address_id], map: "fk_student_address_id")
   user_student_enroller_idTouser user                    @relation("student_enroller_idTouser", fields: [enroller_id], references: [user_id], map: "fk_student_enroller_id")
-  user_student_student_idTouser  user                    @relation("student_student_idTouser", fields: [student_id], references: [user_id], map: "fk_student_user_id")
 
   @@index([address_id], map: "idx_student_address_id")
   @@index([enroller_id], map: "idx_student_enroller_id")
@@ -353,20 +350,20 @@ model user {
   suffix                                        String?                  @db.VarChar(15)
   gender                                        gender
   email_address                                 String?                  @db.VarChar(100)
-  contact_number                                String                   @db.Char(14)
+  contact_number                                String                   @db.Char(11)
   username                                      String                   @unique(map: "uq_username") @db.VarChar(100)
   password_hash                                 String                   @db.VarChar(255)
   school_id                                     Int
   for_deletion                                  Boolean                  @default(false)
   registration_datetime                         DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime                               DateTime?                @default(now()) @db.Timestamp(6)
+  password_visible                              String?                  @db.VarChar(255)
   conversation_conversation_participant_1Touser conversation[]           @relation("conversation_participant_1Touser")
   conversation_conversation_participant_2Touser conversation[]           @relation("conversation_participant_2Touser")
   message                                       message[]
   application_attachment                        application_attachment[]
   school_file_access                            school_file_access[]
   student_student_enroller_idTouser             student[]                @relation("student_enroller_idTouser")
-  student_student_student_idTouser              student?                 @relation("student_student_idTouser")
   student_enrollment                            student_enrollment[]
   school                                        school                   @relation(fields: [school_id], references: [school_id], map: "fk_user_school_id")
   user_log                                      user_log[]
@@ -407,12 +404,12 @@ model user_role {
 }
 
 model consumption_data {
-  consumption_data_id Int              @id(map: "pk_consumption_data")
+  consumption_data_id Int              @id(map: "pk_consumption_data") @default(autoincrement())
   school_acad_year_id Int
   date                DateTime         @db.Date
   slot_used           Int
-  upload_count        Int
-  download_count      Int
+  file_upload_count   Int
+  file_download_count Int
   generation_datetime DateTime?        @default(now()) @db.Timestamp(6)
   school_acad_year    school_acad_year @relation(fields: [school_acad_year_id], references: [school_acad_year_id], onUpdate: Restrict, map: "fk_consumption_data_school_acad_year_id")
 
@@ -424,7 +421,7 @@ model consumption_data {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model enrollment_data {
-  enrollment_data_id         Int              @id(map: "pk_enrollment_data")
+  enrollment_data_id         Int              @id(map: "pk_enrollment_data") @default(autoincrement())
   school_acad_year_id        Int
   academic_level             String           @db.VarChar(50)
   grade_level                String           @db.VarChar(50)
@@ -444,7 +441,7 @@ model enrollment_data {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model performance_data {
-  performance_data_id        Int              @id(map: "pk_performance_data")
+  performance_data_id        Int              @id(map: "pk_performance_data") @default(autoincrement())
   school_acad_year_id        Int
   academic_level             String           @db.VarChar(50)
   grade_level                String           @db.VarChar(50)
@@ -477,11 +474,11 @@ model enrollment_management {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model invoice {
-  invoice_id               Int            @id(map: "pk_invoice")
+  invoice_id               Int            @id(map: "pk_invoice") @default(autoincrement())
   created_by               String         @db.VarChar(100)
   payer_name               String         @db.VarChar(100)
   payer_address            String         @db.VarChar(255)
-  payer_contact_number     String         @db.VarChar(11)
+  payer_contact_number     String         @db.Char(11)
   payer_email_address      String         @db.VarChar(100)
   seller_name              String         @db.VarChar(100)
   bir_accreditation_number String         @db.VarChar(30)
@@ -510,10 +507,10 @@ model invoice_plan {
 }
 
 model school_acad_year {
-  school_acad_year_id   Int                    @id(map: "pk_school_acad_year")
+  school_acad_year_id   Int                    @id(map: "pk_school_acad_year") @default(autoincrement())
   school_id             Int
   school_name           String                 @db.VarChar(100)
-  academic_year         String                 @db.VarChar(9)
+  academic_year         String                 @db.Char(9)
   creation_datetime     DateTime?              @default(now()) @db.Timestamp(6)
   archive_datetime      DateTime?              @db.Timestamp(6)
   consumption_data      consumption_data[]
@@ -543,7 +540,7 @@ model section_list {
 
 model student_list {
   school_acad_year_id Int              @id(map: "pk_student_list")
-  grade_level         String           @db.VarChar(50)
+  grade_level         String           @db.VarChar(30)
   section             String           @db.VarChar(100)
   adviser             String           @db.VarChar(100)
   student_detail      Json
@@ -561,7 +558,7 @@ model student_list {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model about_uppend {
-  email_address            String    @db.VarChar(100)
+  email_address            String    @id @db.VarChar(100)
   contact_number           String    @db.Char(11)
   website_url              String    @db.VarChar(255)
   bir_accreditation_number String    @db.VarChar(30)
@@ -585,9 +582,10 @@ model academic_level {
 model common_enrollment_requirement {
   requirement_id               Int                            @id(map: "pk_common_enrollment_requirement") @default(autoincrement())
   name                         String                         @unique(map: "uq_common_enrollment_requirement") @db.VarChar(100)
-  type                         requirement_type
+  requirement_type             requirement_type
   accepted_data_type           accepted_data_type
   is_required                  Boolean?                       @default(true)
+  description                  String?                        @db.VarChar(255)
   creation_datetime            DateTime?                      @default(now()) @db.Timestamp(6)
   update_datetime              DateTime?                      @default(now()) @db.Timestamp(6)
   enrollment_group_requirement enrollment_group_requirement[]
@@ -618,28 +616,6 @@ model grade_level {
   @@unique([academic_level_code, grade_level], map: "uq_grade_level")
   @@index([academic_level_code], map: "idx_grade_level_academic_level_code")
   @@index([grade_level], map: "idx_grade_level_grade_level")
-  @@schema("system")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model plan {
-  plan_code              String                @id(map: "pk_plan") @db.Char(3)
-  name                   String                @unique(map: "uq_plan") @db.VarChar(30)
-  description            String                @db.VarChar(255)
-  duration_days          Int
-  discounted_price       Decimal               @db.Decimal(10, 2)
-  discount_percent       Decimal               @db.Decimal(5, 2)
-  original_price         Decimal               @db.Decimal(10, 2)
-  max_student_count      Int
-  max_admin_count        Int
-  max_form_field_count   Int
-  is_most_popular        Boolean?              @default(false)
-  is_active              Boolean?              @default(true)
-  creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
-  update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  max_image_upload_count Int
-  school_subscription    school_subscription[]
-
   @@schema("system")
 }
 
@@ -674,6 +650,169 @@ model system_setting {
   default_value   String    @db.VarChar(100)
   update_datetime DateTime? @default(now()) @db.Timestamp(6)
 
+  @@schema("system")
+}
+
+model enrollment_fee_payment {
+  student_id            Int                   @id(map: "pk_enrollment_fee_payment")
+  file_id               Int                   @unique(map: "uq_enrollment_fee_payment")
+  payment_option_id     Int
+  upload_datetime       DateTime?             @default(now()) @db.Timestamp(6)
+  file                  file                  @relation(fields: [file_id], references: [file_id], map: "fk_enrollment_fee_payment_file_id")
+  school_payment_option school_payment_option @relation(fields: [payment_option_id], references: [payment_option_id], map: "fk_enrollment_fee_payment_payment_option_id")
+  student               student               @relation(fields: [student_id], references: [student_id], map: "fk_enrollment_fee_payment_student_id")
+
+  @@schema("enrollment")
+}
+
+model grade_section_program {
+  grade_section_program_id Int                      @id(map: "pk_grade_section_program") @default(autoincrement())
+  grade_level_offered_id   Int
+  program_id               Int
+  update_datetime          DateTime?                @default(now()) @db.Timestamp(6)
+  enrollment_fee           enrollment_fee[]
+  enrollment_requirement   enrollment_requirement[]
+  grade_section            grade_section[]
+  grade_level_offered      grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_grade_section_type_grade_level_offered_id")
+  academic_program         academic_program         @relation(fields: [program_id], references: [program_id], map: "fk_grade_section_program_academic_program")
+
+  @@unique([grade_level_offered_id, program_id], map: "uq_grade_section_program")
+  @@index([grade_level_offered_id], map: "idx_grade_section_type_grade_level_offered_id")
+  @@index([program_id], map: "idx_grade_section_program")
+  @@schema("enrollment")
+}
+
+model academic_program {
+  program_id            Int                     @id(map: "pk_academic_program") @default(autoincrement())
+  program               String                  @db.VarChar(100)
+  description           String                  @db.VarChar(255)
+  is_default            Boolean?                @default(false)
+  creation_datetime     DateTime?               @default(now()) @db.Timestamp(6)
+  update_datetime       DateTime?               @default(now()) @db.Timestamp(6)
+  grade_section_program grade_section_program[]
+
+  @@unique([program, description], map: "uq_academic_program")
+  @@unique([program, description], map: "uq_program_description")
+  @@schema("system")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model subscription_plan {
+  plan_code              String                @id(map: "pk_plan") @db.Char(3)
+  name                   String                @unique(map: "uq_plan") @db.VarChar(30)
+  description            String                @db.VarChar(255)
+  duration_days          Int
+  discounted_price       Decimal               @db.Decimal(10, 2)
+  discount_percent       Decimal               @db.Decimal(5, 2)
+  original_price         Decimal               @db.Decimal(10, 2)
+  max_student_count      Int
+  max_admin_count        Int
+  max_form_field_count   Int
+  max_image_upload_count Int
+  is_most_popular        Boolean?              @default(false)
+  is_active              Boolean?              @default(true)
+  creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
+  update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
+  max_download_count     Int                   @default(0)
+  school_subscription    school_subscription[]
+
+  @@schema("system")
+}
+
+model file {
+  file_id                Int                      @id(map: "pk_file") @default(autoincrement())
+  uuid                   String                   @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id              Int
+  name                   String                   @db.VarChar(255)
+  path                   String                   @db.VarChar(255)
+  type                   String                   @db.VarChar(100)
+  size                   Int
+  iv                     String                   @db.VarChar(255)
+  creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
+  application_attachment application_attachment[]
+  enrollment_fee_payment enrollment_fee_payment?
+  school                 school                   @relation(fields: [school_id], references: [school_id], map: "fk_file_school_id")
+  school_file            school_file[]
+
+  @@unique([name, path, type], map: "uq_file")
+  @@schema("enrollment")
+}
+
+model school_payment_option {
+  payment_option_id      Int                      @id(map: "pk_school_payment_option") @default(autoincrement())
+  school_id              Int
+  payment_option         payment_option
+  provider               String                   @db.VarChar(255)
+  account_number         String                   @db.VarChar(40)
+  account_name           String                   @db.VarChar(100)
+  is_available           Boolean?                 @default(true)
+  additional_fee         Decimal                  @db.Decimal(10, 2)
+  instruction            String?
+  creation_datetime      DateTime?                @default(now()) @db.Timestamp(6)
+  update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
+  enrollment_fee_payment enrollment_fee_payment[]
+  school                 school                   @relation(fields: [school_id], references: [school_id], map: "fk_school_payment_option_school_id")
+
+  @@unique([school_id, payment_option], map: "uq_school_payment_option")
+  @@schema("enrollment")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model aux_schedule_slot {
+  schedule_id            Int                      @id(map: "pk_aux_schedule_slot")
+  application_slot_left  Int
+  grade_level_offered_id Int
+  start_datetime         DateTime                 @db.Timestamp(6)
+  end_datetime           DateTime                 @db.Timestamp(6)
+  is_closed              Boolean                  @default(false)
+  grade_level_offered    grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_aux_schedule_slot_grade_level_offered_id")
+  enrollment_schedule    enrollment_schedule      @relation(fields: [schedule_id], references: [schedule_id], map: "fk_aux_schedule_slot_schedule_id")
+  enrollment_application enrollment_application[]
+
+  @@schema("enrollment")
+}
+
+model district {
+  district_id     Int          @id(map: "pk_district") @default(autoincrement())
+  district        String       @db.VarChar(100)
+  municipality_id Int
+  is_default      Boolean      @default(false)
+  municipality    municipality @relation(fields: [municipality_id], references: [municipality_id], map: "fk_district_municipality_id")
+  street          street[]
+
+  @@unique([district, municipality_id], map: "uq_district_municipality")
+  @@schema("system")
+}
+
+model municipality {
+  municipality_id Int        @id(map: "pk_municipality") @default(autoincrement())
+  municipality    String     @db.VarChar(100)
+  province_id     Int
+  is_default      Boolean    @default(false)
+  district        district[]
+  province        province   @relation(fields: [province_id], references: [province_id], map: "fk_municipality_province_id")
+
+  @@unique([municipality, province_id], map: "uq_municipality_province")
+  @@schema("system")
+}
+
+model province {
+  province_id  Int            @id(map: "pk_province") @default(autoincrement())
+  province     String         @unique(map: "uq_province") @db.VarChar(100)
+  is_default   Boolean        @default(false)
+  municipality municipality[]
+
+  @@schema("system")
+}
+
+model street {
+  street_id   Int      @id(map: "pk_street") @default(autoincrement())
+  street      String   @db.VarChar(100)
+  district_id Int
+  is_default  Boolean  @default(false)
+  district    district @relation(fields: [district_id], references: [district_id], map: "fk_street_district_id")
+
+  @@unique([street, district_id], map: "uq_street_district")
   @@schema("system")
 }
 
@@ -721,9 +860,9 @@ enum attachment_type {
 }
 
 enum gender {
-  Male
-  Female
-  Other
+  male
+  female
+  other
 
   @@schema("enrollment")
 }
@@ -739,14 +878,17 @@ enum requirement_type {
 enum school_type {
   public
   private
-  other
+  others
 
   @@schema("enrollment")
 }
 
-enum section_type {
-  regular
-  special
+enum payment_option {
+  credit_card
+  debit_card
+  e_wallet      @map("e-wallet")
+  bank_transfer
+  crypto
 
   @@schema("enrollment")
 }

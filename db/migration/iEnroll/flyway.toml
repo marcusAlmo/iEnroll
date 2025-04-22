@@ -1,0 +1,31 @@
+databaseType = "PostgreSql"
+id = "2370e3c6-6e4c-42a9-b995-0944df5a1fdd"
+name = "iEnroll"
+
+[flyway]
+locations = [ "filesystem:migrations" ]
+mixed = true
+outOfOrder = true
+schemaModelLocation = "schema-model"
+validateMigrationNaming = true
+
+  [flyway.check]
+  majorTolerance = 0
+
+[flywayDesktop]
+developmentEnvironment = "development"
+shadowEnvironment = "shadow"
+
+[redgateCompare]
+filterFile = "filter.rgf"
+
+[redgateCompare.postgresql.options.behavior]
+detectRenames = "identical-only"
+
+[redgateCompare.postgresql.options.ignores]
+ignoreNewlinesInTextObjects = "off"
+
+[environments.ienroll]
+url = "jdbc:postgresql://rt8-2.h.filess.io:5433/iEnroll_ballthembe"
+schemas = [ "chat", "enrollment", "metrics", "record", "system" ]
+displayName = "iEnroll"

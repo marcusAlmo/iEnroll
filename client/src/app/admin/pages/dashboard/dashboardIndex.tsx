@@ -1,26 +1,46 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "./../../components/Navbar";
+//import Navbar from "./../../components/Navbar";
 import SubNavIndex from "./../../components/SubNav";
 import EnrollmentBreakdown from "@/app/admin/pages/dashboard/enrollment-breakdown/enrollmentbreakdown";
 import EnrollmentTrend from "@/app/admin/pages/dashboard/enrollment-trend/enrollmenttrend";
 import PlanCapacity from "@/app/admin/pages/dashboard/plan-capacity/plancapacity";
 import EnrollmentCount from "@/app/admin/pages/dashboard/enrollment-count/enrollmentcount";
-import { getEnrollmentData } from "./../../../routes/dataRoutes";
+//import { getEnrollmentData } from "./../../../routes/dataRoutes";
 import Refresh from "@/assets/images/refresh btn.svg"; 
+import { requestData } from "@/lib/dataRequester";
+
+interface enrollmentCardsData {
+  enrollmentTotal: number,
+  successfullEnrollmentTotal: number,
+  invalidOrDeniedEnrollmentTotal: number
+}
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("enrollment-breakdown");
-  const [enrollmentData, setEnrollmentData] = useState({
-    totalEnrollments: 0,
-    successfulEnrollments: 0,
-    failedEnrollments: 0
-  });
+
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [enrollmentData, setEnrollmentData] = useState<enrollmentCardsData>({
+    enrollmentTotal: 0,
+    successfullEnrollmentTotal: 0,
+    invalidOrDeniedEnrollmentTotal: 0
+  });
 
   // Fetch enrollment data
   const fetchEnrollmentData = async () => {
-    const data = await getEnrollmentData();
-    setEnrollmentData(data);
+    try{
+      const response = await requestData<enrollmentCardsData>({
+        url: 'http://localhost:3000/api/metrics/cards/data',
+        method: 'GET'
+      });
+
+      if(response) {
+        console.log('response: ', response);
+        setEnrollmentData(response);
+      }
+
+    }catch(err) {
+      if(err instanceof Error) console.log(err.message);
+    }
   };
 
   // Call fetchData on component mount
@@ -32,7 +52,7 @@ const Dashboard: React.FC = () => {
   const handleRefreshClick = async () => {
     setIsRefreshing(true);
     await fetchEnrollmentData();
-    setIsRefreshing(false); 
+    setIsRefreshing(false);
   };
 
   const renderTabContent = () => {
@@ -67,15 +87,15 @@ const Dashboard: React.FC = () => {
         {/* Enrollment Data Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-6">
-            <h2 className="text-5xl font-bold text-primary">{enrollmentData.totalEnrollments}</h2>
+            <h2 className="text-5xl font-bold text-primary">{enrollmentData.enrollmentTotal}</h2>
             <p className="text-primary font-semibold mt-2">Enrollment Total</p>
           </div>
           <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-6">
-            <h2 className="text-5xl font-bold text-primary">{enrollmentData.successfulEnrollments}</h2>
+            <h2 className="text-5xl font-bold text-primary">{enrollmentData.successfullEnrollmentTotal}</h2>
             <p className="text-primary font-semibold mt-2">Successful Enrollment</p>
           </div>
           <div className="border-2 border-text-2 text-center shadow-md bg-background rounded-lg py-6">
-            <h2 className="text-5xl font-bold text-primary">{enrollmentData.failedEnrollments}</h2>
+            <h2 className="text-5xl font-bold text-primary">{enrollmentData.invalidOrDeniedEnrollmentTotal}</h2>
             <p className="text-primary font-semibold">Failed Enrollment</p>
           </div>
         </div>

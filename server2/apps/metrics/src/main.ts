@@ -1,32 +1,25 @@
 import { NestFactory } from '@nestjs/core';
 import { MetricsModule } from './metrics.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { rabbitMQQueue, rabbitMqUrl } from '@lib/constants/rabbit-mq.constants';
 
 async function bootstrap() {
-  // Create HTTP adapter for health checks
-  const httpApp = await NestFactory.create(MetricsModule);
-  httpApp.setGlobalPrefix('/api/metrics');
-
-  // Initialize microservice
-  const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
-  httpApp.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: [rabbitmqUrl],
-      queue: 'metrics_queue',
-      queueOptions: {
-        durable: true,
-        persistent: true,
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    MetricsModule,
+    {
+      transport: Transport.RMQ,
+      options: {
+        urls: [rabbitMqUrl],
+        queue: rabbitMQQueue.METRICS,
+        queueOptions: {
+          durable: true,
+        },
       },
     },
-  });
+  );
 
-  // Start both services
-  await httpApp.startAllMicroservices();
-  // Number(process.env.METRICS_API_PORT) ||
-  await httpApp.listen(Number(process.env.METRICS_API_PORT) || 3004, () => {
-    console.log(`Metrics Service running on port ${Number(process.env.METRICS_API_PORT) || 3004}`);
-  });
+  await app.listen();
+  console.log('Metrics service is running with RabbitMQ');
 }
 bootstrap().catch((err) => {
   console.error(err);

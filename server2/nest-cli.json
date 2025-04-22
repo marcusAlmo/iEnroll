@@ -20,6 +20,15 @@
         "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
       }
     },
+    "auth": {
+      "type": "application",
+      "root": "apps/auth",
+      "entryFile": "main",
+      "sourceRoot": "apps/auth/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/auth/tsconfig.app.json"
+      }
+    },
     "chat": {
       "type": "application",
       "root": "apps/chat",
@@ -29,6 +38,24 @@
         "tsConfigPath": "apps/chat/tsconfig.app.json"
       }
     },
+    "file": {
+      "type": "application",
+      "root": "apps/file",
+      "entryFile": "main",
+      "sourceRoot": "apps/file/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/file/tsconfig.app.json"
+      }
+    },
+    "dtos": {
+      "type": "library",
+      "root": "libs/dtos",
+      "entryFile": "index",
+      "sourceRoot": "libs/dtos/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/dtos/tsconfig.lib.json"
+      }
+    },
     "enrollment": {
       "type": "application",
       "root": "apps/enrollment",
@@ -36,6 +63,15 @@
       "sourceRoot": "apps/enrollment/src",
       "compilerOptions": {
         "tsConfigPath": "apps/enrollment/tsconfig.app.json"
+      }
+    },
+    "image": {
+      "type": "application",
+      "root": "apps/image",
+      "entryFile": "main",
+      "sourceRoot": "apps/image/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/image/tsconfig.app.json"
       }
     },
     "metrics": {

@@ -1,98 +1,175 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="./docs/face-smile-wink-solid.svg" width="120" alt="IEnroll Logo" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<h1 align="center">
+  IEnroll Backend
+</h1>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  <a href="https://prisma.io" target="_blank">
+    <img src="https://img.shields.io/badge/Made%20with-Prisma-3982CE?style=flat&logo=prisma&logoColor=white" alt="Made with Prisma" />
+  </a>
+  <a href="https://nestjs.com/" target="_blank">
+    <img src="https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white" alt="NestJS" />
+  </a>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<p align="center">
+By Uppend
+</p>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+<p align="center">
+  Welcome to the <strong>IEnroll Backend</strong>! This project is powered by <strong>NestJS</strong> and serves as the core backend for the IEnroll application. It exposes a robust and scalable RESTful API that handles enrollment processes, user management, and other core features.
+  <br />
+  This backend also supports a microservices architecture using <strong>RabbitMQ</strong> as a message broker, enabling efficient asynchronous communication across services.
+</p>
 
-## Project setup
+## Prerequisites
+
+Before setting up the project, make sure the following software is installed on your machine:
+
+- **Erlang** – Required by RabbitMQ  
+  👉 [Download Erlang](https://www.erlang.org/downloads)
+
+- **RabbitMQ** – Message broker used for microservices communication  
+  👉 [Install RabbitMQ (Windows Guide)](https://www.rabbitmq.com/docs/install-windows#installer)
+
+> ⚠️ Make sure to install Erlang **before** RabbitMQ to avoid setup issues.
+
+## Installation
+
+Ensure you have Node.js (v14 or above) and npm installed on your system.
+
+1. **Install all dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+## Initialization
+
+Before running the server, you'll need to initialize and configure your **Prisma** setup.
+
+### Initialize Prisma
+
+1. **Initialize Prisma schema:**
+
+   This step applies any schema changes to your database. It will run migrations or set up your database based on the defined schema in your project.
+
+   ```bash
+   npm run prisma:schema
+   ```
+
+2. **Update Prisma Client Types**
+
+   Generate Prisma Client Types:
+   After making schema changes (e.g., adding models or changing data types), update the Prisma client types to reflect the changes. This ensures the Prisma client is in sync with your schema.
+
+   ```bash
+   npm run prisma:generate
+   ```
+
+   > ⚠️ It’s important to run `prisma:generate` whenever the schema changes to ensure type safety when interacting with your database.
+
+## Running the Server
+
+### Start a Single Service in Development
+
+You can run individual services using:
 
 ```bash
-$ npm install
+npm run start:dev:<service-name>
 ```
 
-## Compile and run the project
+For example:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run start:dev:api-gateway
+npm run start:dev:auth
 ```
 
-## Run tests
+### Start All Services in Development
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start:dev:all
 ```
 
-## Deployment
+## Running Tests
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Unit Tests
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+npm run test
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### End-to-End (E2E) Tests
 
-## Resources
+```bash
+npm run test:e2e
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## Code Formatting
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+To format the project using Prettier:
 
-## Support
+```bash
+npm run format
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Production Build & Start
 
-## Stay in touch
+To build and start the server in production mode:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+npm run build
+npm run start:prod
+```
 
-## License
+## Configuration
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+You can customize the app behavior by editing the `.env` file. Remember that you must specify the required variables. Below are the key environment variables.:
+
+| Variable Name          | Description                         | Required                                 | Example                                                            |
+| ---------------------- | ----------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
+| `PORT`                 | Port number the app will listen on  | No                                       | `3000`                                                             |
+| `HOST`                 | Host IP to bind the server to       | No, but advisable in prod                | `192.168.1.43`                                                     |
+| `CORS_ORIGIN`          | Allowed origins for CORS requests   | No, but advisable in prod                | `http://localhost:5173,http://localhost:5174`                      |
+| `DATABASE_URL`         | Database connection string          | Yes                                      | `postgres://...`                                                   |
+| `JWT_SECRET_KEY`       | Secret key for signing JWTs         | No (must be specified for auth to work)  | `your_jwt_secret`                                                  |
+| `JWT_EXPIRATION`       | JWT token expiration time           | No (must be specified for auth to work)  | `1d`, `7d`                                                         |
+| `RABBITMQ_URL`         | RabbitMQ connection string          | No (required in production environments) | `amqp://localhost`                                                 |
+| `GOOGLE_CLIENT_ID`     | Google client ID                    | Yes                                      | `djbetdf45t...`                                                    |
+| `GOOGLE_CLIENT_SECRET` | Google client secret                | Yes                                      | `GOCS-wwdewr...`                                                   |
+| `MASTER_FILE_KEY`      | 32-byte hex key for file encryption | No (required in production environments) | `0000000000000000000000000000000000000000000000000000000000000000` |
+
+> 🛡️ Keep sensitive values like `JWT_SECRET_KEY` secure and never commit them to version control.
+
+## API Documentation
+
+You can read the API documentation by clicking [here.](./API.md)
+
+## Contributors
+
+<p align="center">
+  <div align="center" style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+    <div align="center">
+      <a href="https://github.com/kntgio-z">
+        <img src="https://images.weserv.nl/?url=avatars.githubusercontent.com/u/112701322?v=4&h=100&w=100&fit=cover&mask=circle&maxage=7d" width="100" alt="@kntgio-z" />
+        <br />
+        <sub><b>@kntgio-z</b></sub>
+      </a>
+      <br />
+      <i>Backend Lead</i>
+    </div>
+    <div align="center">
+      <a href="https://github.com/Mark-cyber-lab">
+        <img src="https://images.weserv.nl/?url=avatars.githubusercontent.com/u/156742215?v=4&h=100&w=100&fit=cover&mask=circle&maxage=7d" width="100" alt="@Mark-cyber-lab" />
+        <br />
+        <sub><b>@Mark-cyber-lab</b></sub>
+      </a>
+      <br />
+      <i>System Architect & Microservices Lead</i>
+    </div>
+  </div>
+</p>
