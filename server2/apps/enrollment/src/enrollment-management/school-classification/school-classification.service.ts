@@ -1,3 +1,4 @@
+import { GradeLevels } from '@/app/admin/pages/enrollment-management/grade-levels/gradelevels';
 import { prismaVersion } from './../../../../../node_modules/.prisma/client/index.d';
 import { PrismaService } from './../../../../../libs/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
@@ -24,6 +25,25 @@ export class SchoolClassificationService {
       academicLevels: schoolType.acadLevels,
       gradeLevels: gradeLevels,
     });
+  }
+
+  public async saveSchoolClassification(
+    schoolData: SchoolClassification['schoolInfoParam'],
+    schoolId: number,
+  ): Promise<MicroserviceUtility['successDataFormat']> {
+    const result1: SchoolClassification['savingGradeLevels']['data'] | null =
+      await this.determineIfDeletable(
+        schoolId,
+        schoolData.acadLevels,
+      );
+
+    if(result1 &&result1.offeredGradeLevels.length > 0)
+      return this.microserviceUtility.conflictExceptionReturn(
+        'The following academic levels are currently in use: ' + result1.offeredGradeLevels.join(', ')
+      );
+
+    
+    return this.microserviceUtility.returnSuccess('Updates applied successfully')
   }
 
   // UTILITY FUNCTION
@@ -120,7 +140,137 @@ export class SchoolClassificationService {
     return result ? true : false;
   }
 
-  private async saveSupportedGradeLevels() {
-    const result = await this.prisma.
+  private async saveSupportedGradeLevels(
+    gradeLevels: string[],
+    schoolId: number,
+  ): Promise<SchoolClassification['savingGradeLevels']> {
+    const result: SchoolClassification['savingGradeLevels']['data'] | null = await this.determineIfDeletable(
+      schoolId,
+      gradeLevels,
+    );
+
+    if (result && result.length > 0)
+      return {
+        status: false,
+        message: `The following grade levels are currently in use: ${result.join(', ')}`,
+        data: {
+          offeredGradeLevels: [],
+          ids: [],
+        },
+      };
+
+    const result2 = await this.saveGradeLevels(schoolId, {
+      offeredGradeLevels: ,
+      ids: ,
+    });
+
+    return {
+      status: true,
+      message: 'Grade levels saved successfully',
+    };
+  }
+
+  private async determineIfDeletable(
+    schoolId: number,
+    gradeLevelCodeArr: string[],
+  ): Promise<SchoolClassification['savingGradeLevels']['data'] | null> {
+    // get all the grade levels that are offered by the schools
+    const result = await this.prisma.grade_level_offered.findMany({
+      where: {
+        school_id: schoolId,
+      },
+      select: {
+        grade_level_offered_id: true,
+        grade_level: { select: { grade_level: true } },
+        enrollment_schedule: this.getSelectClause(),
+        grade_section_program: this.getSelectClause(),
+        enrollment_application: this.getSelectClause(),
+      },
+    });
+
+    // determine if there are present offered grade levels
+    if (!result || result.length == 0) return null;
+
+    let enSched: number = 0;
+    let gradSecProf: number = 0;
+    let enApp: number = 0;
+
+    // filter out the ones that matched the grade level code
+    const filteredOutGradeLevels: SchoolClassification['fetchedOfferedGrades'][] =
+      await this.filterOutData(result, gradeLevelCodeArr);
+
+    const importantOfferedGradeLevels: string[] = [];
+
+    // get all the ones that has been referenced by other tables
+    for(const gradeLevel of filteredOutGradeLevels) {
+      enSched = gradeLevel.enrollment_schedule.length;
+      gradSecProf = gradeLevel.grade_section_program.length;
+      enApp = gradeLevel.enrollment_application.length;
+
+      if(enSched > 0 || gradSecProf > 0 || enApp > 0)
+        importantOfferedGradeLevels.push(gradeLevel.grade_level.grade_level);
+    }
+
+    const idArr: number[] = [];
+
+    const ttoBeReturnedValues: SchoolClassification['savingGradeLevels']['data'] = {
+      offeredGradeLevels: importantOfferedGradeLevels,
+      ids: idArr
+    };
+
+    return ttoBeReturnedValues;
+  }
+
+  // separated version of the select clause
+  private getSelectClause() {
+    return {
+      select: {
+        grade_level_offered: {
+          select: {
+            grade_level: {
+              select: {
+                grade_level: true
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  // this method filter out the data that not matches with the data
+  private async filterOutData(
+    offeredGradeLevelData: SchoolClassification['fetchedOfferedGrades'][],
+    gradeLevelArr: string[]
+  ): Promise<SchoolClassification['notMatchedGradeLevels']> {
+    const toBeUpdated: number[] = [];
+    const toBeDeleted: number[] = [];
+
+    const filteredGradeLevels = offeredGradeLevelData.filter((r) => {
+      const gradeLevel = r.grade_level.grade_level;
+
+      if(gradeLevelArr.includes(gradeLevel))
+        toBeUpdated.push(r.grade_level_offered_id);
+      else
+        toBeDeleted.push(r.grade_level_offered_id);
+
+      return !gradeLevelArr.includes(gradeLevel);
+    });
+
+    return {
+      grades: filteredGradeLevels,
+      ids: {
+        toBeUpdated,
+        toBeDeleted,
+      }
+    };
+  }
+
+  // this method saves the grade levels
+  private async saveGradeLevels(
+    schoolId: number,
+    gradeLevelsArr: string[],
+  ): Promise<SchoolClassification['savingGradeLevelsStatus']> {
+    
   }
 }

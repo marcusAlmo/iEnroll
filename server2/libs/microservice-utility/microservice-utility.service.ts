@@ -10,6 +10,13 @@ export class MicroserviceUtilityService {
     };
   }
 
+  successStandardReturn(message: string) {
+    return {
+      statusCode: 200,
+      message: message,
+    };
+  }
+
   notFoundExceptionReturn(message: string) {
     return {
       statusCode: 404,
