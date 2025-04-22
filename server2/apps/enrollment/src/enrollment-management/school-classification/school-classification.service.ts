@@ -52,6 +52,7 @@ export class SchoolClassificationService {
       schoolData.gradeLevels,
     );
     const result3 = await this.saveSchoolInfo(schoolData, schoolId);
+    console.log('result2: ', result2, 'result3: ', result3);
 
     if (!result2.success || !result3)
       return this.microserviceUtility.internalServerErrorReturn(
@@ -82,8 +83,21 @@ export class SchoolClassificationService {
       },
     });
 
+    let parsed: unknown;
+
+    try {
+      const raw = schoolType?.supported_acad_level;
+      const toParse = typeof raw === 'string' ? raw : '[]';
+      parsed = JSON.parse(toParse);
+    } catch {
+      parsed = [];
+    }
+
+    const isStringArray = (input: unknown): input is string[] =>
+      Array.isArray(input) && input.every((item) => typeof item === 'string');
+
     const academicLevel: string[] = await this.getAcademicLevels(
-      (schoolType?.supported_acad_level as string[]) || [],
+      isStringArray(parsed) ? parsed : [],
     );
 
     const schoolTypeValue: string | null = schoolType?.school_type ?? null;
@@ -95,11 +109,11 @@ export class SchoolClassificationService {
   }
 
   // step 1.1
-  private async getAcademicLevels(acadLevelCode: string[]): Promise<string[]> {
+  private async getAcademicLevels(acadLevel: string[]): Promise<string[]> {
     const academicLevels = await this.prisma.academic_level.findMany({
       where: {
-        academic_level_code: {
-          in: acadLevelCode,
+        academic_level: {
+          in: acadLevel,
         },
         is_supported: true,
       },
@@ -241,7 +255,7 @@ export class SchoolClassificationService {
 
     if (toBeSaved.length == 0)
       return {
-        success: false,
+        success: true,
         message: 'No new grade levels to save',
       };
 
@@ -328,7 +342,7 @@ export class SchoolClassificationService {
             : schoolData.schoolType == 'private'
               ? school_type.private
               : school_type.others,
-        supported_acad_level: JSON.stringify(schoolData.acadLevels),
+        supported_acad_level: schoolData.acadLevels,
       },
     });
 
