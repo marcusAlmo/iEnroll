@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from '@lib/dtos/src/enrollment/v1/create-account.dto';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
-import { $Enums } from '@prisma/client';
+import { $Enums, Prisma, PrismaClient } from '@prisma/client';
 import { AuthService } from '@lib/auth/auth.service';
 import { UserExists } from './enums/user-exists.enum';
 import { RpcException } from '@nestjs/microservices';
+import { DefaultArgs } from '@prisma/client/runtime/library';
+
+type Transaction = Omit<
+  PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+>;
 
 @Injectable()
 export class CreateAccountService {
@@ -14,6 +20,228 @@ export class CreateAccountService {
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
   ) {}
+
+  private async createProvince(tx: Transaction, province: string) {
+    return await tx.province.create({
+      data: {
+        province,
+        is_default: false,
+      },
+    });
+  }
+
+  private async createMunicipality(
+    tx: Transaction,
+    municipality: string,
+    provinceId: number,
+  ) {
+    return await tx.municipality.create({
+      data: {
+        municipality,
+        province_id: provinceId,
+        is_default: false,
+      },
+    });
+  }
+
+  private async createDistrict(
+    tx: Transaction,
+    district: string,
+    municipalityId: number,
+  ) {
+    return await tx.district.create({
+      data: {
+        district,
+        municipality_id: municipalityId,
+        is_default: false,
+      },
+    });
+  }
+
+  private async createStreet(
+    tx: Transaction,
+    street: string,
+    districtId: number,
+  ) {
+    return await tx.street.create({
+      data: {
+        street,
+        district_id: districtId,
+        is_default: false,
+      },
+    });
+  }
+
+  private async createAddress(
+    tx: Transaction,
+    payload: {
+      streetId: number;
+      street?: string;
+      districtId?: number;
+      district?: string;
+      municipalityId?: number;
+      municipality?: string;
+      provinceId?: number;
+      province?: string;
+    },
+  ) {
+    return await tx.address.create({
+      data: {
+        address_line_1: `${
+          payload.street
+            ? payload.street
+            : (await tx.street.findFirst({
+                select: { street: true },
+                where: { street_id: payload.streetId },
+              }))!.street
+        } ${
+          payload.district
+            ? payload.district
+            : (await tx.district.findFirst({
+                select: { district: true },
+                where: { district_id: payload.districtId },
+              }))!.district
+        }, ${
+          payload.municipality
+            ? payload.municipality
+            : (await tx.municipality.findFirst({
+                select: { municipality: true },
+                where: { municipality_id: payload.municipalityId },
+              }))!.municipality
+        }, ${
+          payload.province
+            ? payload.province
+            : (await tx.province.findFirst({
+                select: { province: true },
+                where: { province_id: payload.districtId },
+              }))!.province
+        }`,
+        street_id: payload.streetId,
+      },
+    });
+  }
+
+  private async createFullAddress(
+    tx: Transaction,
+    createUserDto: CreateUserDto,
+  ) {
+    if (
+      createUserDto.street &&
+      createUserDto.district &&
+      createUserDto.municipality &&
+      createUserDto.province
+    ) {
+      const province = await this.createProvince(tx, createUserDto.province);
+      const municipality = await this.createMunicipality(
+        tx,
+        createUserDto.municipality,
+        province.province_id,
+      );
+      const district = await this.createDistrict(
+        tx,
+        createUserDto.district,
+        municipality.municipality_id,
+      );
+      const street = await this.createStreet(
+        tx,
+        createUserDto.street,
+        district.district_id,
+      );
+
+      return await this.createAddress(tx, {
+        streetId: street.street_id,
+        street: createUserDto.street,
+        district: createUserDto.district,
+        municipality: createUserDto.municipality,
+        province: createUserDto.province,
+      });
+    } else if (
+      createUserDto.street &&
+      createUserDto.district &&
+      createUserDto.municipality &&
+      createUserDto.provinceId
+    ) {
+      const municipality = await this.createMunicipality(
+        tx,
+        createUserDto.municipality,
+        createUserDto.provinceId,
+      );
+      const district = await this.createDistrict(
+        tx,
+        createUserDto.district,
+        municipality.municipality_id,
+      );
+      const street = await this.createStreet(
+        tx,
+        createUserDto.street,
+        district.district_id,
+      );
+
+      return await this.createAddress(tx, {
+        streetId: street.street_id,
+        street: createUserDto.street,
+        district: createUserDto.district,
+        municipality: createUserDto.municipality,
+        provinceId: createUserDto.provinceId,
+      });
+    } else if (
+      createUserDto.street &&
+      createUserDto.district &&
+      createUserDto.municipalityId &&
+      createUserDto.provinceId
+    ) {
+      const district = await this.createDistrict(
+        tx,
+        createUserDto.district,
+        createUserDto.municipalityId,
+      );
+      const street = await this.createStreet(
+        tx,
+        createUserDto.street,
+        district.district_id,
+      );
+
+      return await this.createAddress(tx, {
+        streetId: street.street_id,
+        street: createUserDto.street,
+        district: createUserDto.district,
+        municipalityId: createUserDto.municipalityId,
+        provinceId: createUserDto.provinceId,
+      });
+    } else if (
+      createUserDto.street &&
+      createUserDto.districtId &&
+      createUserDto.municipalityId &&
+      createUserDto.provinceId
+    ) {
+      const street = await this.createStreet(
+        tx,
+        createUserDto.street,
+        createUserDto.districtId,
+      );
+
+      return await this.createAddress(tx, {
+        streetId: street.street_id,
+        street: createUserDto.street,
+        districtId: createUserDto.districtId,
+        municipalityId: createUserDto.municipalityId,
+        provinceId: createUserDto.provinceId,
+      });
+    } else if (
+      createUserDto.streetId &&
+      createUserDto.districtId &&
+      createUserDto.municipalityId &&
+      createUserDto.provinceId
+    ) {
+      return await this.createAddress(tx, {
+        streetId: createUserDto.streetId,
+        street: createUserDto.street,
+        districtId: createUserDto.districtId,
+        municipalityId: createUserDto.municipalityId,
+        provinceId: createUserDto.provinceId,
+      });
+    } else throw new Error('Invalid data');
+  }
 
   async create(createUserDto: CreateUserDto) {
     // prettier-ignore
@@ -43,13 +271,6 @@ export class CreateAccountService {
         'School does not exist',
       );
     }
-    // if (!addressExists) {
-    //   throw this.createError(
-    //     404,
-    //     'ERR_ADDRESS_NOT_FOUND',
-    //     'Address does not exist',
-    //   );
-    // }
     if (createUserDto.enrollerId && !enrollerExists) {
       throw this.createError(
         404,
@@ -76,14 +297,7 @@ export class CreateAccountService {
         },
       });
 
-      const createdAddress = await tx.address.create({
-        data: {
-          street: createUserDto.street,
-          district: createUserDto.district,
-          municipality: createUserDto.municipality,
-          province: createUserDto.province,
-        },
-      });
+      const createdAddress = await this.createFullAddress(tx, createUserDto);
 
       await tx.student.create({
         data: {
@@ -108,9 +322,7 @@ export class CreateAccountService {
         name: true,
         address: {
           select: {
-            street: true,
-            district: true,
-            municipality: true,
+            address_line_1: true,
           },
         },
         contact_number: true,
@@ -168,11 +380,11 @@ export class CreateAccountService {
   private parseGender(gender: 'M' | 'F' | 'O') {
     switch (gender) {
       case 'M':
-        return this.genders.Male;
+        return this.genders.male;
       case 'F':
-        return this.genders.Female;
+        return this.genders.female;
       case 'O':
-        return this.genders.Other;
+        return this.genders.other;
     }
   }
 
