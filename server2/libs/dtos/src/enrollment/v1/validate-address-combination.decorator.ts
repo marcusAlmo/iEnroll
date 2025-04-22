@@ -18,20 +18,62 @@ export function IsValidAddressCombination(
         validate(_: any, args: ValidationArguments): boolean {
           const o = args.object as CreateUserDto;
 
-          // Full names only
+          /**
+           * ✅ Case 1: Street ID only — most specific.
+           * All other fields must be omitted, as everything is inferred from the street.
+           * This is likely common when using full lookup selections (e.g., dropdowns).
+           */
           if (
+            o.streetId &&
+            !o.street &&
+            !o.district &&
+            !o.municipality &&
+            !o.province &&
+            !o.provinceId &&
+            !o.municipalityId &&
+            !o.districtId
+          ) {
+            return true;
+          }
+
+          /**
+           * ✅ Case 2: District ID + street name.
+           * Used when districts are selected but streets are typed.
+           */
+          if (
+            o.districtId &&
             o.street &&
+            !o.streetId &&
+            !o.district &&
+            !o.municipality &&
+            !o.province &&
+            !o.provinceId &&
+            !o.municipalityId
+          ) {
+            return true;
+          }
+
+          /**
+           * ✅ Case 3: Municipality ID + district/street names.
+           * Province is inferred from municipality.
+           */
+          if (
+            o.municipalityId &&
             o.district &&
-            o.municipality &&
-            o.province &&
+            o.street &&
             !o.streetId &&
             !o.districtId &&
-            !o.municipalityId &&
+            !o.municipality &&
+            !o.province &&
             !o.provinceId
-          )
+          ) {
             return true;
+          }
 
-          // Province ID + names
+          /**
+           * ✅ Case 4: Province ID + all other names.
+           * Municipality, district, street are manually typed, but province is selected.
+           */
           if (
             o.provinceId &&
             o.municipality &&
@@ -41,57 +83,30 @@ export function IsValidAddressCombination(
             !o.districtId &&
             !o.municipalityId &&
             !o.province
-          )
+          ) {
             return true;
+          }
 
-          // Province ID + Municipality ID + names
+          /**
+           * ✅ Case 5: All full address components as names only.
+           * Likely the fallback/manual input path.
+           */
           if (
-            // o.provinceId && // ? I commented this because in municipality id, province is already determined there
-            o.municipalityId &&
-            o.district &&
             o.street &&
+            o.district &&
+            o.municipality &&
+            o.province &&
             !o.streetId &&
             !o.districtId &&
-            !o.municipality &&
-            !o.province &&
-            !o.provinceId // ? Since i commented it, it must be unavailable
-          )
-            return true;
-
-          // Province ID + Municipality ID + District ID + name
-          if (
-            // o.provinceId && //? Same logic here, data here is predetermined in the ditrict
-            // o.municipalityId &&
-            o.districtId &&
-            o.street &&
-            !o.streetId &&
-            !o.district &&
-            !o.municipality &&
-            !o.province &&
-            !o.provinceId && // ? I included them since they must be ommitted
-            !o.municipalityId
-          )
-            return true;
-
-          // All IDs only
-          if (
-            // o.provinceId && // ? Same logic here
-            // o.municipalityId &&
-            // o.districtId &&
-            o.streetId &&
-            !o.street &&
-            !o.district &&
-            !o.municipality &&
-            !o.province &&
-            !o.provinceId && // Same logic here
             !o.municipalityId &&
-            !o.districtId
-          )
+            !o.provinceId
+          ) {
             return true;
+          }
 
+          // ❌ No valid combination matched
           return false;
         },
-
         defaultMessage(): string {
           return 'Invalid address combination. Provide either full names or IDs in logical order.';
         },
