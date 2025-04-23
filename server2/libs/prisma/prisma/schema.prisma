@@ -674,8 +674,8 @@ model grade_section_program {
   enrollment_fee           enrollment_fee[]
   enrollment_requirement   enrollment_requirement[]
   grade_section            grade_section[]
+  academic_program         academic_program         @relation(fields: [program_id], references: [program_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grade_section_program_academic_program")
   grade_level_offered      grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_grade_section_type_grade_level_offered_id")
-  academic_program         academic_program         @relation(fields: [program_id], references: [program_id], map: "fk_grade_section_program_academic_program")
 
   @@unique([grade_level_offered_id, program_id], map: "uq_grade_section_program")
   @@index([grade_level_offered_id], map: "idx_grade_section_type_grade_level_offered_id")

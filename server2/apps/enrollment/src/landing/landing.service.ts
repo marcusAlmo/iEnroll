@@ -13,8 +13,7 @@ export class LandingService {
         address: {
           select: {
             street: true,
-            district: true,
-            municipality: true,
+            address_line_1: true,
           },
         },
         contact_number: true,

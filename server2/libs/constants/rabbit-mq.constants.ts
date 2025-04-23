@@ -49,3 +49,6 @@ export const rabbitMQQueue: Record<(typeof serviceNames)[number], string> =
     },
     {} as Record<string, string>,
   );
+
+export const getAllRabbitMQQueues = () =>
+  serviceNames.map((s) => `${s.toLowerCase()}_queue` as const);
