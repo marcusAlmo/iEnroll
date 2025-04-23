@@ -10,7 +10,7 @@ const GradeLevels: React.FC = () => {
   const [isCustomProgram, setIsCustomProgram] = React.useState<boolean>(false);
   const [query, setQuery] = React.useState<string>("");
   const [isEditing, setIsEditing] = React.useState<boolean>(false);
-
+  
   // State for section details
   const [sectionDetails, setSectionDetails] = React.useState<{
     sectionName: string;
