@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Automatically authenticate for development/testing purposes
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && import.meta.env.DEV) {
       const dummyToken = "dev-auth-token";
       register(dummyToken);
     }
