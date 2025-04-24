@@ -54,4 +54,11 @@ export interface Fees {
     amount: Decimal;
     due_date: Date;
   }[];
+
+  toInsertFees: {
+    feeName: string;
+    amount: number;
+    description: string | null;
+    dueDate: Date;
+  }[];
 }
