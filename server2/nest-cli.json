@@ -11,6 +11,15 @@
   "monorepo": true,
   "root": ".",
   "projects": {
+    "address": {
+      "type": "library",
+      "root": "libs/address",
+      "entryFile": "index",
+      "sourceRoot": "libs/address/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/address/tsconfig.lib.json"
+      }
+    },
     "api-gateway": {
       "type": "application",
       "root": "apps/api-gateway",
@@ -38,15 +47,6 @@
         "tsConfigPath": "apps/chat/tsconfig.app.json"
       }
     },
-    "file": {
-      "type": "application",
-      "root": "apps/file",
-      "entryFile": "main",
-      "sourceRoot": "apps/file/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/file/tsconfig.app.json"
-      }
-    },
     "dtos": {
       "type": "library",
       "root": "libs/dtos",
@@ -63,6 +63,15 @@
       "sourceRoot": "apps/enrollment/src",
       "compilerOptions": {
         "tsConfigPath": "apps/enrollment/tsconfig.app.json"
+      }
+    },
+    "file": {
+      "type": "application",
+      "root": "apps/file",
+      "entryFile": "main",
+      "sourceRoot": "apps/file/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/file/tsconfig.app.json"
       }
     },
     "image": {

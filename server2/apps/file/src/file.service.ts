@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { v4 as uuidv4 } from 'uuid';
 import sanitize from 'sanitize-filename';
@@ -18,6 +18,7 @@ import { ModulePluginOptions } from './interfaces/module-plugin-options.interfac
 @Injectable()
 export class FileService {
   private readonly uploadDir = UPLOADDIR;
+  private readonly logger = new Logger(FileService.name);
 
   constructor(
     private readonly prisma: PrismaService,
@@ -43,12 +44,13 @@ export class FileService {
       });
     }
 
+    //? Accepted file types filtering
     // const fileType = await fileTypeLib.fileTypeFromBuffer(buffer);
     // if (!fileType || !mimetype.startsWith(fileType.mime.split('/')[0])) {
     //   throw new RpcException('Invalid or mismatched file type.');
     // }
 
-    // Optional: Uncomment if you have ClamAV scanner
+    // ? ClamAV scanner
     // const scanResult = await this.scanner.scanBuffer(buffer);
     // if (scanResult.includes('FOUND')) {
     //   throw new RpcException('Virus detected in file.');
@@ -131,8 +133,10 @@ export class FileService {
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const school = await this.getSchoolById(payload.schoolId);
-    console.debug('Init');
-    console.debug('payload', payload);
+    this.logger.debug(
+      `Initialing upload file for file ${payload.originalName}`,
+    );
+    this.logger.debug('payload', payload);
 
     const buffer = Buffer.from(payload.buffer);
     const sanitizedFileName = this.sanitizeFileName(payload.originalName);
@@ -140,16 +144,16 @@ export class FileService {
     const filePath = join(this.uploadDir, fileName);
     const schoolId = payload.schoolId;
 
-    console.debug('Validating File');
+    this.logger.debug('Validating File');
     await this.validateFile(buffer, payload.mimetype);
-    console.debug('Validated');
+    this.logger.debug('Validated');
 
     const key = Buffer.from(CryptoUtils.getUserKey(schoolId));
     const iv = CryptoUtils.createRandomBytes(16);
 
-    console.debug('Encrypting');
+    this.logger.debug('Encrypting');
     await this.streamEncryptToFile(buffer, filePath, key, iv);
-    console.debug('Encrypted');
+    this.logger.debug('Encrypted');
 
     unlinkSync(payload.filepath); // cleanup temp
 

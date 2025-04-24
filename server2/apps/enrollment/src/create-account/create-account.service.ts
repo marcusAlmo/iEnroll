@@ -6,6 +6,7 @@ import { AuthService } from '@lib/auth/auth.service';
 import { UserExists } from './enums/user-exists.enum';
 import { RpcException } from '@nestjs/microservices';
 import { Transaction } from '@lib/prisma/src/types/Transaction';
+import { AddressService } from '@lib/address';
 
 @Injectable()
 export class CreateAccountService {
@@ -14,58 +15,8 @@ export class CreateAccountService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
+    private readonly addressService: AddressService,
   ) {}
-
-  private async createProvince(tx: Transaction, province: string) {
-    return await tx.province.create({
-      data: {
-        province,
-        is_default: false,
-      },
-    });
-  }
-
-  private async createMunicipality(
-    tx: Transaction,
-    municipality: string,
-    provinceId: number,
-  ) {
-    return await tx.municipality.create({
-      data: {
-        municipality,
-        province_id: provinceId,
-        is_default: false,
-      },
-    });
-  }
-
-  private async createDistrict(
-    tx: Transaction,
-    district: string,
-    municipalityId: number,
-  ) {
-    return await tx.district.create({
-      data: {
-        district,
-        municipality_id: municipalityId,
-        is_default: false,
-      },
-    });
-  }
-
-  private async createStreet(
-    tx: Transaction,
-    street: string,
-    districtId: number,
-  ) {
-    return await tx.street.create({
-      data: {
-        street,
-        district_id: districtId,
-        is_default: false,
-      },
-    });
-  }
 
   private async createAddress(
     tx: Transaction,
@@ -80,49 +31,115 @@ export class CreateAccountService {
       province?: string;
     },
   ) {
-    const streetName = `${
-      payload.street
-        ? payload.street
-        : (await tx.street.findFirst({
-            select: { street: true },
-            where: { street_id: payload.streetId },
-          }))!.street
-    }`;
-    const districtName = `${
-      payload.district
-        ? payload.district
-        : (await tx.district.findFirst({
-            select: { district: true },
-            where: { district_id: payload.districtId },
-          }))!.district
-    }`;
-    const municipalityName = `${
-      payload.municipality
-        ? payload.municipality
-        : (await tx.municipality.findFirst({
-            select: { municipality: true },
-            where: { municipality_id: payload.municipalityId },
-          }))!.municipality
-    }`;
-    const provinceName = `${
-      payload.province
-        ? payload.province
-        : (await tx.province.findFirst({
-            select: { province: true },
-            where: { province_id: payload.districtId },
-          }))!.province
-    }`;
+    let streetName = payload.street;
+    let districtName = payload.district;
+    let municipalityName = payload.municipality;
+    let provinceName = payload.province;
 
-    return await tx.address.create({
-      data: {
-        address_line_1: [
-          `${streetName} ${districtName}`.trim(),
-          municipalityName.trim(),
-          provinceName.trim(),
-        ].join(', '),
-        street_id: payload.streetId,
-      },
+    if (!streetName) {
+      const streetResult = await this.addressService.getStreetNameByStreetId(
+        payload.streetId,
+        tx,
+      );
+
+      if (!streetResult.success) {
+        throw new RpcException({
+          statusCode: 500,
+          error: streetResult.code,
+        });
+      }
+
+      streetName = streetResult.data.street;
+    }
+
+    if (!districtName) {
+      if (!payload.districtId) {
+        throw new RpcException({
+          statusCode: 400,
+          error: 'District ID is required when district name is not provided',
+        });
+      }
+
+      const districtResult =
+        await this.addressService.getDistrictNameByDistrictId(
+          payload.districtId,
+          tx,
+        );
+
+      if (!districtResult.success) {
+        throw new RpcException({
+          statusCode: 500,
+          error: districtResult.code,
+        });
+      }
+
+      districtName = districtResult.data.district;
+    }
+
+    if (!municipalityName) {
+      if (!payload.municipalityId) {
+        throw new RpcException({
+          statusCode: 400,
+          error:
+            'Municipality ID is required when municipality name is not provided',
+        });
+      }
+
+      const municipalityResult =
+        await this.addressService.getMunicipalityNameByMunicipalityId(
+          payload.municipalityId,
+          tx,
+        );
+
+      if (!municipalityResult.success) {
+        throw new RpcException({
+          statusCode: 500,
+          error: municipalityResult.code,
+        });
+      }
+
+      municipalityName = municipalityResult.data.municipality;
+    }
+
+    if (!provinceName) {
+      if (!payload.provinceId) {
+        throw new RpcException({
+          statusCode: 400,
+          error: 'Province ID is required when province name is not provided',
+        });
+      }
+
+      const provinceResult =
+        await this.addressService.getProvinceNameByProvinceId(
+          payload.provinceId,
+          tx,
+        );
+
+      if (!provinceResult.success) {
+        throw new RpcException({
+          statusCode: 500,
+          error: provinceResult.code,
+        });
+      }
+
+      provinceName = provinceResult.data.province;
+    }
+
+    const addressLine = this.addressService.formatAddressLineName({
+      street: streetName,
+      district: districtName,
+      municipality: municipalityName,
+      province: provinceName,
     });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return await this.addressService.createAddress(
+      {
+        addressLine,
+        streetId: payload.streetId,
+      },
+      tx,
+    );
   }
 
   private async createFullAddress(
@@ -135,23 +152,35 @@ export class CreateAccountService {
       createUserDto.municipality &&
       createUserDto.province
     ) {
-      const province = await this.createProvince(tx, createUserDto.province);
-      const municipality = await this.createMunicipality(
+      const province = await this.addressService.createProvince(
+        {
+          province: createUserDto.province,
+        },
         tx,
-        createUserDto.municipality,
-        province.province_id,
       );
-      const district = await this.createDistrict(
+      const municipality = await this.addressService.createMunicipality(
+        {
+          municipality: createUserDto.municipality,
+          provinceId: province.province_id,
+        },
         tx,
-        createUserDto.district,
-        municipality.municipality_id,
       );
-      const street = await this.createStreet(
+      const district = await this.addressService.createDistrict(
+        {
+          district: createUserDto.district,
+          municipalityId: municipality.municipality_id,
+        },
         tx,
-        createUserDto.street,
-        district.district_id,
+      );
+      const street = await this.addressService.createStreet(
+        {
+          street: createUserDto.street,
+          districtId: district.district_id,
+        },
+        tx,
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return await this.createAddress(tx, {
         streetId: street.street_id,
         street: createUserDto.street,
@@ -165,22 +194,40 @@ export class CreateAccountService {
       createUserDto.municipality &&
       createUserDto.provinceId
     ) {
-      const municipality = await this.createMunicipality(
-        tx,
-        createUserDto.municipality,
+      const province = await this.addressService.getProvinceNameByProvinceId(
         createUserDto.provinceId,
-      );
-      const district = await this.createDistrict(
         tx,
-        createUserDto.district,
-        municipality.municipality_id,
-      );
-      const street = await this.createStreet(
-        tx,
-        createUserDto.street,
-        district.district_id,
       );
 
+      if (!province.success)
+        throw new RpcException({
+          statusCode: 400,
+          error: province.code,
+        });
+
+      const municipality = await this.addressService.createMunicipality(
+        {
+          municipality: createUserDto.municipality,
+          provinceId: createUserDto.provinceId,
+        },
+        tx,
+      );
+      const district = await this.addressService.createDistrict(
+        {
+          district: createUserDto.district,
+          municipalityId: municipality.municipality_id,
+        },
+        tx,
+      );
+      const street = await this.addressService.createStreet(
+        {
+          street: createUserDto.street,
+          districtId: district.district_id,
+        },
+        tx,
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return await this.createAddress(tx, {
         streetId: street.street_id,
         street: createUserDto.street,
@@ -194,17 +241,34 @@ export class CreateAccountService {
       createUserDto.municipalityId &&
       createUserDto.provinceId
     ) {
-      const district = await this.createDistrict(
+      const municipality =
+        await this.addressService.getMunicipalityNameByMunicipalityId(
+          createUserDto.municipalityId,
+          tx,
+        );
+
+      if (!municipality.success)
+        throw new RpcException({
+          statusCode: 400,
+          error: municipality.code,
+        });
+
+      const district = await this.addressService.createDistrict(
+        {
+          district: createUserDto.district,
+          municipalityId: createUserDto.municipalityId,
+        },
         tx,
-        createUserDto.district,
-        createUserDto.municipalityId,
       );
-      const street = await this.createStreet(
+      const street = await this.addressService.createStreet(
+        {
+          street: createUserDto.street,
+          districtId: district.district_id,
+        },
         tx,
-        createUserDto.street,
-        district.district_id,
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return await this.createAddress(tx, {
         streetId: street.street_id,
         street: createUserDto.street,
@@ -218,12 +282,26 @@ export class CreateAccountService {
       createUserDto.municipalityId &&
       createUserDto.provinceId
     ) {
-      const street = await this.createStreet(
-        tx,
-        createUserDto.street,
+      const district = await this.addressService.getDistrictNameByDistrictId(
         createUserDto.districtId,
+        tx,
       );
 
+      if (!district.success)
+        throw new RpcException({
+          statusCode: 400,
+          error: district.code,
+        });
+
+      const street = await this.addressService.createStreet(
+        {
+          street: createUserDto.street,
+          districtId: createUserDto.districtId,
+        },
+        tx,
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return await this.createAddress(tx, {
         streetId: street.street_id,
         street: createUserDto.street,
@@ -237,6 +315,7 @@ export class CreateAccountService {
       createUserDto.municipalityId &&
       createUserDto.provinceId
     ) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return await this.createAddress(tx, {
         streetId: createUserDto.streetId,
         street: createUserDto.street,

@@ -30,6 +30,12 @@
       ],
       "@lib/*": [
         "libs/*"
+      ],
+      "@lib/address": [
+        "libs/address/src"
+      ],
+      "@lib/address/*": [
+        "libs/address/src/*"
       ]
     }
   }
