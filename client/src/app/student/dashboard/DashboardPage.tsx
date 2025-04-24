@@ -20,7 +20,7 @@ const DashboardPage = () => {
   const enrollmentId = 12345;
 
   return (
-    <section className="p-8 bg-container-1">
+    <section className={`${enrollmentStatus === "none" ? "h-screen" : ""} p-8 bg-container-1`}>
       <div className="flex justify-end">
         <FontAwesomeIcon 
           icon={faPowerOff}
@@ -40,7 +40,7 @@ const DashboardPage = () => {
         </div>
       )}
 
-      <StatusBox status="Pending" />
+      <StatusBox status="None" />
       
     </section>
   );
