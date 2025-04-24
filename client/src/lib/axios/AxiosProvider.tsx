@@ -24,9 +24,15 @@ export const AxiosProvider = ({ token, logout, children }: Props) => {
     if (manual) setIsChecking(true);
 
     try {
-      await instance.get("/api/health", { timeout: 5000 });
-      setServerDown(false);
-    } catch {
+      const result = await instance.get<{ status: string }>(
+        "/api/health?strict=false",
+        { timeout: 5000 },
+      );
+
+      setServerDown(result.data.status === "ok");
+    } catch (error) {
+      if (error instanceof AxiosError)
+        console.debug("Health error: ", error.response?.data);
       if (manual) setServerDown(true);
     } finally {
       checking.current = false;
