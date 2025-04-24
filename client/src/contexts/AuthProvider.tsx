@@ -4,7 +4,7 @@ import {
   removeAuthToken,
 } from "@/services/common/auth-token";
 import { login } from "@/services/mobile-web-app/auth";
-import { ReactNode, useState, useCallback, useRef } from "react";
+import { ReactNode, useState, useCallback, useRef, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -82,6 +82,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     forget();
   };
+
+  // Automatically authenticate for development/testing purposes
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const dummyToken = "dev-auth-token";
+      register(dummyToken);
+    }
+  }, [isAuthenticated, register]);
 
   return (
     <AuthContext.Provider
