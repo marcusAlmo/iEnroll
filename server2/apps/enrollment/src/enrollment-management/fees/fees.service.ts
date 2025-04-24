@@ -149,6 +149,9 @@ export class FeesService {
       select: {
         fee_id: true,
         name: true,
+        description: true,
+        amount: true,
+        due_date: true,
       },
     });
 

@@ -51,7 +51,7 @@ export interface Fees {
     fee_id: number;
     name: string;
     description: string | null;
-    amount: number;
+    amount: Decimal;
     due_date: Date;
   }[];
 }
