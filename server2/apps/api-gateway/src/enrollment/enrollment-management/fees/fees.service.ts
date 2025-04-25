@@ -23,14 +23,24 @@ export class FeesService {
     return result.data as Fees['fetchValue'][];
   }
 
-  public async saveFees(schoolId: number, receivedData: Fees['receivedData']) {
+  public async saveFees(payload: object) {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'save-fees' }, { schoolId, receivedData }),
+      this.client.send({ cmd: 'save-fees' }, payload),
     );
     console.log(result);
 
     await this.exceptionCheckerService.checker(result);
 
     return result.data as { message: string };
+  }
+
+  public async getGradeLevels(payload: object) {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-grade-levels' }, payload),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as Fees['grade_level'];
   }
 }
