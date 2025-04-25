@@ -9,26 +9,26 @@ import {
 
 class FeeDetailsDTO {
   @IsString()
-  feeName: string;
+  feeName!: string;
 
   @IsNumber()
-  amount: number;
+  amount!: number;
 
   @IsString()
-  description: string | null;
+  description!: string | null;
 
   @Type(() => Date)
   @IsDate()
-  dueDate: Date;
+  dueDate!: Date;
 }
 
 export class Fees {
   @IsArray()
   @IsString({ each: true })
-  gradeLevelCode: string[];
+  gradeLevelCode!: string[];
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FeeDetailsDTO)
-  feeDetailsArr: FeeDetailsDTO[];
+  feeDetailsArr!: FeeDetailsDTO[];
 }
