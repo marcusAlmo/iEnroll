@@ -97,6 +97,7 @@ export class GradeLevelsService {
     });
   }
 
+  // delete grade levels
   public async deleteGradeSection(
     sectionId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
