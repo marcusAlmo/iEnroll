@@ -23,6 +23,13 @@ export class AuthService {
         user_id: true,
         username: true,
         school_id: true,
+        first_name: true,
+        last_name: true,
+        middle_name: true,
+        suffix: true,
+        email_address: true,
+        contact_number: true,
+        gender: true,
         // password_hash: true,
       },
       where: { user_id: userId },
@@ -30,10 +37,6 @@ export class AuthService {
 
     if (!result) return null;
 
-    return {
-      username: result.username,
-      user_id: result.user_id,
-      school_id: result.school_id,
-    };
+    return result;
   }
 }
