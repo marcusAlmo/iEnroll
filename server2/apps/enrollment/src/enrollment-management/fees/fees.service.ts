@@ -57,40 +57,51 @@ export class FeesService {
     schoolId: number,
     receivedData: Fees['receivedData'],
   ): Promise<MicroserviceUtility['returnValue']> {
-    if (!(await this.isModifiable(schoolId)))
+    if (await this.isModifiable(schoolId))
       return this.microserviceUtilityService.conflictExceptionReturn(
         'Payment records exists, fees cannot be modified',
       );
 
     try {
+      console.log(receivedData);
       const result = await this.prisma.$transaction(async (prisma) => {
         const gradeSectionProgramIds: number[] =
           await this.retrieveSectionProgramIds(schoolId, receivedData, prisma);
 
+        console.log('gradeSectionProgramIds: ', gradeSectionProgramIds);
         const fees: Fees['retrievedFeesCollection'] = await this.retrieveFees(
           gradeSectionProgramIds,
           prisma,
         );
 
+        console.log('fees: ', fees);
         const { feesToUpdate, feesToDelete, feesToInsert } =
           await this.filterToUpdateandDelete(fees, receivedData);
 
+        console.log('feesToUpdate: ', feesToUpdate);
+        console.log('feesToDelete: ', feesToDelete);
+        console.log('feesToInsert: ', feesToInsert);
         await this.updateFees(feesToUpdate, prisma);
         await this.deleteFees(feesToDelete, prisma);
         await this.insertFees(gradeSectionProgramIds, feesToInsert, prisma);
 
+        console.log('Fees saved successfully');
         return 'Fees saved successfully';
       });
+      console.log(result);
 
-      return this.microserviceUtilityService.returnSuccess(result);
+      return this.microserviceUtilityService.returnSuccess({ message: result });
       // eslint-disable-next-line
     } catch (err) {
+      console.log(err);
       return this.microserviceUtilityService.internalServerErrorReturn(
         'An error has occured while applying changes',
       );
     }
   }
+
   // UTILITY FUNCTIONS
+
   // this is for fetching
   private async processFetchedData(
     data: Fees['gradeLevelAndFees'],
@@ -135,6 +146,8 @@ export class FeesService {
         },
       },
     });
+
+    console.log('count: ', data);
 
     return data > 0 ? true : false;
   }
@@ -261,6 +274,9 @@ export class FeesService {
       })),
     );
 
+    console.log('gradeSectionProgramIds: ', gradeSectionProgramIds);
+    console.log('fees: ', fees);
+    console.log('allData', allData);
     await prisma.enrollment_fee.createMany({
       data: allData,
       skipDuplicates: true,
