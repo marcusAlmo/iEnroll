@@ -4,8 +4,9 @@ import { SchoolClassificationModule } from './school-classification/school-class
 import { SchoolDetailsModule } from './school-details/school-details.module';
 import { GradeLevelsModule } from './grade-levels/grade-levels.module';
 import { FeesModule } from './fees/fees.module';
+import { EnrollmentScheduleModule } from './enrollment-schedule/enrollment-schedule.module';
 
 @Module({
-  imports: [AnnouncementsModule, SchoolClassificationModule, SchoolDetailsModule, GradeLevelsModule, FeesModule],
+  imports: [AnnouncementsModule, SchoolClassificationModule, SchoolDetailsModule, GradeLevelsModule, FeesModule, EnrollmentScheduleModule],
 })
 export class EnrollmentManagementModule {}
