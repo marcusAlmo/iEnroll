@@ -22,4 +22,9 @@ export class FeesController {
       payload.receivedData,
     );
   }
+
+  @MessagePattern({ cmd: 'get-grade-levels' })
+  async getGradeLevels(payload: { schoolId: number }) {
+    return await this.feesService.getGradeLevels(payload.schoolId);
+  }
 }

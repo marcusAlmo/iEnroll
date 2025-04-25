@@ -19,6 +19,12 @@ export class FeesController {
     @Body() receivedData: Fees,
   ) {
     schoolId = 0;
-    return await this.feesService.saveFees(schoolId, receivedData);
+    return await this.feesService.saveFees({ schoolId, receivedData });
+  }
+
+  @Get('grade-levels')
+  public async getGradeLevels(@User('school_id') schoolId: number) {
+    schoolId = 0;
+    return await this.feesService.getGradeLevels({ schoolId });
   }
 }
