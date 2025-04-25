@@ -8,6 +8,11 @@ import { User } from '@lib/decorators/user.decorator';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
+  @Get('user/details')
+  async getUserFirstName(@User('first_name') firstName: number) {
+    return firstName;
+  }
+
   @Get('enrollment/details')
   async getEnrolleeDetails(@User('user_id') studentId: number) {
     return await this.dashboardService.getEnrolleeDetails({ studentId });
