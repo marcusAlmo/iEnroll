@@ -139,7 +139,7 @@ model enrollment_requirement {
 }
 
 model enrollment_schedule {
-  schedule_id            Int                 @id(map: "pk_enrollment_schedule") @default(autoincrement())
+  schedule_id            Int                 @id(map: "pk_enrollment_schedule")
   grade_level_offered_id Int
   application_slot       Int
   start_datetime         DateTime            @db.Timestamp(6)
@@ -320,7 +320,7 @@ model student {
   enrollment_fee_payment         enrollment_fee_payment?
   school_file_access             school_file_access[]
   address                        address                 @relation(fields: [address_id], references: [address_id], map: "fk_student_address_id")
-  user_student_enroller_idTouser user                    @relation("student_enroller_idTouser", fields: [enroller_id], references: [user_id], map: "fk_student_enroller_id")
+  user_student_enroller_idTouser user                    @relation("student_enroller_idTouser", fields: [enroller_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_student_enroller_id")
 
   @@index([address_id], map: "idx_student_address_id")
   @@index([enroller_id], map: "idx_student_enroller_id")
@@ -693,7 +693,6 @@ model academic_program {
   grade_section_program grade_section_program[]
 
   @@unique([program, description], map: "uq_academic_program")
-  @@unique([program, description], map: "uq_program_description")
   @@schema("system")
 }
 
@@ -714,7 +713,7 @@ model subscription_plan {
   is_active              Boolean?              @default(true)
   creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  max_download_count     Int                   @default(0)
+  max_download_count     Int
   school_subscription    school_subscription[]
 
   @@schema("system")
