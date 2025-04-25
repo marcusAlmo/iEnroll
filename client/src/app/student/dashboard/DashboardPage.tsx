@@ -1,3 +1,34 @@
+/**
+ * DashboardPage component represents the main dashboard for students.
+ * It displays enrollment status, allows re-uploading of documents, and provides
+ * options for logging out and navigating to other pages.
+ *
+ * @component
+ *
+ * @returns {JSX.Element} The rendered DashboardPage component.
+ *
+ * @remarks
+ * - Redirects to `/iEnroll` if the user is not on a mobile device.
+ * - Displays different UI elements based on the enrollment status (`Enrolled`, `None`, or `Pending`).
+ * - Includes a logout confirmation modal.
+ * - Provides functionality for re-uploading documents when enrollment status is `Pending`.
+ *
+ * @todo
+ * - Make the username dynamic in the greeting message.
+ * - Implement backend functionality for logging out.
+ *
+ * @example
+ * ```tsx
+ * import DashboardPage from './DashboardPage';
+ * 
+ * const App = () => {
+ *   return <DashboardPage />;
+ * };
+ * 
+ * export default App;
+ * ```
+ */
+
 import { useState } from "react";
 import { useScreenSize } from "@/contexts/useScreenSize";
 import { Navigate, useNavigate } from "react-router";
