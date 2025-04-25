@@ -42,4 +42,11 @@ export class DashboardController {
         return result;
     }
   }
+
+  @MessagePattern({ cmd: 'get_documents_for_reupload' })
+  async getDocumentsForReupload(@Payload() payload: { studentId: number }) {
+    return await this.dashboardService.getDocumentsForReupload(
+      payload.studentId,
+    );
+  }
 }
