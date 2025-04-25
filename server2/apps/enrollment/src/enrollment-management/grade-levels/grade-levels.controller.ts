@@ -11,7 +11,7 @@ export class GradeLevelsController {
     return await this.gradeLevelsService.getGradeLevels(payload.schoolId);
   }
 
-  @MessagePattern({ cmd: 'create-delete-grade-levels' })
+  @MessagePattern({ cmd: 'create-update-grade-levels' })
   async createDeleteGradeLevels(payload: {
     gradeLevelOfferedId: number;
     sectionId: number;
