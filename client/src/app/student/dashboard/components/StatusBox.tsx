@@ -1,32 +1,11 @@
 import { useNavigate } from "react-router";
+import { 
+  EnrollmentStatus,
+  StatusContent
+ } from "../dashboard.types";
 
-type EnrollmentStatus = {
-  status: "Pending" | "None" | "Enrolled";
-};
-
-type StatusContent = {
-  statusLabel: string;
-  statusLabelColor: string; // Color of the badge
-  description?: string | Description;  // Description below the status badge
-  actionText?: string; // "Click here to see required documents", "Click here to apply"
-  action?: () => void; // For navigation, etc.
-};
-
-type Description = {
-  programName: string;
-  year: number;
-  paymentStatus: string | Date;
-};
-
-const StatusBox = ({ status }: EnrollmentStatus) => {
+const StatusBox = ({ status, description }: EnrollmentStatus) => {
   const navigate = useNavigate();
-
-  // Sample content for description for enrolled students
-  const sampleEnrolledDescription = {
-    programName: "Senior High School - STEM",
-    year: 11,
-    paymentStatus: "Payment Complete"
-  };
 
   const statusContent: Record<EnrollmentStatus["status"], StatusContent> = {
     Pending: {
@@ -45,7 +24,7 @@ const StatusBox = ({ status }: EnrollmentStatus) => {
     Enrolled: {
       statusLabel: "Enrolled",
       statusLabelColor: "bg-success",
-      description: sampleEnrolledDescription
+      description: description
     }
   }
 
@@ -70,15 +49,17 @@ const StatusBox = ({ status }: EnrollmentStatus) => {
             <div className="flex flex-col text-primary text-sm self-start mt-6">
               <div>
                 <span className="font-semibold">Program: </span>
-                {sampleEnrolledDescription.programName}
+                {description?.programName}
               </div>
               <div>
                 <span className="font-semibold">Year: </span>
-                {sampleEnrolledDescription.year}
+                {description?.year}
               </div>
               <div>
-                <span className="font-semibold">{typeof sampleEnrolledDescription.paymentStatus === "string" ? "Payment Status: " : "Payment Due Date: "}</span>
-                {sampleEnrolledDescription.paymentStatus}
+                <span className="font-semibold">{typeof description?.paymentStatus === "string" ? "Payment Status: " : "Payment Due Date: "}</span>
+                {typeof description?.paymentStatus === "string" 
+                  ? description.paymentStatus 
+                  : description?.paymentStatus?.toLocaleDateString()}
               </div>
             </div>
           )
