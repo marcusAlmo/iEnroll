@@ -120,4 +120,36 @@ export class DashboardService {
       isPaid: Boolean(result.enrollment_fee_payment),
     };
   }
+
+  async getDocumentsForReupload(studentId: number) {
+    const result = await this.prisma.application_attachment.findMany({
+      where: {
+        //? Filters invalid files for reupload
+        status: 'invalid',
+        enrollment_application: {
+          student: {
+            enroller_id: studentId,
+          },
+        },
+      },
+      select: {
+        //? Composite keys, need for future reference
+        application_id: true,
+        requirement_id: true,
+
+        enrollment_requirement: {
+          select: {
+            //? Requirement name
+            name: true,
+          },
+        },
+      },
+    });
+
+    return result.map((data) => ({
+      requirementId: data.requirement_id,
+      applicationId: data.application_id,
+      requirementName: data.enrollment_requirement.name,
+    }));
+  }
 }

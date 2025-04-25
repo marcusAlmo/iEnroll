@@ -22,4 +22,11 @@ export class DashboardController {
   async getEnrolleeStatus(@User('user_id') studentId: number) {
     return await this.dashboardService.getEnrollmentStatus({ studentId });
   }
+
+  @Get('enrollment/documents/re-upload')
+  async getDocumentsForReupload(@User('user_id') studentId: number) {
+    return await this.dashboardService.getDocumentsForReupload({
+      studentId,
+    });
+  }
 }

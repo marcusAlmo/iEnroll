@@ -1,9 +1,13 @@
-import { DashboardService } from 'apps/enrollment/src/dashboard/dashboard.service';
+import { DashboardController } from 'apps/enrollment/src/dashboard/dashboard.controller';
 
 export type EnrolleeDetailsReturn = Awaited<
-  ReturnType<DashboardService['getEnrollmentDetails']>
+  ReturnType<DashboardController['getEnrollmentDetails']>
 >;
 
 export type EnrollmentStatusReturn = Awaited<
-  ReturnType<DashboardService['getEnrollmentStatus']>
+  ReturnType<DashboardController['getEnrollmentStatus']>
+>;
+
+export type DocumentsReuploadStatusReturn = Awaited<
+  ReturnType<DashboardController['getDocumentsForReupload']>
 >;

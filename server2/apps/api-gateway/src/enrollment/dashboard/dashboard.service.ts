@@ -12,7 +12,7 @@ export class DashboardService {
     @Inject('ENROLLMENT_SERVICE') private readonly client: ClientProxy,
   ) {}
 
-  async getEnrolleeDetails(payload: object) {
+  async getEnrolleeDetails(payload: { studentId: number }) {
     const result: EnrolleeDetailsReturn = await lastValueFrom(
       this.client.send(
         {
@@ -24,11 +24,23 @@ export class DashboardService {
     return result;
   }
 
-  async getEnrollmentStatus(payload: object) {
+  async getEnrollmentStatus(payload: { studentId: number }) {
     const result: EnrollmentStatusReturn = await lastValueFrom(
       this.client.send(
         {
           cmd: 'get_enrollment_status',
+        },
+        payload,
+      ),
+    );
+    return result;
+  }
+
+  async getDocumentsForReupload(payload: { studentId: number }) {
+    const result: EnrollmentStatusReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_documents_for_reupload',
         },
         payload,
       ),
