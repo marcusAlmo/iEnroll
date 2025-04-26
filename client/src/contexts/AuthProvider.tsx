@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       username,
       password,
     });
-    register(result.authToken);
+    register(result.access_token);
   };
 
   const logout = () => {
