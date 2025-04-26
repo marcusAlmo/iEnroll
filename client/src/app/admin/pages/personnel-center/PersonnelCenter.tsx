@@ -1,9 +1,306 @@
-import React from 'react'
+import React, { useState } from "react";
+import AccessManagementPanel from "@/app/admin/pages/personnel-center/roles&access/role-access";
+import HistoryLogsPanel from "@/app/admin/pages/personnel-center/history&logs/history-logs";
+import { Search, Plus } from "lucide-react";
+import { toast, Toaster } from "react-hot-toast";
 
-export default function PersonnelCenter() {
-  return (
-    <div>
-      Personnel Center
-    </div>
-  )
+export const FormResetContext = React.createContext({
+  shouldResetForm: false,
+  setShouldResetForm: (value: boolean) => {}
+});
+
+interface Personnel {
+  id: number;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  suffix?: string;
+  birthdate: string;
+  sex: string;
+  phoneNumber: string;
+  email: string;
+  username: string;
+  address: {
+    houseNumber: string;
+    street: string;
+    district: string;
+    province: string;
+  };
+  role: {
+    admin: boolean;
+    registrar: boolean;
+  };
+  accessPermissions: {
+    dashboard: { view: boolean; canMakeChanges: boolean };
+    enrollmentReview: { view: boolean; canMakeChanges: boolean };
+    enrollmentManagement: { view: boolean; canMakeChanges: boolean };
+    personnelCenter: { view: boolean; canMakeChanges: boolean };
+    settings: { view: boolean; canMakeChanges: boolean };
+  };
 }
+
+const samplePersonnel: Personnel[] = [
+  {
+    id: 1,
+    firstName: "John",
+    middleName: "Doe",
+    lastName: "Smith",
+    suffix: "Jr",
+    birthdate: "1990-05-15",
+    sex: "Male",
+    phoneNumber: "0912 345 6789",
+    email: "john.smith@example.com",
+    username: "johnsmith",
+    address: {
+      houseNumber: "123",
+      street: "Main St",
+      district: "District 1",
+      province: "Province A"
+    },
+    role: { admin: true, registrar: false },
+    accessPermissions: {
+      dashboard: { view: true, canMakeChanges: true },
+      enrollmentReview: { view: true, canMakeChanges: true },
+      enrollmentManagement: { view: true, canMakeChanges: true },
+      personnelCenter: { view: true, canMakeChanges: true },
+      settings: { view: true, canMakeChanges: true }
+    }
+  },
+  {
+    id: 2,
+    firstName: "Jane",
+    lastName: "Doe",
+    birthdate: "1992-08-21",
+    sex: "Female",
+    phoneNumber: "0923 456 7890",
+    email: "jane.doe@example.com",
+    username: "janedoe",
+    address: {
+      houseNumber: "456",
+      street: "Oak Ave",
+      district: "District 2",
+      province: "Province B"
+    },
+    role: { admin: false, registrar: true },
+    accessPermissions: {
+      dashboard: { view: true, canMakeChanges: false },
+      enrollmentReview: { view: true, canMakeChanges: true },
+      enrollmentManagement: { view: true, canMakeChanges: true },
+      personnelCenter: { view: true, canMakeChanges: false },
+      settings: { view: false, canMakeChanges: false }
+    }
+  }
+];
+
+const PersonnelCenter: React.FC = () => {
+  const [shouldResetForm, setShouldResetForm] = useState(false);
+  const [personnel, setPersonnel] = useState(samplePersonnel);
+  const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("roles-access");
+  const [userFilter, setUserFilter] = useState("");
+  const [actionFilter, setActionFilter] = useState("");
+
+  const handleAddNewPersonnel = () => {
+    setSelectedPersonnel(null);
+    setShouldResetForm(true);
+    if (activeTab !== "roles-access") setActiveTab("roles-access");
+    toast.success("New personnel form opened", { duration: 2000, position: "top-right" });
+  };
+
+  const handlePersonnelRowClick = (person: Personnel) => {
+    setSelectedPersonnel(person);
+    toast.success("Personnel selected", { duration: 2000, position: "top-right" });
+  };
+
+  const handleSavePersonnel = (data: any) => {
+    if (!data.firstName || !data.lastName || !data.email) {
+      toast.error("Please fill all required fields", { duration: 2000, position: "top-right" });
+      return;
+    }
+    if (selectedPersonnel) {
+      setPersonnel(prev => prev.map(p => (p.id === selectedPersonnel.id ? { ...p, ...data } : p)));
+    } else {
+      const newId = Math.max(...personnel.map(p => p.id), 0) + 1;
+      setPersonnel(prev => [...prev, { id: newId, ...data }]);
+    }
+    toast.success("Personnel saved successfully", { duration: 2000, position: "top-right" });
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleUserFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setUserFilter(e.target.value);
+  };
+
+  const handleActionFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setActionFilter(e.target.value);
+  };
+
+  const filteredPersonnel = personnel.filter(person => {
+    const query = searchQuery.toLowerCase();
+    return (
+      person.firstName.toLowerCase().includes(query) ||
+      person.lastName.toLowerCase().includes(query) ||
+      person.email.toLowerCase().includes(query) ||
+      person.username.toLowerCase().includes(query)
+    );
+  });
+
+  const renderContent = () => {
+    if (activeTab === "roles-access") {
+      return (
+        <div className="flex h-screen">
+          {/* Sidebar */}
+          <div className="w-1/3 p-4 bg-gray-50">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex space-x-2 bg-white rounded-md border-2 p-2">
+                <button
+                  className={`cursor-pointer rounded-[10px] px-4 py-2 transition ease-in-out duration-300 hover:bg-accent hover:text-background ${
+                    activeTab === "roles-access" ? "bg-accent font-semibold text-background" : "bg-background text-text-2"
+                  }`}
+                  onClick={() => setActiveTab("roles-access")}
+                >
+                  Roles & Access
+                </button>
+                <button
+                  className={`cursor-pointer rounded-[10px] px-4 py-2 transition ease-in-out duration-300 hover:bg-accent hover:text-background ${
+                    activeTab === "history-logs" ? "bg-accent font-semibold text-background" : "bg-background text-text-2"
+                  }`}
+                  onClick={() => setActiveTab("history-logs")}
+                >
+                  History & Logs
+                </button>
+              </div>
+              <button
+                className="bg-accent text-white rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:bg-accent transition"
+                onClick={handleAddNewPersonnel}
+              >
+                <Plus size={24} />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <div className="relative bg-white">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="search"
+                  className="w-full p-2 pl-10 border rounded-lg"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={handleSearch}
+                />
+              </div>
+            </div>
+
+            <div className="w-full h-125 bg-white rounded-lg shadow overflow-hidden">
+              <table className="w-full text-left">
+                <thead className="bg-white text-primary">
+                  <tr>
+                    <th className="px-4 py-2">ID</th>
+                    <th className="px-4 py-2">Name</th>
+                    <th className="px-4 py-2">Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPersonnel.map(person => (
+                    <tr
+                      key={person.id}
+                      onClick={() => handlePersonnelRowClick(person)}
+                      className="hover:bg-blue-100 cursor-pointer"
+                    >
+                      <td className="px-4 py-2">{person.id}</td>
+                      <td className="px-4 py-2">{person.firstName} {person.lastName}</td>
+                      <td className="px-4 py-2">
+                        {person.role.admin && <span className="text-gray-800">Admin</span>}
+                        {person.role.registrar && <span className="text-gray-800">Registrar</span>}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredPersonnel.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="text-center py-4 text-gray-500">No personnel found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Right panel */}
+          <div className="flex-1 p-5 overflow-auto">
+            <FormResetContext.Provider value={{ shouldResetForm, setShouldResetForm }}>
+              <AccessManagementPanel
+                selectedPersonnel={selectedPersonnel}
+                onSave={handleSavePersonnel}
+                searchQuery={searchQuery}
+              />
+            </FormResetContext.Provider>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col w-full p-4 h-screen bg-container-bg">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex space-x-2 bg-white rounded-md border-2 p-2">
+            <button
+              className={`cursor-pointer rounded-[10px] px-4 py-2 transition ease-in-out duration-300 hover:bg-accent hover:text-background ${
+                activeTab === "roles-access" ? "bg-accent font-semibold text-background" : "bg-background text-text-2"
+              }`}
+              onClick={() => setActiveTab("roles-access")}
+            >
+              Roles & Access
+            </button>
+            <button
+              className={`cursor-pointer rounded-[10px] px-4 py-2 transition ease-in-out duration-300 hover:bg-accent hover:text-background ${
+                activeTab === "history-logs" ? "bg-accent font-semibold text-background" : "bg-background text-text-2"
+              }`}
+              onClick={() => setActiveTab("history-logs")}
+            >
+              History & Logs
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-4 w-80">
+            <div>
+              <select
+                className="w-full border-border-1 border-3 bg-white rounded-md p-2 text-sm"
+                value={userFilter}
+                onChange={handleUserFilterChange}
+              >
+                <option value="">Sort by User</option>
+                <option value="Admin1">Admin1</option>
+                <option value="Admin2">Admin2</option>
+              </select>
+            </div>
+            <div>
+              <select
+                className="w-full border-border-1 border-3 bg-white rounded-md p-2 text-sm"
+                value={actionFilter}
+                onChange={handleActionFilterChange}
+              >
+                <option value="">Sort by Action</option>
+                <option value="Logged in">Logged in</option>
+                <option value="Enrolled Student">Enrolled Student</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <HistoryLogsPanel userFilter={userFilter} actionFilter={actionFilter} />
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <Toaster position="top-right" reverseOrder={false} />
+      {renderContent()}
+    </>
+  );
+};
+export default PersonnelCenter;
