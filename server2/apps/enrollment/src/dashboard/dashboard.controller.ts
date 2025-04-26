@@ -49,4 +49,14 @@ export class DashboardController {
       payload.studentId,
     );
   }
+
+  @MessagePattern({ cmd: 'get_file_downloadables_by_student' })
+  async getFileDownloadablesByStudent(
+    @Payload() payload: { studentId: number; userSchoolId: number },
+  ) {
+    return await this.dashboardService.getFileDownloadablesByStudent(
+      payload.studentId,
+      payload.userSchoolId,
+    );
+  }
 }

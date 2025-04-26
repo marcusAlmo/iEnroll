@@ -11,3 +11,7 @@ export type EnrollmentStatusReturn = Awaited<
 export type DocumentsReuploadStatusReturn = Awaited<
   ReturnType<DashboardController['getDocumentsForReupload']>
 >;
+
+export type FileDownloadablesReturn = Awaited<
+  ReturnType<DashboardController['getFileDownloadablesByStudent']>
+>;

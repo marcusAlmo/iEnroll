@@ -29,4 +29,15 @@ export class DashboardController {
       studentId,
     });
   }
+
+  @Get('downloadables')
+  async getFileDownloadablesByStudent(
+    @User('user_id') studentId: number,
+    @User('school_id') userSchoolId: number,
+  ) {
+    return await this.dashboardService.getFileDownloadablesByStudent({
+      studentId,
+      userSchoolId,
+    });
+  }
 }
