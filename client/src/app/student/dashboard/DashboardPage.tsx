@@ -88,7 +88,6 @@ const DashboardPage = () => {
         default:
           interpretedStatus = AcceptedEnrollmentStatus.none;
       }
-
       return {
         ...data,
         enrollmentStatus: interpretedStatus,
@@ -209,7 +208,7 @@ const DashboardPage = () => {
             <div className="text-primary mt-6 text-lg font-semibold">
               Documents
             </div>
-            {!isReuploadsPending && reuploads && reuploads.length && (
+            {(!isReuploadsPending && reuploads && reuploads.length && (
               <div className="bg-background mt-2.5 flex flex-col justify-center rounded-[10px] px-6 py-4">
                 <div className="text-primary text-lg font-semibold">
                   Re-upload documents
@@ -227,7 +226,7 @@ const DashboardPage = () => {
                   </ul>
                 </div>
               </div>
-            )}
+            )) || <></>}
             <div className="bg-background mt-6 flex flex-col justify-center rounded-[10px] px-6 py-4">
               <div className="text-primary text-lg font-semibold">
                 Download documents
