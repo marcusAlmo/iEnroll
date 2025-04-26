@@ -100,6 +100,39 @@ export class FeesService {
     }
   }
 
+  public async getGradeLevels(
+    schoolId: number,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const data = await this.prisma.grade_level_offered.findMany({
+      where: {
+        school_id: schoolId,
+        is_active: true,
+        grade_section_program: {
+          some: {
+            grade_level_offered_id: {
+              not: undefined,
+            },
+          },
+        },
+      },
+      select: {
+        grade_level_code: true,
+        grade_level: {
+          select: {
+            grade_level: true,
+          },
+        },
+      },
+    });
+
+    const finalData: Fees['grade_level'] = data.map((d) => ({
+      gradeLevelCode: d.grade_level_code,
+      gradeLevel: d.grade_level.grade_level,
+    }));
+
+    return this.microserviceUtilityService.returnSuccess(finalData);
+  }
+
   // UTILITY FUNCTIONS
 
   // this is for fetching

@@ -61,4 +61,10 @@ export interface Fees {
     description: string | null;
     dueDate: Date;
   }[];
+
+  // for retrieving grade levels
+  grade_level: {
+    gradeLevelCode: string;
+    gradeLevel: string;
+  }[];
 }

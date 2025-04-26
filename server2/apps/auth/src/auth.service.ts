@@ -18,8 +18,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  private FALLBACK_SECRET: 'supersecret';
-  private FALLBACK_ESPIRES_IN: '7d';
+  private FALLBACK_SECRET = 'supersecret';
+  private FALLBACK_ESPIRES_IN = '7d';
 
   getHello(): string {
     return 'Hello World!';
