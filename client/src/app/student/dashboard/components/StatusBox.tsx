@@ -19,7 +19,7 @@ const StatusBox = ({ status, description }: EnrollmentStatus) => {
       statusLabel: "No application submitted",
       statusLabelColor: "bg-border-1",
       actionText: "Click here to apply",
-      action: () => navigate("/student/enroll")
+      action: () => navigate("/student/enroll/step-1")
     },
     Enrolled: {
       statusLabel: "Enrolled",
