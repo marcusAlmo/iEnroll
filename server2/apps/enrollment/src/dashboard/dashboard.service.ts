@@ -152,4 +152,48 @@ export class DashboardService {
       requirementName: data.enrollment_requirement.name,
     }));
   }
+
+  // School files that can ba downloadable by students
+  async getFileDownloadablesByStudent(studentId: number, userSchoolId: number) {
+    const currentDate = new Date();
+    const result = await this.prisma.school_file.findMany({
+      where: {
+        school_id: userSchoolId,
+        OR: [
+          {
+            access_type: 'public',
+          },
+          {
+            school_file_access: {
+              some: {
+                student_id: studentId,
+                access_datetime: {
+                  lte: currentDate,
+                },
+                access_end_datetime: {
+                  gte: currentDate,
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        file: {
+          select: {
+            name: true,
+            uuid: true,
+          },
+        },
+      },
+      orderBy: {
+        upload_datetime: 'desc',
+      },
+    });
+
+    return result.map((data) => ({
+      fileName: data.file.name,
+      fileUrl: `/api/file/${data.file.uuid}`,
+    }));
+  }
 }
