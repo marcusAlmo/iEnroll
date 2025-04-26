@@ -27,6 +27,7 @@ import { Control, Path } from "react-hook-form";
 export type DropdownItem = {
   id: string | number;
   label: string;
+  sublabel?: string;  // Specifically for displaying school address in the enrollment form
 };
 
 type CustomDropdownProps<TSchema extends z.ZodType<any, any>> = {
@@ -61,7 +62,7 @@ const CustomDropdown = <TSchema extends z.ZodType<any, any>>({
   labelClassName,
   icon = <FontAwesomeIcon icon={faChevronDown} className="ml-2" />,
   disabled = false,
-  placeholder = "Select a value"
+  placeholder = "Select a value",
 }: CustomDropdownProps<TSchema>) => {
   const selectedItem = values.find(item => item.id.toString() === value?.toString());
 
@@ -88,17 +89,20 @@ const CustomDropdown = <TSchema extends z.ZodType<any, any>>({
               </DropdownMenuTrigger>
               
               <DropdownMenuContent 
-                className={cn("w-full min-w-[8rem] p-0", menuClassName)}
+                className={cn("p-0", menuClassName)}
                 align="start"
                 sideOffset={4}
               >
                 {values.map((item) => (
                   <DropdownMenuItem
                     key={item.id}
-                    className={cn("cursor-pointer w-full py-2 px-4", itemClassName)}
+                    className={cn("cursor-pointer py-2 px-4", itemClassName)}
                     onSelect={() => field.onChange(item.id.toString())}
                   >
-                    {item.label}
+                    <div className="flex flex-col">
+                      <span>{item.label}</span>
+                      {item.sublabel && <span className="text-text-2 font-normal text-xs">{item.sublabel}</span>}
+                    </div>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
