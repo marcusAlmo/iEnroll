@@ -52,7 +52,6 @@ export class DashboardService {
       };
     }
   }
-
   async getEnrollmentStatus(studentId: number) {
     const result = await this.prisma.student.findFirst({
       where: {
@@ -83,6 +82,11 @@ export class DashboardService {
                             program: true,
                           },
                         },
+                        enrollment_fee: {
+                          select: {
+                            due_date: true,
+                          },
+                        },
                       },
                     },
                   },
@@ -101,9 +105,9 @@ export class DashboardService {
     if (!result) {
       return EnrollmentStatus.NOT_FOUND;
     }
-    if (!result.enrollment_application) {
-      return EnrollmentStatus.NOT_ENROLLED;
-    }
+    // if (!result.enrollment_application) {
+    //   return EnrollmentStatus.NOT_ENROLLED;
+    // }
 
     // if status values $Enums.application_status.accepted, program and section becomes not null.
     return {
@@ -112,12 +116,21 @@ export class DashboardService {
         result.enrollment_application?.grade_level_offered.grade_level
           .grade_level,
       section:
-        result.enrollment_application.student_enrollment?.grade_section
+        result.enrollment_application?.student_enrollment?.grade_section
           .section_name,
       program:
-        result.enrollment_application.student_enrollment?.grade_section
+        result.enrollment_application?.student_enrollment?.grade_section
           .grade_section_program.academic_program.program,
       isPaid: Boolean(result.enrollment_fee_payment),
+      //? Since there are many payments, I reduced it to the most latest date
+      dueDate:
+        result.enrollment_application?.student_enrollment?.grade_section.grade_section_program.enrollment_fee.reduce(
+          (latest, current) => {
+            return new Date(current.due_date) > new Date(latest.due_date)
+              ? current
+              : latest;
+          },
+        ).due_date,
     };
   }
 

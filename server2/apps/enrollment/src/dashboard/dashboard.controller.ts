@@ -33,11 +33,11 @@ export class DashboardController {
           statusCode: 404,
           message: 'ERROR_STUDENT_NOT_FOUND',
         });
-      case EnrollmentStatus.NOT_ENROLLED:
-        throw new RpcException({
-          statusCode: 400,
-          message: 'ERROR_STUDENT_NOT_ENROLLED',
-        });
+      // case EnrollmentStatus.NOT_ENROLLED:
+      //   throw new RpcException({
+      //     statusCode: 400,
+      //     message: 'ERROR_STUDENT_NOT_ENROLLED',
+      //   });
       default:
         return result;
     }
