@@ -45,7 +45,8 @@
           ],
           "status": "active",
           "allowSectionSelection": true,
-          "applications": 15
+          "applications": 15,
+          "maxApplications": 50
         }
       ]
     },
@@ -86,7 +87,8 @@
           ],
           "status": "paused",
           "allowSectionSelection": false,
-          "applications": 0
+          "applications": 0,
+          "maxApplications": 40
         },
         {
           "id": "g8-schedule-2",
@@ -103,7 +105,8 @@
           ],
           "status": "active",
           "allowSectionSelection": true,
-          "applications": 25
+          "applications": 25,
+          "maxApplications": 60
         }
       ]
     },
@@ -144,7 +147,8 @@
           ],
           "status": "active",
           "allowSectionSelection": true,
-          "applications": 0
+          "applications": 0,
+          "maxApplications": 45
         }
       ]
     },
@@ -185,7 +189,8 @@
           ],
           "status": "active",
           "allowSectionSelection": false,
-          "applications": 10
+          "applications": 10,
+          "maxApplications": 55
         }
       ]
     }
