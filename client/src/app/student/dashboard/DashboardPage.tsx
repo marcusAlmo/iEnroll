@@ -43,6 +43,7 @@ import {
   getDocumentsForReupload,
   getEnrolleeDetails,
   getEnrollmentStatus,
+  getFileDownloadablesByStudent,
   getStudentFirstName,
 } from "@/services/mobile-web-app/dashboard";
 import { useAuth } from "@/contexts/useAuth";
@@ -104,6 +105,12 @@ const DashboardPage = () => {
         documentName: d.requirementName,
         action: () => navigate("/student/enroll/upload-documents"),
       })),
+  });
+
+  const { data: downloadables, isPending: isDownloadablesPending } = useQuery({
+    queryKey: ["student-school-downloadables"],
+    queryFn: getFileDownloadablesByStudent,
+    select: (data) => data.data,
   });
 
   // For the re-upload documents when enrollment is pending
@@ -227,16 +234,27 @@ const DashboardPage = () => {
                 </div>
               </div>
             )) || <></>}
-            <div className="bg-background mt-6 flex flex-col justify-center rounded-[10px] px-6 py-4">
-              <div className="text-primary text-lg font-semibold">
-                Download documents
+            {!isDownloadablesPending && downloadables && (
+              <div className="bg-background mt-6 flex flex-col justify-center rounded-[10px] px-6 py-4">
+                <div className="text-primary text-lg font-semibold">
+                  Download documents
+                </div>
+                <div>
+                  <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
+                    {downloadables.map((downloadable) => (
+                      <li className="mt-1">
+
+                        // ! This may not work, better to use axios
+                        <a href={downloadable.fileUrl}>
+                          {downloadable.fileName}
+                        </a>
+                      </li>
+                    ))}
+                    <li className="mt-1">Student Handbook</li>
+                  </ul>
+                </div>
               </div>
-              <div>
-                <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
-                  <li className="mt-1">Student Handbook</li>
-                </ul>
-              </div>
-            </div>
+            )}
             <div className="bg-border-1 my-6 flex flex-col items-center justify-center rounded-[10px] px-6 py-4">
               <div className="text-text-2 text-lg font-semibold">
                 Request Document
