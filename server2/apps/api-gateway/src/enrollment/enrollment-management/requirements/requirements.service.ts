@@ -1,62 +1,63 @@
+import { lastValueFrom } from 'rxjs';
 import { ExceptionCheckerService } from '@lib/exception-checker/exception-checker.service';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 import { Injectable, Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { Requirements } from 'apps/enrollment/src/enrollment-management/requirements/interface/requirements.interface';
 import { EnrollmentSchedule } from 'apps/enrollment/src/enrollment-management/enrollment-schedule/interface/enrollment-schedule.interface';
-import { lastValueFrom } from 'rxjs';
 
 @Injectable()
-export class EnrollmentScheduleService {
+export class RequirementsService {
   constructor(
     @Inject('ENROLLMENT_SERVICE') private readonly client: ClientProxy,
     private readonly exceptionCheckerService: ExceptionCheckerService,
   ) {}
 
-  public async getAllGrades(
-    schoolId: number,
-  ): Promise<EnrollmentSchedule['processedGradeLevel']> {
+  public async getAllRequirements(
+    payload: object,
+  ): Promise<Requirements['processedRequirements']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'get-all-schedules' }, { schoolId }),
+      this.client.send({ cmd: 'retrieve-requirements' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as EnrollmentSchedule['processedGradeLevel'];
+    return result.data as Requirements['processedRequirements'];
   }
 
-  public async storeData(
+  public async processReceivedData(
     payload: object,
-  ): Promise<MicroserviceUtility['returnValue']> {
+  ): Promise<Requirements['processedRequirements']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'store-data' }, { payload }),
+      this.client.send({ cmd: 'process-received-requirements' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as MicroserviceUtility['returnValue'];
+    return result.data as Requirements['processedRequirements'];
   }
 
-  public async pauseSchedule(
+  public async deleteRequirement(
     payload: object,
-  ): Promise<MicroserviceUtility['returnValue']> {
+  ): Promise<EnrollmentSchedule['processReturn']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'pause-schedule' }, { payload }),
+      this.client.send({ cmd: 'delete-requirement' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as MicroserviceUtility['returnValue'];
+    return result.data as EnrollmentSchedule['processReturn'];
   }
 
-  public async deleteSchedule(
+  public async updateRequirement(
     payload: object,
-  ): Promise<MicroserviceUtility['returnValue']> {
+  ): Promise<EnrollmentSchedule['processReturn']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'delete-schedule' }, { payload }),
+      this.client.send({ cmd: 'update-requirement' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as MicroserviceUtility['returnValue'];
+    return result.data as EnrollmentSchedule['processReturn'];
   }
 }
