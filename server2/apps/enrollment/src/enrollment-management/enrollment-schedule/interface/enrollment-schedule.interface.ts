@@ -27,16 +27,42 @@ export interface EnrollmentSchedule {
       isPaused: boolean;
       canChooseSection: boolean;
     }[];
+    slotCapacity: string;
   }[];
 
   receivedData: {
     gradeLevelCode: string[];
     schedDate: {
-      startDate: Date;
-      endDate: Date;
+      isPaused: boolean;
+      DateString: string;
+      startTime: string;
+      endTime: string;
     }[];
-    isPaused: boolean;
     canChooseSection: boolean;
-    
-  }
+    slotCapacity: number;
+  };
+
+  processStringDateReturn: {
+    startDate: Date;
+    endDate: Date;
+  };
+
+  preliminaryProccessOutput: {
+    start_date_time: Date;
+    end_date_time: Date;
+    is_paused: boolean;
+  }[];
+
+  processReturn: {
+    message: string;
+  };
+
+  storeData: {
+    grade_level_offered_id: number;
+    application_slot: number;
+    start_datetime: Date;
+    end_datetime: Date;
+    is_paused: boolean;
+    can_choose_section: boolean;
+  }[];
 }
