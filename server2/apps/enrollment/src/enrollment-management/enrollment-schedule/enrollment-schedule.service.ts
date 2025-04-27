@@ -61,6 +61,23 @@ export class EnrollmentScheduleService {
     });
   }
 
+  public async pauseSchedule(
+    scheduleId: number,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    await this.prisma.enrollment_schedule.update({
+      where: {
+        schedule_id: scheduleId,
+      },
+      data: {
+        is_paused: true,
+      },
+    });
+
+    return this.microserviceUtility.returnSuccess({
+      message: 'Enrollment schedule paused successfully',
+    });
+  }
+
   // UTILITY FUNCTIONS
 
   // for retrieval
