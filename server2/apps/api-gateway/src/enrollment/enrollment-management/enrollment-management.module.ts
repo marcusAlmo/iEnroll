@@ -5,6 +5,7 @@ import { SchoolDetailsModule } from './school-details/school-details.module';
 import { FeesModule } from './fees/fees.module';
 import { GradeLevelsModule } from './grade-levels/grade-levels.module';
 import { EnrollmentScheduleModule } from './enrollment-schedule/enrollment-schedule.module';
+import { RequirementsModule } from './requirements/requirements.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { EnrollmentScheduleModule } from './enrollment-schedule/enrollment-sched
     FeesModule,
     GradeLevelsModule,
     EnrollmentScheduleModule,
+    RequirementsModule,
   ],
 })
 export class EnrollmentManagementModule {}
