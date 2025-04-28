@@ -92,8 +92,10 @@ model enrollment_application {
   remarks                String?
   application_datetime   DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
+  grade_section_id       Int?
   application_attachment application_attachment[]
   grade_level_offered    grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_enrollment_application_grade_level_offered_id")
+  grade_section          grade_section?           @relation(fields: [grade_section_id], references: [grade_section_id], onDelete: Restrict, map: "fk_enrollment_application_grade_section_id")
   aux_schedule_slot      aux_schedule_slot        @relation(fields: [schedule_id], references: [schedule_id], map: "fk_enrollment_application_schedule_id")
   student                student                  @relation(fields: [application_id], references: [student_id], map: "fk_enrollment_application_student_id")
   student_enrollment     student_enrollment?
@@ -139,13 +141,15 @@ model enrollment_requirement {
 }
 
 model enrollment_schedule {
-  schedule_id            Int                 @id(map: "pk_enrollment_schedule")
+  schedule_id            Int                 @id(map: "pk_enrollment_schedule") @default(autoincrement())
   grade_level_offered_id Int
   application_slot       Int
   start_datetime         DateTime            @db.Timestamp(6)
   end_datetime           DateTime            @db.Timestamp(6)
   creation_datetime      DateTime?           @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?           @default(now()) @db.Timestamp(6)
+  is_paused              Boolean?            @default(false)
+  can_choose_section     Boolean             @default(false)
   aux_schedule_slot      aux_schedule_slot?
   grade_level_offered    grade_level_offered @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_enrollment_schedule_grade_level_offered_id")
 
@@ -175,15 +179,16 @@ model grade_level_offered {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model grade_section {
-  grade_section_id         Int                   @id(map: "pk_grade_section") @default(autoincrement())
+  grade_section_id         Int                      @id(map: "pk_grade_section") @default(autoincrement())
   grade_section_program_id Int
-  section_name             String                @db.VarChar(100)
-  adviser                  String                @db.VarChar(100)
+  section_name             String                   @db.VarChar(100)
+  adviser                  String                   @db.VarChar(100)
   admission_slot           Int
   max_application_slot     Int
-  creation_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  update_datetime          DateTime?             @default(now()) @db.Timestamp(6)
-  grade_section_program    grade_section_program @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_grade_section_grade_section_type_id")
+  creation_datetime        DateTime?                @default(now()) @db.Timestamp(6)
+  update_datetime          DateTime?                @default(now()) @db.Timestamp(6)
+  enrollment_application   enrollment_application[]
+  grade_section_program    grade_section_program    @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_grade_section_grade_section_type_id")
   student_enrollment       student_enrollment[]
 
   @@unique([grade_section_program_id, section_name], map: "uq_grade_section")
@@ -693,6 +698,7 @@ model academic_program {
   grade_section_program grade_section_program[]
 
   @@unique([program, description], map: "uq_academic_program")
+  @@unique([program, description], map: "uq_program_description")
   @@schema("system")
 }
 
@@ -713,7 +719,7 @@ model subscription_plan {
   is_active              Boolean?              @default(true)
   creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  max_download_count     Int
+  max_download_count     Int                   @default(0)
   school_subscription    school_subscription[]
 
   @@schema("system")
