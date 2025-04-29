@@ -115,6 +115,8 @@ model enrollment_fee {
   due_date                 DateTime              @db.Date
   creation_datetime        DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime          DateTime?             @default(now()) @db.Timestamp(6)
+  fee_type_id              Int
+  fee_type                 fee_type              @relation(fields: [fee_type_id], references: [fee_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_enrollment_fee_fee_type_id")
   grade_section_program    grade_section_program @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_enrollment_fee_grade_section_type_id")
 
   @@unique([grade_section_program_id, name], map: "uq_enrollment_fee")
@@ -148,7 +150,7 @@ model enrollment_schedule {
   end_datetime           DateTime            @db.Timestamp(6)
   creation_datetime      DateTime?           @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?           @default(now()) @db.Timestamp(6)
-  is_paused              Boolean             @default(false)
+  is_paused              Boolean?            @default(false)
   can_choose_section     Boolean             @default(false)
   aux_schedule_slot      aux_schedule_slot?
   grade_level_offered    grade_level_offered @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_enrollment_schedule_grade_level_offered_id")
@@ -193,41 +195,6 @@ model grade_section {
 
   @@unique([grade_section_program_id, section_name], map: "uq_grade_section")
   @@index([grade_section_program_id], map: "idx_grade_section_grade_section_type_id")
-  @@schema("enrollment")
-}
-
-model permission {
-  permission_id     Int               @id(map: "pk_permission") @default(autoincrement())
-  name              String            @unique(map: "uq_permission") @db.VarChar(100)
-  description       String?           @db.VarChar(255)
-  creation_datetime DateTime?         @default(now()) @db.Timestamp(6)
-  update_datetime   DateTime?         @default(now()) @db.Timestamp(6)
-  role_permission   role_permission[]
-
-  @@schema("enrollment")
-}
-
-model role {
-  role_code         String            @id(map: "pk_role") @db.Char(3)
-  name              String            @unique(map: "uq_role") @db.VarChar(100)
-  description       String?           @db.VarChar(255)
-  creation_datetime DateTime?         @default(now()) @db.Timestamp(6)
-  update_datetime   DateTime?         @default(now()) @db.Timestamp(6)
-  role_permission   role_permission[]
-  user_role         user_role[]
-
-  @@schema("enrollment")
-}
-
-model role_permission {
-  role_code           String     @db.Char(3)
-  permission_id       Int
-  assignment_datetime DateTime?  @default(now()) @db.Timestamp(6)
-  update_datetime     DateTime?  @default(now()) @db.Timestamp(6)
-  permission          permission @relation(fields: [permission_id], references: [permission_id], map: "fk_role_permission_permission_id")
-  role                role       @relation(fields: [role_code], references: [role_code], map: "fk_role_permission_role_code")
-
-  @@id([role_code, permission_id], map: "pk_role_permission")
   @@schema("enrollment")
 }
 
@@ -367,14 +334,13 @@ model user {
   conversation_conversation_participant_1Touser conversation[]           @relation("conversation_participant_1Touser")
   conversation_conversation_participant_2Touser conversation[]           @relation("conversation_participant_2Touser")
   message                                       message[]
+  access_list                                   access_list?
   application_attachment                        application_attachment[]
   school_file_access                            school_file_access[]
   student_student_enroller_idTouser             student[]                @relation("student_enroller_idTouser")
   student_enrollment                            student_enrollment[]
   school                                        school                   @relation(fields: [school_id], references: [school_id], map: "fk_user_school_id")
   user_log                                      user_log[]
-  user_role_user_role_assigned_byTouser         user_role[]              @relation("user_role_assigned_byTouser")
-  user_role_user_role_user_idTouser             user_role[]              @relation("user_role_user_idTouser")
 
   @@unique([first_name, middle_name, last_name, suffix], map: "uq_name")
   @@index([school_id], map: "idx_user_school_id")
@@ -390,22 +356,6 @@ model user_log {
   user         user      @relation(fields: [user_id], references: [user_id], map: "fk_user_log_user_id")
 
   @@index([user_id], map: "idx_user_log_user_id")
-  @@schema("enrollment")
-}
-
-model user_role {
-  user_id                          Int
-  role_code                        String    @db.Char(3)
-  assigned_by                      Int
-  is_active                        Boolean?  @default(true)
-  assignment_datetime              DateTime? @default(now()) @db.Timestamp(6)
-  update_datetime                  DateTime? @default(now()) @db.Timestamp(6)
-  user_user_role_assigned_byTouser user      @relation("user_role_assigned_byTouser", fields: [assigned_by], references: [user_id], map: "fk_user_role_assigned_by")
-  role                             role      @relation(fields: [role_code], references: [role_code], map: "fk_user_role_role_code")
-  user_user_role_user_idTouser     user      @relation("user_role_user_idTouser", fields: [user_id], references: [user_id], map: "fk_user_role_user_id")
-
-  @@id([user_id, role_code], map: "pk_user_role")
-  @@index([assigned_by], map: "idx_user_role_assigned_by")
   @@schema("enrollment")
 }
 
@@ -698,6 +648,7 @@ model academic_program {
   grade_section_program grade_section_program[]
 
   @@unique([program, description], map: "uq_academic_program")
+  @@unique([program, description], map: "uq_program_description")
   @@schema("system")
 }
 
@@ -718,7 +669,7 @@ model subscription_plan {
   is_active              Boolean?              @default(true)
   creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  max_download_count     Int
+  max_download_count     Int                   @default(0)
   school_subscription    school_subscription[]
 
   @@schema("system")
@@ -822,6 +773,46 @@ model street {
   @@schema("system")
 }
 
+model flyway_schema_history {
+  installed_rank Int      @id(map: "flyway_schema_history_pk")
+  version        String?  @db.VarChar(50)
+  description    String   @db.VarChar(200)
+  type           String   @db.VarChar(20)
+  script         String   @db.VarChar(1000)
+  checksum       Int?
+  installed_by   String   @db.VarChar(100)
+  installed_on   DateTime @default(now()) @db.Timestamp(6)
+  execution_time Int
+  success        Boolean
+
+  @@index([success], map: "flyway_schema_history_s_idx")
+  @@schema("chat")
+}
+
+model fee_type {
+  fee_type_id       Int              @id(map: "pk_fee_type") @default(autoincrement())
+  fee_type          String           @unique(map: "uq_fee_type") @db.VarChar(100)
+  creation_datetime DateTime         @default(now()) @db.Timestamp(6)
+  update_datetime   DateTime         @default(now()) @db.Timestamp(6)
+  enrollment_fee    enrollment_fee[]
+
+  @@schema("enrollment")
+}
+
+model access_list {
+  user_id                      Int                     @id(map: "pk_access_list")
+  role                         role_type
+  dashboard_access             access_type_access_list @default(read)
+  enrollment_review_access     access_type_access_list @default(read)
+  enrollment_management_access access_type_access_list @default(read)
+  personnel_center_access      access_type_access_list @default(read)
+  system_settings_access       access_type_access_list @default(read)
+  update_datetime              DateTime?               @default(now()) @db.Timestamp(6)
+  user                         user                    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_access_list_user_id")
+
+  @@schema("enrollment")
+}
+
 enum accepted_data_type {
   string
   number
@@ -895,6 +886,22 @@ enum payment_option {
   e_wallet      @map("e-wallet")
   bank_transfer
   crypto
+
+  @@schema("enrollment")
+}
+
+enum access_type_access_list {
+  read
+  modify
+
+  @@schema("enrollment")
+}
+
+enum role_type {
+  admin
+  registrar
+  student
+  parent
 
   @@schema("enrollment")
 }
