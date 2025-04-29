@@ -1,6 +1,6 @@
 import React from 'react';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSquareCheck, faSquareXmark } from "@fortawesome/free-solid-svg-icons";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { faSquareCheck, faSquareXmark } from "@fortawesome/free-solid-svg-icons";
 import { useEnrollmentReview } from '../../../../context/enrollmentReviewContext';
 
 /**
@@ -13,7 +13,8 @@ import { useEnrollmentReview } from '../../../../context/enrollmentReviewContext
 export const RequirementsPanel: React.FC = () => {
   // Destructure context values from the enrollment review context
   const {
-    currentIndex,             // Tracks the currently selected requirement index
+    
+    // currentIndex,             // Tracks the currently selected requirement index
     setCurrentIndex,          // Function to update the current index
     selectedStudent,          // The currently selected student object
     requirements,             // List of requirements for the selected student
@@ -29,7 +30,7 @@ export const RequirementsPanel: React.FC = () => {
         {/* Table header */}
         <thead className="text-text-2 text-left">
           <tr>
-            <th>REQUIREMENT</th> {/* Column for requirement names */}
+            <th>REQUIREMENTS</th> {/* Column for requirement names */}
             <th>STATUS</th>      {/* Column for requirement statuses */}
             <th>ACTION</th>      {/* Column for actions (e.g., "View") */}
           </tr>
@@ -47,28 +48,31 @@ export const RequirementsPanel: React.FC = () => {
                 {/* Requirement status - displayed as check/x icons */}
                 <td className="w-1/4 border-b py-1">
                   <span
-                    className="cursor-pointer items-start rounded px-2 py-1 text-start text-xl font-semibold transition-all duration-300 ease-in-out"
+                    className="cursor-pointer items-center justify-center rounded text-start align-middle font-semibold transition-all duration-300 ease-in-out"
                   >
                     {/* Conditional rendering of status icons based on requirement status */}
                     {requirement.requirementStatus === true ? (
                       <>
                         {/* Green check for approved requirements */}
-                        <FontAwesomeIcon icon={faSquareCheck} className="text-success mr-2" />
+                        {/* <FontAwesomeIcon icon={faSquareCheck} className="text-success mr-2" /> */}
                         {/* Gray X for the inactive state */}
-                        <FontAwesomeIcon icon={faSquareXmark} className="text-gray-400" />
+                        {/* <FontAwesomeIcon icon={faSquareXmark} className="text-gray-400" /> */}
+                        <p className='my-2 mr-2 rounded-full border border-green-700 bg-success/20 py-1 text-center text-xs text-green-700'>Approved</p>
                       </>
                     ) : requirement.requirementStatus === false ? (
                       <>
                         {/* Gray check for the inactive state */}
-                        <FontAwesomeIcon icon={faSquareCheck} className="text-gray-400 mr-2" />
+                        {/* <FontAwesomeIcon icon={faSquareCheck} className="text-gray-400 mr-2" /> */}
                         {/* Red X for rejected requirements */}
-                        <FontAwesomeIcon icon={faSquareXmark} className="text-danger" />
+                        {/* <FontAwesomeIcon icon={faSquareXmark} className="text-danger" /> */}
+                        <p className='my-2 mr-2 rounded-full border border-red-700 bg-danger/20 py-1 text-center text-xs text-red-700'>Denied</p>
                       </>
                     ) : (
                       <>
                         {/* Gray icons for undefined (pending) status */}
-                        <FontAwesomeIcon icon={faSquareCheck} className="text-gray-400 mr-2" />
-                        <FontAwesomeIcon icon={faSquareXmark} className="text-gray-400" />
+                        {/* <FontAwesomeIcon icon={faSquareCheck} className="text-gray-400 mr-2" />
+                        <FontAwesomeIcon icon={faSquareXmark} className="text-gray-400" /> */}
+                        <p className='my-2 mr-2 rounded-full border border-yellow-900 bg-warning/20 py-1 text-center text-xs text-yellow-900'>For Review</p>
                       </>
                     )}
                   </span>
@@ -78,7 +82,7 @@ export const RequirementsPanel: React.FC = () => {
                 <td className="w-1/4 border-b p-1">
                   {(requirement.imageUrl || requirement.userInput) && (
                     <button
-                      className="cursor-pointer font-semibold text-accent underline transition-all duration-300 ease-in-out hover:scale-110 hover:text-primary"
+                      className="cursor-pointer font-semibold text-accent underline transition-all duration-300 ease-in-out hover:scale-110 hover:text-primary ml-3"
                       onClick={() => {
                         // Find the index of the current requirement in the requirements array
                         const index = requirements.findIndex(
@@ -90,7 +94,7 @@ export const RequirementsPanel: React.FC = () => {
                         setIsModalOpen(true); // Open the modal
                       }}
                     >
-                      View
+                    view
                     </button>
                   )}
                 </td>
