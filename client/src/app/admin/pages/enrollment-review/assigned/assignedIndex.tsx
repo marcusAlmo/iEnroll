@@ -54,12 +54,13 @@ const AssignedIndex: React.FC = () => {
   return (
     <div className="flex flex-col px-7 py-7">
       {/* Subnav & Search Bar Section */}
-      <div className="flex justify-between mb-5">
+      <div className="flex justify-between mb-5 align-middle items-center">
         {/* SubNavCopy Component */}
         <div className="rounded-[10px] max-h-18 border border-text-2 bg-background p-2">
           {/* Renders the sub-navigation bar with navigation items and active state */}
           <SubNavCopy items={SubNavItem} activeItem={activeItem} />
         </div>
+        <div className="bg-warning/20 border border-yellow-500 rounded-[10px] px-5 py-1 w-1/2 text-yellow-900"><span className="font-semibold">Note:</span> Currently, you can't reassign multiple students to a different section. We're working on improving this feature!</div>
       </div>
 
       {/* Enrollment List Section */}
