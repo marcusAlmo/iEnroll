@@ -1,3 +1,4 @@
+-- Active: 1741359524712@@rt8-2.h.filess.io@5433@iEnroll_ballthembe
 CREATE TABLE enrollment.fee_type  (
     fee_type_id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
     fee_type VARCHAR(100) NOT  NULL, 
