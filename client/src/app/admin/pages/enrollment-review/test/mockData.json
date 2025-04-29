@@ -31,8 +31,8 @@
     "101": [
       {
         "studentId": 1001,
-        "studentName": "Juan Dela Cruz",
-        "firstName": "Juan",
+        "studentName": "Juan Miguel Antonio Dela Cruz",
+        "firstName": "Juan Miguel Antonio",
         "middleName": "Bonifacio",
         "lastName": "Dela Cruz",
         "applicationStatus": "Pending",
@@ -40,7 +40,7 @@
           {
             "requirementName": "First Name",
             "requirementStatus": null,
-            "userInput": "Juan",
+            "userInput": "Juan Miguel Antonio",
             "requirementType": "input"
           },
           {
@@ -129,7 +129,7 @@
         "firstName": "Ana",
         "middleName": "",
         "lastName": "Maganda",
-        "applicationStatus": "Denied",
+        "applicationStatus": "Accepted",
         "requirements": [
           {
             "requirementName": "First Name",

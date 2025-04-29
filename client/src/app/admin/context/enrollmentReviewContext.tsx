@@ -1,6 +1,9 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import mockData from "../pages/enrollment-review/test/mockData.json";
 
+// Constants
+export const UNASSIGNED_SECTION_ID = 999;
+
 /**
  * Represents a school grade level
  */
@@ -52,7 +55,7 @@ interface EnrollmentReviewContextProps {
   currentIndex: number;
   handleNext: () => void;
   handlePrevious: () => void;
-  handleRequirementStatus: (status: boolean) => void;
+  handleRequirementStatus: (status: boolean, reason?: string) => void;
 
   // Grade level state
   gradeLevels: GradeLevel[];                  // Available grade levels
@@ -81,6 +84,13 @@ interface EnrollmentReviewContextProps {
   // Deny state
   isDenied: boolean;                          // Controls visibility of the deny text field
   setIsDenied: (isDenied: boolean) => void;    // Function to toggle deny text field visibility
+
+  isSectionModalOpen: boolean;                // Controls visibility of the section modal
+  setIsSectionModalOpen: (isOpen: boolean) => void; // Function to toggle section modal visibility
+  
+  // Section modal type
+  sectionModalType: 'assign' | 'reassign';    // Type of section modal to display
+  setSectionModalType: (type: 'assign' | 'reassign') => void; // Function to set section modal type
 }
 
 // Create the context with undefined default value
@@ -113,6 +123,20 @@ export const EnrollmentReviewProvider: React.FC<{
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDenied, setIsDenied] = useState(false);
   const [denialReason, setDenialReason] = useState(''); // State to store the denial reason
+  const [isSectionModalOpen, setIsSectionModalOpen] = useState(false); // State to control section modal visibility
+  const [sectionModalType, setSectionModalType] = useState<'assign' | 'reassign'>('reassign'); // Default to reassign modal
+
+  // Function to handle section modal opening with type
+  const handleSetSectionModalOpen = (isOpen: boolean) => {
+    setIsSectionModalOpen(isOpen);
+    if (isOpen) {
+      // Only set the modal type if it needs to change
+      const newType = selectedSection === UNASSIGNED_SECTION_ID ? 'assign' : 'reassign';
+      if (newType !== sectionModalType) {
+        setSectionModalType(newType);
+      }
+    }
+  };
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => {
@@ -269,6 +293,10 @@ export const EnrollmentReviewProvider: React.FC<{
       setIsDenied,
       denialReason,
       setDenialReason,
+      isSectionModalOpen,
+      setIsSectionModalOpen: handleSetSectionModalOpen,
+      sectionModalType,
+      setSectionModalType,
     }),
     [
       activeItem,
@@ -282,6 +310,8 @@ export const EnrollmentReviewProvider: React.FC<{
       requirements,
       selectedRequirement,
       isModalOpen,
+      isSectionModalOpen,
+      sectionModalType,
     ]
   );
 

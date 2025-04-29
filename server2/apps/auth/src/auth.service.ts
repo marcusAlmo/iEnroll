@@ -18,6 +18,9 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
+  private FALLBACK_SECRET = 'supersecret';
+  private FALLBACK_ESPIRES_IN = '7d';
+
   getHello(): string {
     return 'Hello World!';
   }
@@ -76,11 +79,11 @@ export class AuthService {
 
   async login(user: { userId: number; username: string }) {
     console.debug('Login user:', user);
-    const payload = { sub: user.userId, username: user.username };
+    const payload: JwtPayload = { sub: user.userId, username: user.username };
     return {
-      access_token: this.jwtService.sign(payload as JwtPayload, {
-        secret: process.env.JWT_SECRET ?? 'supersecret',
-        expiresIn: process.env.JWT_EXPIRATION ?? '7d',
+      access_token: this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET ?? this.FALLBACK_SECRET,
+        expiresIn: process.env.JWT_EXPIRATION ?? this.FALLBACK_ESPIRES_IN,
       }),
     };
   }

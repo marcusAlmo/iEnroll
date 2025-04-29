@@ -45,6 +45,7 @@ model address {
   address_line_1  String?   @db.VarChar(100)
   street_id       Int
   update_datetime DateTime? @default(now()) @db.Timestamp(6)
+  street          street    @relation(fields: [street_id], references: [street_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_address_street_connection")
   school          school[]
   student         student[]
 
@@ -91,8 +92,10 @@ model enrollment_application {
   remarks                String?
   application_datetime   DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?                @default(now()) @db.Timestamp(6)
+  grade_section_id       Int?
   application_attachment application_attachment[]
   grade_level_offered    grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_enrollment_application_grade_level_offered_id")
+  grade_section          grade_section?           @relation(fields: [grade_section_id], references: [grade_section_id], onDelete: Restrict, map: "fk_enrollment_application_grade_section_id")
   aux_schedule_slot      aux_schedule_slot        @relation(fields: [schedule_id], references: [schedule_id], map: "fk_enrollment_application_schedule_id")
   student                student                  @relation(fields: [application_id], references: [student_id], map: "fk_enrollment_application_student_id")
   student_enrollment     student_enrollment?
@@ -138,13 +141,15 @@ model enrollment_requirement {
 }
 
 model enrollment_schedule {
-  schedule_id            Int                 @id(map: "pk_enrollment_schedule")
+  schedule_id            Int                 @id(map: "pk_enrollment_schedule") @default(autoincrement())
   grade_level_offered_id Int
   application_slot       Int
   start_datetime         DateTime            @db.Timestamp(6)
   end_datetime           DateTime            @db.Timestamp(6)
   creation_datetime      DateTime?           @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?           @default(now()) @db.Timestamp(6)
+  is_paused              Boolean             @default(false)
+  can_choose_section     Boolean             @default(false)
   aux_schedule_slot      aux_schedule_slot?
   grade_level_offered    grade_level_offered @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_enrollment_schedule_grade_level_offered_id")
 
@@ -174,15 +179,16 @@ model grade_level_offered {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model grade_section {
-  grade_section_id         Int                   @id(map: "pk_grade_section") @default(autoincrement())
+  grade_section_id         Int                      @id(map: "pk_grade_section") @default(autoincrement())
   grade_section_program_id Int
-  section_name             String                @db.VarChar(100)
-  adviser                  String                @db.VarChar(100)
+  section_name             String                   @db.VarChar(100)
+  adviser                  String                   @db.VarChar(100)
   admission_slot           Int
   max_application_slot     Int
-  creation_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  update_datetime          DateTime?             @default(now()) @db.Timestamp(6)
-  grade_section_program    grade_section_program @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_grade_section_grade_section_type_id")
+  creation_datetime        DateTime?                @default(now()) @db.Timestamp(6)
+  update_datetime          DateTime?                @default(now()) @db.Timestamp(6)
+  enrollment_application   enrollment_application[]
+  grade_section_program    grade_section_program    @relation(fields: [grade_section_program_id], references: [grade_section_program_id], map: "fk_grade_section_grade_section_type_id")
   student_enrollment       student_enrollment[]
 
   @@unique([grade_section_program_id, section_name], map: "uq_grade_section")
@@ -319,7 +325,7 @@ model student {
   enrollment_fee_payment         enrollment_fee_payment?
   school_file_access             school_file_access[]
   address                        address                 @relation(fields: [address_id], references: [address_id], map: "fk_student_address_id")
-  user_student_enroller_idTouser user                    @relation("student_enroller_idTouser", fields: [enroller_id], references: [user_id], map: "fk_student_enroller_id")
+  user_student_enroller_idTouser user                    @relation("student_enroller_idTouser", fields: [enroller_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_student_enroller_id")
 
   @@index([address_id], map: "idx_student_address_id")
   @@index([enroller_id], map: "idx_student_enroller_id")
@@ -673,8 +679,8 @@ model grade_section_program {
   enrollment_fee           enrollment_fee[]
   enrollment_requirement   enrollment_requirement[]
   grade_section            grade_section[]
+  academic_program         academic_program         @relation(fields: [program_id], references: [program_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grade_section_program_academic_program")
   grade_level_offered      grade_level_offered      @relation(fields: [grade_level_offered_id], references: [grade_level_offered_id], map: "fk_grade_section_type_grade_level_offered_id")
-  academic_program         academic_program         @relation(fields: [program_id], references: [program_id], map: "fk_grade_section_program_academic_program")
 
   @@unique([grade_level_offered_id, program_id], map: "uq_grade_section_program")
   @@index([grade_level_offered_id], map: "idx_grade_section_type_grade_level_offered_id")
@@ -805,11 +811,12 @@ model province {
 }
 
 model street {
-  street_id   Int      @id(map: "pk_street") @default(autoincrement())
-  street      String   @db.VarChar(100)
+  street_id   Int       @id(map: "pk_street") @default(autoincrement())
+  street      String    @db.VarChar(100)
   district_id Int
-  is_default  Boolean  @default(false)
-  district    district @relation(fields: [district_id], references: [district_id], map: "fk_street_district_id")
+  is_default  Boolean   @default(false)
+  address     address[]
+  district    district  @relation(fields: [district_id], references: [district_id], map: "fk_street_district_id")
 
   @@unique([street, district_id], map: "uq_street_district")
   @@schema("system")

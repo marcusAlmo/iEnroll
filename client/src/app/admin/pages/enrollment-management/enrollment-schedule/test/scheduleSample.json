@@ -1,0 +1,193 @@
+{
+  "schoolCapacity": {
+    "totalCapacity": 3000,
+    "remainingSlots": 2500
+  },
+  "gradeLevels": [
+    {
+      "gradeLevel": "Grade 7",
+      "sections": [
+        {
+          "sectionName": "Section A",
+          "sectionAdviser": "Mr. John Smith",
+          "sectionCapacity": 40,
+          "maximumApplication": 50,
+          "currentEnrolled": 35
+        },
+        {
+          "sectionName": "Section B",
+          "sectionAdviser": "Ms. Jane Doe",
+          "sectionCapacity": 40,
+          "maximumApplication": 50,
+          "currentEnrolled": 30
+        },
+        {
+          "sectionName": "Section C",
+          "sectionAdviser": "Mr. Robert Johnson",
+          "sectionCapacity": 40,
+          "maximumApplication": 50,
+          "currentEnrolled": 25
+        }
+      ],
+      "schedules": [
+        {
+          "id": "g7-schedule-1",
+          "date": "2024-06-15",
+          "timeRanges": [
+            {
+              "startTime": "08:00",
+              "endTime": "12:00"
+            },
+            {
+              "startTime": "13:00",
+              "endTime": "17:00"
+            }
+          ],
+          "status": "active",
+          "allowSectionSelection": true,
+          "applications": 15
+        }
+      ]
+    },
+    {
+      "gradeLevel": "Grade 8",
+      "sections": [
+        {
+          "sectionName": "Section A",
+          "sectionAdviser": "Ms. Sarah Wilson",
+          "sectionCapacity": 45,
+          "maximumApplication": 55,
+          "currentEnrolled": 40
+        },
+        {
+          "sectionName": "Section B",
+          "sectionAdviser": "Mr. Michael Brown",
+          "sectionCapacity": 45,
+          "maximumApplication": 55,
+          "currentEnrolled": 35
+        },
+        {
+          "sectionName": "Section C",
+          "sectionAdviser": "Ms. Emily Davis",
+          "sectionCapacity": 45,
+          "maximumApplication": 55,
+          "currentEnrolled": 30
+        }
+      ],
+      "schedules": [
+        {
+          "id": "g8-schedule-1",
+          "date": "2024-06-16",
+          "timeRanges": [
+            {
+              "startTime": "09:00",
+              "endTime": "12:00"
+            }
+          ],
+          "status": "paused",
+          "allowSectionSelection": false,
+          "applications": 0
+        },
+        {
+          "id": "g8-schedule-2",
+          "date": "2024-06-17",
+          "timeRanges": [
+            {
+              "startTime": "08:00",
+              "endTime": "11:00"
+            },
+            {
+              "startTime": "13:00",
+              "endTime": "16:00"
+            }
+          ],
+          "status": "active",
+          "allowSectionSelection": true,
+          "applications": 25
+        }
+      ]
+    },
+    {
+      "gradeLevel": "Grade 9",
+      "sections": [
+        {
+          "sectionName": "Section A",
+          "sectionAdviser": "Mr. David Miller",
+          "sectionCapacity": 50,
+          "maximumApplication": 60,
+          "currentEnrolled": 45
+        },
+        {
+          "sectionName": "Section B",
+          "sectionAdviser": "Ms. Lisa Anderson",
+          "sectionCapacity": 50,
+          "maximumApplication": 60,
+          "currentEnrolled": 40
+        },
+        {
+          "sectionName": "Section C",
+          "sectionAdviser": "Mr. James Wilson",
+          "sectionCapacity": 50,
+          "maximumApplication": 60,
+          "currentEnrolled": 35
+        }
+      ],
+      "schedules": [
+        {
+          "id": "g9-schedule-1",
+          "date": "2024-06-18",
+          "timeRanges": [
+            {
+              "startTime": "08:00",
+              "endTime": "12:00"
+            }
+          ],
+          "status": "active",
+          "allowSectionSelection": true,
+          "applications": 0
+        }
+      ]
+    },
+    {
+      "gradeLevel": "Grade 10",
+      "sections": [
+        {
+          "sectionName": "Section A",
+          "sectionAdviser": "Ms. Patricia Taylor",
+          "sectionCapacity": 55,
+          "maximumApplication": 65,
+          "currentEnrolled": 50
+        },
+        {
+          "sectionName": "Section B",
+          "sectionAdviser": "Mr. Thomas Moore",
+          "sectionCapacity": 55,
+          "maximumApplication": 65,
+          "currentEnrolled": 45
+        },
+        {
+          "sectionName": "Section C",
+          "sectionAdviser": "Ms. Jennifer White",
+          "sectionCapacity": 55,
+          "maximumApplication": 65,
+          "currentEnrolled": 40
+        }
+      ],
+      "schedules": [
+        {
+          "id": "g10-schedule-1",
+          "date": "2024-06-19",
+          "timeRanges": [
+            {
+              "startTime": "09:00",
+              "endTime": "12:00"
+            }
+          ],
+          "status": "active",
+          "allowSectionSelection": false,
+          "applications": 10
+        }
+      ]
+    }
+  ]
+}

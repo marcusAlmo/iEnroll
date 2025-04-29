@@ -21,6 +21,7 @@ import { FileModule } from './file/file.module';
 // import { join } from 'path';
 import { ImageModule } from './image/image.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MetricsModule } from './metrics/metrics.module';
     FileModule,
     ImageModule,
     MetricsModule,
+    HealthModule,
   ],
   controllers: [
     ApiGatewayController,

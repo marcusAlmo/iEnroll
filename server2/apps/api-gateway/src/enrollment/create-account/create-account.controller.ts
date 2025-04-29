@@ -11,8 +11,13 @@ export class CreateAccountController {
     return await this.createAccountService.create(createAccountDto);
   }
 
-  @Get('schools')
+  @Get('school')
   async getAllAvailableSchools() {
     return await this.createAccountService.getAllSchools();
+  }
+
+  @Get('address')
+  async getAllAddresses() {
+    return await this.createAccountService.getAlAddresses();
   }
 }

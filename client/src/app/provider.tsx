@@ -12,6 +12,7 @@ import { ScreenSizeProvider } from "../contexts/ScreenSizeProvider";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { EnrollmentReviewProvider } from "./admin/context/enrollmentReviewContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { StudentEnrollmentProvider } from "@/contexts/StudentEnrollmentProvider";
 
 interface AppProviderProps {
   children: ReactNode;
@@ -25,11 +26,13 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     <ScreenSizeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <EnrollmentReviewProvider>
-            {/* <NavigationGuardProvider> */}
-            {children}
-            {/* </NavigationGuardProvider> */}
-          </EnrollmentReviewProvider>
+          <StudentEnrollmentProvider>
+            <EnrollmentReviewProvider>
+              {/* <NavigationGuardProvider> */}
+              {children}
+              {/* </NavigationGuardProvider> */}
+            </EnrollmentReviewProvider>
+          </StudentEnrollmentProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ScreenSizeProvider>

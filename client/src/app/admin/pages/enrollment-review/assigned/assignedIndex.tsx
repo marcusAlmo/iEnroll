@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import SubNavCopy from "../../../components/SubNavCopy";
-import EnrollmentList from "./components/enrollmentList";
+import EnrollmentList from "./pages/enrollmentList";
 
 /**
  * AssignedIndex Component
@@ -30,21 +30,21 @@ const AssignedIndex: React.FC = () => {
         label: "Assigned", // Label for the "Assigned" navigation item
         onClick: () => {
           setActiveItem("Assigned"); // Update active state to "Assigned"
-          navigate("admin/enrollment-review"); // Navigate to the "Assigned" route
+          navigate("/admin/enrollment-review"); // Navigate to the "Assigned" route
         },
       },
       {
         label: "Denied", // Label for the "Denied" navigation item
         onClick: () => {
           setActiveItem("Denied"); // Update active state to "Denied"
-          navigate("denied"); // Navigate to the "Denied" route
+          navigate("/admin/enrollment-review/denied"); // Navigate to the "Denied" route
         },
       },
       {
         label: "Enrolled", // Label for the "Denied" navigation item
         onClick: () => {
           setActiveItem("Enrolled"); // Update active state to "Denied"
-          navigate("enrolled"); // Navigate to the "Denied" route
+          navigate("/admin/enrollment-review/enrolled"); // Navigate to the "Denied" route
         },
       },
     ],

@@ -4,7 +4,10 @@ import { GradeLevelsPanel } from "./GradeLevelsPanel";
 import { SectionsPanel } from "./SectionsPanel";
 import { StudentsPanel } from "./StudentsPanel";
 import { RequirementsPanel } from "./RequirementsPanel";
-import { RequirementsCarouselModal } from "./RequirementsCarouselModal";
+import { RequirementsCarouselModal } from "../components/RequirementsCarouselModal";
+import ReassignSectionModal from "../components/ReassignSectionModal";
+import AssignSectionModal from "../components/AssignSectionModal";
+import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
 
 /**
  * EnrollmentList Component
@@ -22,6 +25,9 @@ import { RequirementsCarouselModal } from "./RequirementsCarouselModal";
  * The component assumes that data is passed down or managed via context or a parent state manager.
  */
 const EnrollmentList: React.FC = () => {
+  // Get the section modal type from the context
+  const { sectionModalType } = useEnrollmentReview();
+  
   return (
     <div className="w-full flex flex-row">
       {/* 
@@ -63,6 +69,13 @@ const EnrollmentList: React.FC = () => {
         - Controlled by internal state or props (e.g., `isModalOpen`).
       */}
       <RequirementsCarouselModal />
+      
+      {/* 
+        Section Modals
+        Conditionally render either the AssignSectionModal or ReassignSectionModal
+        based on the sectionModalType state from the context.
+      */}
+      {sectionModalType === 'assign' ? <AssignSectionModal /> : <ReassignSectionModal />}
     </div>
   );
 };

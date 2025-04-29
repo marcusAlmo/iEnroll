@@ -17,4 +17,9 @@ export class CreateAccountController {
   async getAllSchools() {
     return this.usersService.getAllSchools();
   }
+
+  @MessagePattern({ cmd: 'get_all_addresses' })
+  async getAllAddresses() {
+    return this.usersService.getAllAddresses();
+  }
 }

@@ -25,7 +25,7 @@ const LoginPage = () => {
   const { loginMobile } = useAuth();
 
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [, setShowModal] = useState(false);
   const [error, setError] = useState<string>();
 
   const { data: announcements, error: announcementError } = useQuery({
@@ -53,6 +53,8 @@ const LoginPage = () => {
       loginMobile(username, password),
     onSuccess: () => navigate("/student/dashboard"),
     onError: (err) => {
+      console.log("ERR", err);
+      
       if (err instanceof AxiosError) {
         let msg = err.response?.data.message;
         if (msg === "ERR_USER_NOT_FOUND") msg = "User not found.";

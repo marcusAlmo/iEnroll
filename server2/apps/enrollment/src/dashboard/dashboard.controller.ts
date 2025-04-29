@@ -33,13 +33,30 @@ export class DashboardController {
           statusCode: 404,
           message: 'ERROR_STUDENT_NOT_FOUND',
         });
-      case EnrollmentStatus.NOT_ENROLLED:
-        throw new RpcException({
-          statusCode: 400,
-          message: 'ERROR_STUDENT_NOT_ENROLLED',
-        });
+      // case EnrollmentStatus.NOT_ENROLLED:
+      //   throw new RpcException({
+      //     statusCode: 400,
+      //     message: 'ERROR_STUDENT_NOT_ENROLLED',
+      //   });
       default:
         return result;
     }
+  }
+
+  @MessagePattern({ cmd: 'get_documents_for_reupload' })
+  async getDocumentsForReupload(@Payload() payload: { studentId: number }) {
+    return await this.dashboardService.getDocumentsForReupload(
+      payload.studentId,
+    );
+  }
+
+  @MessagePattern({ cmd: 'get_file_downloadables_by_student' })
+  async getFileDownloadablesByStudent(
+    @Payload() payload: { studentId: number; userSchoolId: number },
+  ) {
+    return await this.dashboardService.getFileDownloadablesByStudent(
+      payload.studentId,
+      payload.userSchoolId,
+    );
   }
 }

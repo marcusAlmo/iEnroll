@@ -9,6 +9,8 @@ type Props = {
   children: ReactNode;
 };
 
+const CHECK_STATUS = !import.meta.env.DEV;
+
 export const AxiosProvider = ({ token, logout, children }: Props) => {
   const interceptorsRegistered = useRef(false);
   const checking = useRef(false);
@@ -22,9 +24,15 @@ export const AxiosProvider = ({ token, logout, children }: Props) => {
     if (manual) setIsChecking(true);
 
     try {
-      await instance.get("/api/health", { timeout: 5000 });
-      setServerDown(false);
-    } catch {
+      const result = await instance.get<{ status: string }>(
+        "/api/health?strict=false",
+        { timeout: 5000 },
+      );
+
+      setServerDown(result.data.status === "ok");
+    } catch (error) {
+      if (error instanceof AxiosError)
+        console.debug("Health error: ", error.response?.data);
       if (manual) setServerDown(true);
     } finally {
       checking.current = false;
@@ -72,12 +80,12 @@ export const AxiosProvider = ({ token, logout, children }: Props) => {
   }, [token, logout]);
 
   useEffect(() => {
-    if (ready) checkServerStatus(true);
+    if (CHECK_STATUS && ready) checkServerStatus(true);
   }, [ready, checkServerStatus]);
 
   if (!ready) return null;
 
-  if (serverDown) {
+  if (CHECK_STATUS && serverDown) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
         <div className="text-center">

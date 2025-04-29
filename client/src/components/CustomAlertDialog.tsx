@@ -13,9 +13,9 @@ import { cn } from "@/lib/utils";
 type AlertDialogProps = {
   isOpen: boolean;
   title: string;
-  titleClassName: string;
+  titleClassName?: string;
   description: string;
-  descriptionClassName: string;
+  descriptionClassName?: string;
   cancelLabel: string;
   cancelOnClick: () => void;
   actionLabel: string;
@@ -43,8 +43,8 @@ const CustomAlertDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
+          <AlertDialogCancel onClick={cancelOnClick}>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogAction onClick={actionOnClick}>{actionLabel}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
