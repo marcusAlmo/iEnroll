@@ -53,6 +53,7 @@ interface EnrollmentReviewContextProps {
   activeItem: string;                         // Currently active navigation item
   setActiveItem: (item: string) => void;      // Function to update active navigation item
   currentIndex: number;
+  setCurrentIndex: (index: number) => void;
   handleNext: () => void;
   handlePrevious: () => void;
   handleRequirementStatus: (status: boolean, reason?: string) => void;
@@ -301,6 +302,12 @@ export const EnrollmentReviewProvider: React.FC<{
     [
       activeItem,
       currentIndex,
+      denialReason,
+      handleNext,
+      handlePrevious,
+      handleRequirementStatus,
+      handleSetSectionModalOpen,
+      isDenied,
       gradeLevels,
       selectedGradeLevel,
       sections,
