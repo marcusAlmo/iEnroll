@@ -1,0 +1,3 @@
+-- ADD AUTO_INCREMENT ID
+ALTER TABLE enrollment.enrollment_schedule
+ALTER COLUMN schedule_id ADD GENERATED ALWAYS AS IDENTITY;

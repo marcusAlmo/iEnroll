@@ -260,7 +260,7 @@ def generate_grade_level_offered(cursor, school_id):
             if not schedule_id:
                 raise Exception("Failed to generate enrollment schedule")
                 
-            section_type_id = generate_grade_section_type(cursor, grade_level_offered_id)
+            section_type_id = generate_grade_section_program(cursor, grade_level_offered_id)
             if not section_type_id:
                 raise Exception("Failed to generate grade section type")
 
@@ -271,7 +271,7 @@ def generate_grade_level_offered(cursor, school_id):
         print(f"Error generating grade levels: {str(e)}")
         return None
 
-def generate_grade_section_type(cursor, grade_level_offered_id):
+def generate_grade_section_program(cursor, grade_level_offered_id):
     """
     Generates section types for a grade level offering.
     
@@ -336,7 +336,7 @@ def generate_grade_section(cursor, grade_section_program_id):
         
         cursor.execute("""
             INSERT INTO enrollment.grade_section 
-            (grade_section_program_id, section_name, adviser, slot, max_application_slot)
+            (grade_section_program_id, section_name, adviser, admission_slot, max_application_slot)
             VALUES (%s, %s, %s, %s, %s)
             ON CONFLICT (grade_section_program_id, section_name) DO NOTHING
             RETURNING grade_section_id
