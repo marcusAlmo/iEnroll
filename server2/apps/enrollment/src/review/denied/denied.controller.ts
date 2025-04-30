@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { DeniedService } from './denied.service';
-import { MessagePattern } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
 export class DeniedController {
@@ -9,7 +9,7 @@ export class DeniedController {
   @MessagePattern({
     cmd: 'enrollment_review_denied:get_denied_enrollments_by_school',
   })
-  async getDeniedEnrollmentsBySchool(schoolId: number) {
-    return this.deniedService.getDeniedEnrollmentsBySchool(schoolId);
+  async getDeniedEnrollmentsBySchool(@Payload() payload: { schoolId: number }) {
+    return this.deniedService.getDeniedEnrollmentsBySchool(payload.schoolId);
   }
 }
