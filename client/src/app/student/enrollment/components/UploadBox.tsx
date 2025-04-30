@@ -50,7 +50,7 @@ const UploadBox = ({
             {/* Hidden Inputs */}
             <input
               type="file"
-              accept={`${requirementType}/*`}
+              accept={`${requirementType}`}
               capture="environment"
               ref={cameraInputRef}
               onChange={handleFileChange}
@@ -58,7 +58,7 @@ const UploadBox = ({
             />
             <input
               type="file"
-              accept={`${requirementType}/*`}
+              accept={`${requirementType}`}
               ref={fileInputRef}
               onChange={handleFileChange}
               style={{ display: "none" }}

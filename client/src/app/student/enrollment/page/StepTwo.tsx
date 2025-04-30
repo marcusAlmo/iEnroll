@@ -244,7 +244,8 @@ const StepTwo = () => {
 
             <div className="w-full">
               <div className="text-primary font-semibold text-sm mb-4">Please upload proof of your payment</div>
-              <UploadBox label="" requirementType="image" />
+              <UploadBox label="" requirementType=".pdf" /> 
+              {/* if passing image, pass "image/*" */}
             </div>
 
             <div className="flex flex-col gap-y-2">
@@ -287,6 +288,9 @@ const StepTwo = () => {
           </form>
         </Form>
       </div>
+
+      {/* Display if upload failed */}
+      {!isUploaded }
     </section>
   )
 }
