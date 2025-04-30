@@ -1,5 +1,5 @@
+import { ExceptionCheckerService } from '@lib/exception-checker/exception-checker.service';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
-import { ExceptionCheckerService } from './../../../../../../libs/exception-checker/exception-checker.service';
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { AccountSettings } from 'apps/system-management/src/roles-and-access/account-settings/interface/account-settings.interface';
@@ -8,7 +8,7 @@ import { lastValueFrom } from 'rxjs';
 @Injectable()
 export class AccountSettingsService {
   constructor(
-    @Inject('SYSTEM_MANAGEMENT') private readonly client: ClientProxy,
+    @Inject('SYSTEM_MANAGEMENT_SERVICE') private readonly client: ClientProxy,
     private readonly exceptionCheckerService: ExceptionCheckerService,
   ) {}
 

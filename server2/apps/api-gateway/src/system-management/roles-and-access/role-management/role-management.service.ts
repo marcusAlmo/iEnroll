@@ -8,7 +8,7 @@ import { lastValueFrom } from 'rxjs';
 @Injectable()
 export class RoleManagementService {
   constructor(
-    @Inject('SYSTEM_MANAGEMENT') private readonly client: ClientProxy,
+    @Inject('SYSTEM_MANAGEMENT_SERVICE') private readonly client: ClientProxy,
     private readonly exceptionCheckerService: ExceptionCheckerService,
   ) {}
 

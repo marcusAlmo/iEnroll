@@ -6,12 +6,12 @@ import { MicroserviceUtilityService } from '@lib/microservice-utility/microservi
 import { StringUtilityService } from '@lib/string-utility/string-utility.service';
 
 @Module({
-  providers: [EmployeeListService],
-  controllers: [
-    EmployeeListController,
+  providers: [
+    EmployeeListService,
     PrismaService,
     MicroserviceUtilityService,
     StringUtilityService,
   ],
+  controllers: [EmployeeListController],
 })
 export class EmployeeListModule {}

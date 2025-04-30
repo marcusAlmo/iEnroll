@@ -8,7 +8,7 @@ import { EmployeeList } from 'apps/system-management/src/roles-and-access/employ
 @Injectable()
 export class EmployeeListService {
   constructor(
-    @Inject('SYSTEM_MANAGEMENT') private readonly client: ClientProxy,
+    @Inject('SYSTEM_MANAGEMENT_SERVICE') private readonly client: ClientProxy,
     private readonly exceptionCheckerService: ExceptionCheckerService,
   ) {}
 
