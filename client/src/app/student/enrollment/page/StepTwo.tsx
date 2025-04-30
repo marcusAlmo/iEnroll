@@ -1,4 +1,4 @@
-import { faFaceSmileWink } from "@fortawesome/free-solid-svg-icons";
+import { faFaceSmileWink, faInfo, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import UploadBox from "../components/UploadBox";
@@ -28,6 +28,12 @@ const StepTwo = () => {
     submitModal: false,
     saveDraftModal: false
   });
+
+  // Show tooltips
+  const [showFatherDetailsTooltip, setShowFatherDetailsTooltip] = useState<boolean>(false);
+  const [showMotherDetailsTooltip, setShowMotherDetailsTooltip] = useState<boolean>(false);
+  const [showRequirementsTooltip, setShowRequirementsTooltip] = useState<boolean>(false);
+  const [showFeesTooltip, setShowFeesTooltip] = useState<boolean>(false);
 
   // Calculate fees
   const calculateTotalFees = () => {
@@ -73,15 +79,26 @@ const StepTwo = () => {
         className="rounded-[10px] bg-accent py-0.5 px-2.5 space-x-1 mt-6"
         // onClick={() => setShowModals(true)}
       >
-        <span className="text-sm font-semibold">Need help? Tap me!</span>
-        <FontAwesomeIcon icon={faFaceSmileWink} className="text-primary" />
+        <span className="text-sm font-semibold">
+          Need help? Just tap the <FontAwesomeIcon icon={faInfoCircle} className="text-primary"/> icon!  
+        </span>
       </div>
 
       <div className="mt-8 w-screen px-14">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col gap-y-5 mb-10">
-              <span className="text-primary font-semibold text-base">Father's Details</span>
+              <div className="relative inline-block">
+                <span className="text-primary font-semibold text-base">
+                  Father's Details
+                  <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowFatherDetailsTooltip((prev) => !prev)}/>
+                </span>
+                {showFatherDetailsTooltip && (
+                  <div className="w-32 absolute top-0 left-38 z-10 bg-slate-300 p-2 rounded-[10px] text-xs">
+                    Please provide the full name of the student's father. Middle name is optional.
+                  </div>
+                )}
+              </div>
                 <CustomInput
                   control={form.control}
                   name="fatherFN"
@@ -111,7 +128,17 @@ const StepTwo = () => {
             </div>
 
             <div className="flex flex-col gap-y-5 mb-10">
-              <span className="text-primary font-semibold text-base">Mother's Details</span>
+              <div className="relative inline-block">
+                <span className="text-primary font-semibold text-base">
+                  Mother's Details
+                  <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowMotherDetailsTooltip((prev) => !prev)}/>
+                </span>
+                {showMotherDetailsTooltip && (
+                  <div className="w-32 absolute top-0 left-40 z-10 bg-slate-300 p-2 rounded-[10px] text-xs">
+                    Please provide the full MAIDEN name of the student's mother. Middle name is optional.
+                  </div>
+                )}
+              </div>
                 <CustomInput
                   control={form.control}
                   name="maidenMotherFN"
@@ -141,7 +168,17 @@ const StepTwo = () => {
             </div>
 
             <div className="w-full">
-              <div className="text-primary font-semibold text-base mb-4">Requirements</div>
+              <div className="relative inline-block">
+                <span className="text-primary font-semibold text-base mb-4">
+                  Requirements
+                  <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowRequirementsTooltip((prev) => !prev)}/>
+                </span>
+                {showRequirementsTooltip && (
+                  <div className="w-32 absolute top-[5%] right-[-105%] z-10 bg-slate-300 p-2 rounded-[10px] text-xs">
+                    Please upload the documentary requirements for enrollment. Allow necessary permissions during upload
+                  </div>
+                )}
+              </div>
               {requirements.map((requirement, index) => (
                 <div key={index} className="mb-6">
                   <UploadBox label={requirement.name} />
@@ -150,7 +187,17 @@ const StepTwo = () => {
             </div>
 
             <div className="w-full">
-              <div className="text-primary font-semibold text-base mb-4">Fees</div>
+              <div className="relative inline-block">
+                <span className="text-primary font-semibold text-base mb-4">
+                  Fees
+                  <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowFeesTooltip((prev) => !prev)}/>
+                </span>
+                {showFeesTooltip && (
+                  <div className="w-32 absolute left-18 top-0 z-10 bg-slate-300 p-2 rounded-[10px] text-xs">
+                    Please upload the documentary requirements for enrollment. Allow necessary permissions during upload
+                  </div>
+                )}
+              </div>
               {fees.map((fee, index) => (
                 <div key={index} className="mb-6">
                   <FeeBreakdown feeType={fee.feeType} feeBreakdown={fee.feeBreakdown} feeDetails={fee.feeDetails} />
