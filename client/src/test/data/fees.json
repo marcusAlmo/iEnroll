@@ -1,0 +1,54 @@
+[
+  {
+    "feeType": "Tuition Fee",
+    "feeBreakdown": [
+      {
+        "feeBreakdown": "Basic Tuition",
+        "feeAmount": 50000
+      },
+      {
+        "feeBreakdown": "Laboratory Fee",
+        "feeAmount": 5000
+      },
+      {
+        "feeBreakdown": "Miscellaneous Fee",
+        "feeAmount": 3000
+      }
+    ],
+    "feeDetails": "Covers tuition, laboratory, and miscellaneous fees for the semester."
+  },
+  {
+    "feeType": "Registration Fee",
+    "feeBreakdown": [
+      {
+        "feeBreakdown": "Registration Processing",
+        "feeAmount": 1500
+      }
+    ],
+    "feeDetails": "One-time fee for processing enrollment registration."
+  },
+  {
+    "feeType": "Athletic Fee",
+    "feeBreakdown": [
+      {
+        "feeBreakdown": "Sports Facilities Maintenance",
+        "feeAmount": 1000
+      }
+    ],
+    "feeDetails": "Covers the maintenance of sports facilities and equipment."
+  },
+  {
+    "feeType": "Graduation Fee",
+    "feeBreakdown": [
+      {
+        "feeBreakdown": "Graduation Ceremony",
+        "feeAmount": 2000
+      },
+      {
+        "feeBreakdown": "Diploma Printing",
+        "feeAmount": 500
+      }
+    ],
+    "feeDetails": "Applicable to graduating students for ceremony and diploma costs."
+  }
+]
