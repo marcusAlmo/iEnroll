@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 
 export class ApproveOrDenyDto {
   @IsEnum(['approve', 'deny'])
-  action: 'approve' | 'deny';
+  action!: 'approve' | 'deny';
 
   @Type(() => Number)
   @IsInt()
@@ -12,8 +12,4 @@ export class ApproveOrDenyDto {
   @Type(() => Number)
   @IsInt()
   requirementId!: number;
-
-  @Type(() => Number)
-  @IsInt()
-  reviewerId!: number;
 }
