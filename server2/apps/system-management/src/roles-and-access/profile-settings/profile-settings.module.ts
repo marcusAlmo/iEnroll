@@ -3,14 +3,14 @@ import { ProfileSettingsService } from './profile-settings.service';
 import { ProfileSettingsController } from './profile-settings.controller';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { MicroserviceUtilityService } from '@lib/microservice-utility/microservice-utility.service';
-import { StringUtilityService } from '@lib/string-utility/string-utility.service';
+import { AuthService } from '@lib/auth/auth.service';
 
 @Module({
   providers: [
     ProfileSettingsService,
     PrismaService,
     MicroserviceUtilityService,
-    StringUtilityService,
+    AuthService,
   ],
   controllers: [ProfileSettingsController],
 })

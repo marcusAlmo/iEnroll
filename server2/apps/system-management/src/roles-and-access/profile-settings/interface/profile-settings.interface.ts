@@ -1,8 +1,19 @@
+import { $Enums } from '@prisma/client';
 export interface ProfileSettings {
-  employeeList: {
-    name: string;
-    role: string;
+  updateProfileSettings: {
+    fName: string;
+    mName: string;
+    lName: string;
+    suffix: string;
+    gender: $Enums.gender;
+    phone: string;
   };
+
+  createProfileSettings: ProfileSettings['updateProfileSettings'] & {
+    username: string;
+    password: string;
+  };
+
   employeeInfo: {
     profileSettings: {
       personalInformation: {
@@ -10,19 +21,10 @@ export interface ProfileSettings {
         mName: string;
         lName: string;
         suffix: string;
-        birthDate: Date;
         gender: string;
       };
       contactInformation: {
-        email: string;
         phone: string;
-      };
-      address: {
-        streetAddress: string;
-        street: string;
-        district: string;
-        municipality: string;
-        province: string;
       };
     };
     accountSettings: {
@@ -30,11 +32,12 @@ export interface ProfileSettings {
       email: string;
     };
     roleManagement: {
-      accessList: {
-        accessListName: string;
-        accessListPermission: string;
-      }[];
-      roleList: string;
+      role: $Enums.role_type;
+      dashboardAccess: $Enums.access_type_access_list;
+      enrollmentReview: $Enums.access_type_access_list;
+      enrollmentManagement: $Enums.access_type_access_list;
+      personnelCenter: $Enums.access_type_access_list;
+      systemSettings: $Enums.access_type_access_list;
     };
   };
 }
