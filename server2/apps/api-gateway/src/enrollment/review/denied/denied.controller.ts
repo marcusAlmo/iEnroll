@@ -6,7 +6,7 @@ import { User } from '@lib/decorators/user.decorator';
 export class DeniedController {
   constructor(private readonly deniedService: DeniedService) {}
 
-  @Get('enrollments')
+  @Get()
   async getDeniedEnrollmentsBySchool(@User('school_id') schoolId: number) {
     return this.deniedService.getDeniedEnrollmentsBySchool(schoolId);
   }
