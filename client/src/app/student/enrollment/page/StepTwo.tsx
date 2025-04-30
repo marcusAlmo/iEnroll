@@ -16,9 +16,11 @@ import { modalContent } from "./modalContent";
 import requirements from "@/test/data/requirements.json";
 import fees from "@/test/data/fees.json";
 import paymentMethods from "@/test/data/payment-methods.json";
+import { Button } from "@/components/ui/button";
 
 const StepTwo = () => {
   const [isUploaded, setIsUploaded] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Show modals
   const [showModals, setShowModals] = useState({
@@ -214,23 +216,24 @@ const StepTwo = () => {
             </div>
 
             <div className="flex flex-col gap-y-2 items-center">
-              <button
+              <Button
                 type="submit"
-                className="w-full font-semibold bg-accent text-background py-3 rounded-[10px]"
+                disabled={isLoading}
+                className="w-full font-semibold bg-accent text-background py-6 rounded-[10px]"
               >
-                Submit Requirements
-              </button>
+                {isLoading ? "Submitting" : "Submit Requirements"}
+              </Button>
               
               {/* Only display when the form is partially filled */}
               {form.formState.isDirty && (
                 <>
                   <span className="text-sm text-text-2">or</span>
-                  <button
+                  <Button
                     // onclick
-                    className="w-full font-semibold bg-success/10 border border-success rounded-[10px] py-3 text-success text-sm"
+                    className="w-full font-semibold bg-success/10 border border-success rounded-[10px] py-6 text-success text-sm"
                   >
                     Save as Draft
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
