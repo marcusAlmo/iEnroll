@@ -8,7 +8,7 @@ import { DeniedModule } from './denied/denied.module';
   imports: [
     AssignedModule,
     RouterModule.register(
-      mapModulesToBasePath('enrollment/review', [AssignedModule]),
+      mapModulesToBasePath('enrollment/review', [AssignedModule, DeniedModule]),
     ),
     DeniedModule,
   ],
