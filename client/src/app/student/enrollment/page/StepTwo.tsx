@@ -168,8 +168,8 @@ const StepTwo = () => {
             </div>
 
             <div className="w-full">
-              <div className="relative inline-block">
-                <span className="text-primary font-semibold text-base mb-4">
+              <div className="relative inline-block mb-4">
+                <span className="text-primary font-semibold text-base">
                   Requirements
                   <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowRequirementsTooltip((prev) => !prev)}/>
                 </span>
@@ -181,14 +181,14 @@ const StepTwo = () => {
               </div>
               {requirements.map((requirement, index) => (
                 <div key={index} className="mb-6">
-                  <UploadBox label={requirement.name} />
+                  <UploadBox label={requirement.name} requirementType={requirement.requirementType} />
                 </div>
               ))}
             </div>
 
             <div className="w-full">
-              <div className="relative inline-block">
-                <span className="text-primary font-semibold text-base mb-4">
+              <div className="relative inline-block mb-4">
+                <span className="text-primary font-semibold text-base">
                   Fees
                   <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowFeesTooltip((prev) => !prev)}/>
                 </span>
@@ -244,7 +244,7 @@ const StepTwo = () => {
 
             <div className="w-full">
               <div className="text-primary font-semibold text-sm mb-4">Please upload proof of your payment</div>
-              <UploadBox label="" />
+              <UploadBox label="" requirementType="image" />
             </div>
 
             <div className="flex flex-col gap-y-2">
