@@ -28,8 +28,8 @@ export class AssignedService {
     });
 
     return result.map((data) => ({
-      gradeLevelOfferedId: data.grade_level_offered_id,
-      gradeLevel: data.grade_level.grade_level,
+      gradeId: data.grade_level_offered_id,
+      gradeName: data.grade_level.grade_level,
     }));
   }
   async getAllSectionsByGradeLevel(gradeLevelId: number) {
@@ -45,19 +45,19 @@ export class AssignedService {
       },
     });
 
-    return (
-      result
-        .map((data) => ({
-          sectionId: data.grade_section_id,
-          section: data.section_name,
-        }))
-        // TODO: You can dynamically check if theres unassigned students in a particular grade level
-        .push({
-          // section id becomes that grade level id
-          sectionId: gradeLevelId,
-          section: 'Unassigned',
-        })
-    );
+    const refined = result.map((data) => ({
+      sectionId: data.grade_section_id,
+      sectionName: data.section_name,
+    }));
+
+    // TODO: You can dynamically check if theres unassigned students in a particular grade level
+    refined.push({
+      // section id becomes that grade level id
+      sectionId: gradeLevelId,
+      sectionName: 'Unassigned',
+    });
+
+    return refined;
   }
 
   async getAllStudentsAssigned(sectionId: number) {
@@ -187,7 +187,8 @@ export class AssignedService {
         fileName: data.file?.name ?? null,
 
         // requirementType = text
-        textContent: data.text_content,
+        //? text content
+        userInput: data.text_content,
       };
     });
   }
