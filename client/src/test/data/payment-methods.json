@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "methodName": "BDO Unibank",
+    "methodType": "Bank Transfer",
+    "accountNumber": 1234567890,
+    "ownerName": "Juan Dela Cruz"
+  },
+  {
+    "id": 2,
+    "methodName": "BPI (Bank of the Philippine Islands)",
+    "methodType": "Bank Transfer",
+    "accountNumber": 9876543210,
+    "ownerName": "Maria Clara"
+  },
+  {
+    "id": 3,
+    "methodName": "Metrobank",
+    "methodType": "Bank Transfer",
+    "accountNumber": 1122334455,
+    "ownerName": "Jose Rizal"
+  },
+  {
+    "id": 4,
+    "methodName": "Landbank of the Philippines",
+    "methodType": "Bank Transfer",
+    "accountNumber": 5566778899,
+    "ownerName": "Andres Bonifacio"
+  },
+  {
+    "id": 5,
+    "methodName": "UnionBank of the Philippines",
+    "methodType": "Bank Transfer",
+    "accountNumber": 6677889900,
+    "ownerName": "Emilio Aguinaldo"
+  }
+]
