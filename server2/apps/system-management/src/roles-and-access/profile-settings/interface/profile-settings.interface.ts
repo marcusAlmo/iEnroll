@@ -40,4 +40,8 @@ export interface ProfileSettings {
       systemSettings: $Enums.access_type_access_list;
     };
   };
+
+  response: {
+    message: string;
+  };
 }

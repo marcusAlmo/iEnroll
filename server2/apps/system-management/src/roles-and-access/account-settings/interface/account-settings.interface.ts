@@ -4,4 +4,7 @@ export interface AccountSettings {
     email: string;
     password: string | null;
   };
+  response: {
+    message: string;
+  };
 }

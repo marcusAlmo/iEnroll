@@ -40,6 +40,7 @@ export interface Fees {
   receivedData: {
     gradeLevelCode: string[];
     feeDetailsArr: {
+      feeTypeId: number;
       feeName: string;
       amount: number;
       description: string | null;
@@ -56,6 +57,7 @@ export interface Fees {
   }[];
 
   toInsertFees: {
+    feeTypeId: number;
     feeName: string;
     amount: number;
     description: string | null;

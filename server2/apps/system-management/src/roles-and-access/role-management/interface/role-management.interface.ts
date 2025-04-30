@@ -9,4 +9,8 @@ export interface RoleManagement {
     personnelCenter: $Enums.access_type_access_list;
     systemSettings: $Enums.access_type_access_list;
   };
+
+  response: {
+    message: string;
+  };
 }
