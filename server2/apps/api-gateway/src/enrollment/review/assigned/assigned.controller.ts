@@ -8,15 +8,14 @@ import {
 } from '@nestjs/common';
 import { AssignedService } from './assigned.service';
 import { ApproveOrDenyDto } from './dtos/requirement.dto';
+import { User } from '@lib/decorators/user.decorator';
 
 @Controller('assigned')
 export class AssignedController {
   constructor(private readonly assignedService: AssignedService) {}
 
-  @Get('grade-levels/:schoolId')
-  async getAllGradeLevelsBySchool(
-    @Param('schoolId', ParseIntPipe) schoolId: number,
-  ) {
+  @Get('grade-levels')
+  async getAllGradeLevelsBySchool(@User('school_id') schoolId: number) {
     return await this.assignedService.getAllGradeLevelsBySchool(schoolId);
   }
 
@@ -49,7 +48,13 @@ export class AssignedController {
   }
 
   @Post('requirements/approve-or-deny')
-  async approveOrDenyRequirements(@Body() approveOrDenyDto: ApproveOrDenyDto) {
-    return await this.assignedService.approveOrDenyAttachment(approveOrDenyDto);
+  async approveOrDenyRequirements(
+    @Body() approveOrDenyDto: ApproveOrDenyDto,
+    @User('user_id') reviewerId: number,
+  ) {
+    return await this.assignedService.approveOrDenyAttachment({
+      ...approveOrDenyDto,
+      reviewerId,
+    });
   }
 }
