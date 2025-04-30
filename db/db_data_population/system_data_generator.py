@@ -29,6 +29,7 @@ def generate_system_initial_setup(cursor):
         generate_system_address_data(cursor)
         generate_academic_levels(cursor)
         generate_grade_levels(cursor)
+        generate_academic_programs(cursor)
         generate_system_settings(cursor)
         generate_common_enrollment_requirements(cursor)
         requirement_group_generator(cursor)
@@ -776,5 +777,34 @@ def generate_system_address_data(cursor):
         print(f"Error generating system user: {e}")
 
 
+def generate_academic_programs(cursor):
+    """
+    academic_program:
+    1. program
+    2. description
+    """
+    academic_programs = [
+        ('ABM', 'Accountancy, Business, and Management'),
+        ('STEM', 'Science, Technology, Engineering, and Mathematics'),
+        ('GAS', 'General Academic Strand'),
+        ('ICT', 'Information Communications Technology'),
+        ('REGULAR', 'Regular'),
+        ('STEC', 'Science, Technology, and Engineering Curriculum')
+    ]
+
+    insert_query = """
+    INSERT INTO system.academic_program (program, description, is_default)
+    VALUES (%s, %s, true)
+    ON CONFLICT (program, description) DO NOTHING;
+    """
+
+    try:
+        # Execute insertions
+        cursor.executemany(insert_query, academic_programs)
         
-        
+        # Commit the transactions
+        cursor.connection.commit()
+        print("Successfully inserted academic programs")
+    except Exception as e:
+        cursor.connection.rollback()
+        print(f"Error inserting academic programs: {e}")

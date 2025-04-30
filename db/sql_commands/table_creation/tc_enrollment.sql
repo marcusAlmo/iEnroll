@@ -141,6 +141,7 @@ CREATE TABLE IF NOT EXISTS enrollment.enrollment_application (
     application_id INT NOT NULL, 
     grade_level_offered_id INT NOT NULL,
     schedule_id INT NOT NULL,
+    grade_section_id INT,
     status enrollment.application_status NOT NULL DEFAULT 'pending',
     remarks TEXT,
     application_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -227,11 +228,13 @@ CREATE TABLE IF NOT EXISTS enrollment.grade_level_offered (
 
 -- enrollment_schedule
 CREATE TABLE IF NOT EXISTS enrollment.enrollment_schedule (
-    schedule_id INT NOT NULL,
+    schedule_id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
     grade_level_offered_id INT NOT NULL,
     application_slot INT NOT NULL,
     start_datetime TIMESTAMP NOT NULL,
     end_datetime TIMESTAMP NOT NULL,
+    can_choose_section BOOLEAN NOT NULL DEFAULT FALSE,
+    is_paused BOOLEAN NOT NULL DEFAULT FALSE,
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

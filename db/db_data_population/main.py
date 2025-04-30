@@ -76,6 +76,34 @@ def validate_school_data(school_name, email, contact):
     if not re.match(r'^\+?1?\d{9,15}$', contact):
         raise ValueError("Invalid contact number format")
 
+def user_enrollment_options():
+    print("""
+    Enrolled Schools:""")
+    cursor.execute("SELECT school_id, name FROM enrollment.school;")
+    schools = cursor.fetchall()
+    for school in schools:
+        print(f"""      {school[0]}: {school[1]}""")
+    approach = int(input("""Choose approach:
+        [1] Generate users for a specific school
+        [2] Generate users for all schools
+    Choice: """))
+    school_id = 0
+    if approach == 1:
+        school_id = int(input("Enter school id: "))
+    else: school_id = 0
+    user_type = int(input("""\nChoose user type:
+        [1] Admin
+        [2] Registrar
+        [3] Student
+    Choice: """))
+    user_count = int(input("Enter number of users to generate: "))
+    user_type = 'ADM' if user_type == 1 else 'REG' if user_type == 2 else 'STU'
+    try:
+        user_generator.UserGenerator(cursor, user_count, school_id, user_type).generate_user()
+    except Exception as e:
+        print(f"Error generating users: {e}")
+        
+    
 if __name__ == '__main__':
     conn, cursor = connect_db()
     if not cursor:
@@ -95,23 +123,7 @@ if __name__ == '__main__':
                 school_id = school_generator.generate_school(cursor)
                 print(f"School {school_id} created successfully")
             elif entity == 2:
-                approach = int(input("""Choose approach:
-                    [1] Generate users for a specific school
-                    [2] Generate users for all schools
-                Choice: """))
-                school_id = 0
-                if approach == 1:
-                    school_id = int(input("Enter school id: "))
-                else: school_id = 0
-                user_type = int(input("""Choose user type:
-                    [1] Admin
-                    [2] Student
-                Choice: """))
-                user_count = int(input("Enter number of users to generate: "))
-                if user_type == 1:
-                    user_generator.UserGenerator(cursor, user_count, school_id).generate_admin_user()
-                elif user_type == 2:
-                    user_generator.UserGenerator(cursor, user_count, school_id).generate_student_user()
+                user_enrollment_options()
             elif entity == 3:
                 # user_generator.generate_user_log(cursor)
                 pass
