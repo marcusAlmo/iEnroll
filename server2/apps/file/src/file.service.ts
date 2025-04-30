@@ -12,6 +12,7 @@ import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.serv
 import { CryptoUtils } from '@lib/utils/crypto.utils';
 import { MAX_FILE_SIZE_BYTES, UPLOADDIR } from '@lib/constants/file.constants';
 import { ModulePluginOptions } from './interfaces/module-plugin-options.interface';
+import { FileCommonService } from '@lib/file-common/file-common.service';
 
 // import * as fileTypeLib from 'file-type';
 
@@ -23,6 +24,7 @@ export class FileService {
     private readonly prisma: PrismaService,
     private readonly ocrService: OcrService,
     private readonly blurryDetectorService: BlurryDetectorService,
+    private readonly fileCommonService: FileCommonService,
   ) {
     if (!existsSync(this.uploadDir)) mkdirSync(this.uploadDir);
   }
@@ -176,7 +178,7 @@ export class FileService {
       document: {
         id: file.file_id,
         name: file.name,
-        url: `/api/file/${file.uuid}`,
+        url: this.fileCommonService.formatFileUrl(file.uuid),
         type: file.type,
         size: file.size,
         createdAt: file.creation_datetime,
@@ -220,7 +222,7 @@ export class FileService {
       document: {
         id: file.file_id,
         name: file.name,
-        url: `/uploads/${file.path}`,
+        url: this.fileCommonService.formatFileUrl(file.uuid),
         type: file.type,
         size: file.size,
         uuid: file.uuid,

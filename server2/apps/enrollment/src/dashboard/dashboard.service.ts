@@ -1,11 +1,15 @@
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { EnrollmentStatus } from './enums/enrollment-status.enum';
+import { FileCommonService } from '@lib/file-common/file-common.service';
 // import { $Enums } from '@prisma/client';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileCommonService: FileCommonService,
+  ) {}
 
   async getEnrollmentDetails(studentId: number) {
     //   : {
@@ -206,7 +210,7 @@ export class DashboardService {
 
     return result.map((data) => ({
       fileName: data.file.name,
-      fileUrl: `/api/file/${data.file.uuid}`,
+      fileUrl: this.fileCommonService.formatFileUrl(data.file.uuid),
     }));
   }
 }

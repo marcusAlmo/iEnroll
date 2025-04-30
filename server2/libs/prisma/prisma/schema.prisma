@@ -63,6 +63,7 @@ model application_attachment {
   review_datetime        DateTime?              @db.Timestamp(6)
   upload_datetime        DateTime?              @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?              @default(now()) @db.Timestamp(6)
+  remarks                String?                @db.VarChar(255)
   enrollment_application enrollment_application @relation(fields: [application_id], references: [application_id], map: "fk_application_attachment_application_id")
   file                   file?                  @relation(fields: [file_id], references: [file_id], onDelete: Restrict, map: "fk_application_attachment_file_id")
   enrollment_requirement enrollment_requirement @relation(fields: [requirement_id], references: [requirement_id], map: "fk_application_attachment_requirement_id")
@@ -698,6 +699,7 @@ model academic_program {
   grade_section_program grade_section_program[]
 
   @@unique([program, description], map: "uq_academic_program")
+  @@unique([program, description], map: "uq_program_description")
   @@schema("system")
 }
 
@@ -718,7 +720,7 @@ model subscription_plan {
   is_active              Boolean?              @default(true)
   creation_datetime      DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?             @default(now()) @db.Timestamp(6)
-  max_download_count     Int
+  max_download_count     Int                   @default(0)
   school_subscription    school_subscription[]
 
   @@schema("system")
