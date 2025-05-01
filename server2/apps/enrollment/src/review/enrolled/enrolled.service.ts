@@ -5,57 +5,10 @@ import { Injectable } from '@nestjs/common';
 export class EnrolledService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAllGradeLevelsBySchool(schoolId: number) {
-    const result = await this.prisma.grade_level_offered.findMany({
-      where: {
-        is_active: true,
-        school_id: schoolId,
-      },
-      select: {
-        grade_level_offered_id: true,
-        grade_level: {
-          select: {
-            grade_level: true,
-          },
-        },
-      },
-    });
-
-    return result.map((data) => ({
-      gradeId: data.grade_level_offered_id,
-      gradeName: data.grade_level.grade_level,
-    }));
-  }
-  async getAllSectionsByGradeLevel(gradeLevelId: number) {
-    const result = await this.prisma.grade_section.findMany({
-      where: {
-        grade_section_program: {
-          grade_level_offered_id: gradeLevelId,
-        },
-      },
-      select: {
-        grade_section_id: true,
-        section_name: true,
-      },
-    });
-
-    return result.map((data) => ({
-      sectionId: data.grade_section_id,
-      sectionName: data.section_name,
-    }));
-  }
-
-  // name
-  // id
-  // grade level
-  // section
-  // status
-  // enrollment date
-  async getAllStudentsEnrolledBySection(sectionId: number) {
-    const result = await this.prisma.student_enrollment.findMany({
-      where: {
-        grade_section_id: sectionId,
-      },
+  // Shared function to fetch student enrollments with relations
+  private async fetchStudentEnrollments(filter: any) {
+    return this.prisma.student_enrollment.findMany({
+      where: filter,
       select: {
         enrollment_datetime: true,
         grade_section: {
@@ -81,7 +34,6 @@ export class EnrolledService {
             status: true,
             student: {
               select: {
-                // since enroller is the student itself
                 user_student_enroller_idTouser: {
                   select: {
                     first_name: true,
@@ -97,8 +49,51 @@ export class EnrolledService {
         },
       },
     });
+  }
+
+  async getAllGradeLevelsBySchool(schoolId: number) {
+    const result = await this.prisma.grade_level_offered.findMany({
+      where: {
+        is_active: true,
+        school_id: schoolId,
+      },
+      select: {
+        grade_level_offered_id: true,
+        grade_level: {
+          select: {
+            grade_level: true,
+          },
+        },
+      },
+    });
 
     return result.map((data) => ({
+      gradeId: data.grade_level_offered_id,
+      gradeName: data.grade_level.grade_level,
+    }));
+  }
+
+  async getAllSectionsByGradeLevel(gradeLevelId: number) {
+    const result = await this.prisma.grade_section.findMany({
+      where: {
+        grade_section_program: {
+          grade_level_offered_id: gradeLevelId,
+        },
+      },
+      select: {
+        grade_section_id: true,
+        section_name: true,
+      },
+    });
+
+    return result.map((data) => ({
+      sectionId: data.grade_section_id,
+      sectionName: data.section_name,
+    }));
+  }
+
+  private mapStudentEnrollmentData = (data: any) => {
+    return {
       studentId:
         data.enrollment_application.student.user_student_enroller_idTouser
           .user_id,
@@ -120,6 +115,156 @@ export class EnrolledService {
         data.grade_section.grade_section_program.grade_level_offered.grade_level
           .grade_level,
       sectionName: data.grade_section.section_name,
-    }));
+    };
+  };
+
+  async getAllStudentsEnrolledBySection(sectionId: number, keyword?: string) {
+    const result = await this.fetchStudentEnrollments({
+      grade_section_id: sectionId,
+    });
+
+    return this.filterAndSortStudents(
+      result.filter(
+        (entry): entry is typeof entry & { enrollment_datetime: Date } =>
+          entry.enrollment_datetime !== null,
+      ),
+      keyword,
+    );
+  }
+
+  async getAllStudentsEnrolledByGradeLevel(gradeLevelId: number) {
+    const result = await this.fetchStudentEnrollments({
+      grade_section: {
+        grade_section_program: {
+          grade_level_offered_id: gradeLevelId,
+        },
+      },
+    });
+
+    return result.map(this.mapStudentEnrollmentData);
+  }
+
+  async getAllStudentsEnrolledBySchool(schoolId: number) {
+    const result = await this.fetchStudentEnrollments({
+      grade_section: {
+        grade_section_program: {
+          grade_level_offered: {
+            school_id: schoolId,
+          },
+        },
+      },
+    });
+
+    return result.map(this.mapStudentEnrollmentData);
+  }
+
+  async getAllStudentsEnrolledFiltered(
+    filter: { sectionId?: number; gradeLevelId?: number; schoolId?: number },
+    keyword?: string,
+  ) {
+    const result = await this.fetchStudentEnrollments({
+      AND: [
+        filter.sectionId ? { grade_section_id: filter.sectionId } : undefined,
+        filter.gradeLevelId
+          ? {
+              grade_section: {
+                grade_section_program: {
+                  grade_level_offered_id: filter.gradeLevelId,
+                },
+              },
+            }
+          : undefined,
+        filter.schoolId
+          ? {
+              grade_section: {
+                grade_section_program: {
+                  grade_level_offered: {
+                    school_id: filter.schoolId,
+                  },
+                },
+              },
+            }
+          : undefined,
+      ].filter(Boolean),
+    });
+
+    return this.filterAndSortStudents(
+      result.filter(
+        (entry): entry is typeof entry & { enrollment_datetime: Date } =>
+          entry.enrollment_datetime !== null,
+      ),
+      keyword,
+    );
+  }
+
+  private filterAndSortStudents(
+    result: {
+      enrollment_application: {
+        student: {
+          user_student_enroller_idTouser: {
+            user_id: string | number;
+            first_name: string;
+            last_name: string;
+            middle_name: string | null;
+            suffix: string | null;
+          };
+        };
+        status: string;
+      };
+      enrollment_datetime: Date;
+      grade_section: {
+        section_name: string;
+        grade_section_program: {
+          grade_level_offered: {
+            grade_level: {
+              grade_level: string;
+            };
+          };
+        };
+      };
+    }[],
+    keyword?: string,
+  ) {
+    const keywordTokens = keyword
+      ? keyword.toLowerCase().split(/\s+/).filter(Boolean)
+      : [];
+
+    const scored = result.map((data) => {
+      const user =
+        data.enrollment_application.student.user_student_enroller_idTouser;
+      const fullName =
+        `${user.first_name ?? ''} ${user.middle_name ?? ''} ${user.last_name ?? ''} ${user.suffix ?? ''}`
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+      let score = 0; // Initialize score variable
+      for (const token of keywordTokens) {
+        if (user.user_id.toString().includes(token)) score += 2;
+        if (fullName.includes(token)) score += 1;
+      }
+
+      return {
+        studentId: user.user_id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        middleName: user.middle_name,
+        suffix: user.suffix,
+        enrollmentStatus: data.enrollment_application.status,
+        enrollmentDate: data.enrollment_datetime,
+        gradeLevel:
+          data.grade_section.grade_section_program.grade_level_offered
+            .grade_level.grade_level,
+        sectionName: data.grade_section.section_name,
+        _score: score,
+      };
+    });
+
+    return scored
+      .filter((entry) => (keyword ? entry._score > 0 : true))
+      .sort((a, b) =>
+        b._score !== a._score
+          ? b._score - a._score
+          : a.lastName.localeCompare(b.lastName),
+      );
   }
 }
