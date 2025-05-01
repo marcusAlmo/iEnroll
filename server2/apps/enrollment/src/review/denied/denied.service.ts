@@ -69,6 +69,7 @@ export class DeniedService {
       const latestReviewer = attachments[0]?.user;
 
       return {
+        applicationId: application.application_id,
         student: {
           firstName: studentUser.first_name,
           lastName: studentUser.last_name,
