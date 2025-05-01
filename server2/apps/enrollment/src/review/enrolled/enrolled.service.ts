@@ -202,7 +202,7 @@ export class EnrolledService {
       enrollment_application: {
         student: {
           user_student_enroller_idTouser: {
-            user_id: string | number;
+            user_id: number;
             first_name: string;
             last_name: string;
             middle_name: string | null;

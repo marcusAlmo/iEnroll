@@ -61,7 +61,14 @@ const DeniedIndex: React.FC = () => {
       return toDeniedStudentType(
         raw.map((student) => ({
           studentId: student.applicationId,
-          studentName: `${student.student.firstName} ${student.student.middleName} ${student.student.lastName}`,
+          studentName: [
+            student.student.firstName,
+            student.student.middleName,
+            student.student.lastName,
+            student.student.suffix,
+          ]
+            .filter(Boolean)
+            .join(" "),
           firstName: student.student.firstName,
           middleName: student.student.middleName,
           lastName: student.student.lastName,
@@ -73,6 +80,7 @@ const DeniedIndex: React.FC = () => {
               student.reviewer?.firstName,
               student.reviewer?.middleName,
               student.reviewer?.lastName,
+              student.reviewer?.suffix,
             ]
               .filter(Boolean)
               .join(" ") || "N/A",
