@@ -53,6 +53,11 @@ export interface SchoolClassification {
     ids: SchoolClassification['idObject'];
   };
 
+  retrievedGradeLevels: {
+    academicLevels: string[];
+    gradeLevels: string[];
+  };
+
   deletableReturn: {
     grades: string[];
     ids: number[];

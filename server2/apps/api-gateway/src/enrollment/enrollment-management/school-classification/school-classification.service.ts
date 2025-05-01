@@ -35,4 +35,16 @@ export class SchoolClassificationService {
 
     return result.data as SchoolClassification['successMessage'];
   }
+
+  public async getAllGradesLavels(
+    payload: object,
+  ): Promise<SchoolClassification['retrievedGradeLevels']> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-all-grade-levels' }, payload),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as SchoolClassification['retrievedGradeLevels'];
+  }
 }

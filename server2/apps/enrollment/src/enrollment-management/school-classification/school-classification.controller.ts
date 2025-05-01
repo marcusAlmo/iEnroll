@@ -26,4 +26,9 @@ export class SchoolClassificationController {
       payload.schoolId,
     );
   }
+
+  @MessagePattern({ cmd: 'get-all-grade-levels' })
+  async getAllGradesLavels(payload: { schoolId: number }) {
+    return await this.schoolClassification.getAllGradesLavels(payload.schoolId);
+  }
 }

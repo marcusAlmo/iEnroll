@@ -63,6 +63,16 @@ export class SchoolClassificationService {
       message: 'Updates applied successfully',
     });
   }
+  public async getAllGradesLavels(
+    schoolId: number,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const acadCodes: string[] = await this.getData(schoolId);
+
+    const finalData: SchoolClassification['retrievedGradeLevels'] =
+      await this.getCompleteAcadAndGradeLevels(acadCodes);
+
+    return this.microserviceUtility.returnSuccess(finalData);
+  }
 
   // UTILITY FUNCTION
 
@@ -347,5 +357,51 @@ export class SchoolClassificationService {
     });
 
     return result ? true : false;
+  }
+
+  // === for fetching all the academic levels and grade levels
+
+  // step1
+  private async getData(schoolId: number): Promise<string[]> {
+    const data = await this.prisma.school.findFirst({
+      where: {
+        school_id: schoolId,
+        is_active: true,
+      },
+      select: {
+        supported_acad_level: true,
+      },
+    });
+
+    return !data ? [] : (data.supported_acad_level as string[]);
+  }
+
+  private async getCompleteAcadAndGradeLevels(
+    acadCodes: string[],
+  ): Promise<SchoolClassification['retrievedGradeLevels']> {
+    const data = await this.prisma.academic_level.findMany({
+      select: {
+        academic_level: true,
+        grade_level: {
+          where: {
+            academic_level_code: {
+              in: acadCodes,
+            },
+          },
+          select: {
+            grade_level: true,
+          },
+        },
+      },
+    });
+
+    if (!data) return { academicLevels: [], gradeLevels: [] };
+
+    return {
+      academicLevels: data.map((item) => item.academic_level),
+      gradeLevels: data.flatMap((item) =>
+        item.grade_level.map((grade) => grade.grade_level),
+      ),
+    };
   }
 }

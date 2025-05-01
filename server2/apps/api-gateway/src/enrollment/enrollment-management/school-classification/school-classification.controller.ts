@@ -28,4 +28,12 @@ export class SchoolClassificationController {
       schoolId,
     });
   }
+
+  @Get('retrieve-all-grade-levels')
+  async getAllGradesLavels(@User('school_id') schoolId: number) {
+    schoolId = 0;
+    return await this.schoolClassification.getAllGradesLavels({
+      schoolId,
+    });
+  }
 }
