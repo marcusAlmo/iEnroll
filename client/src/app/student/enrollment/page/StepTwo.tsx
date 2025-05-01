@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import requirements from "@/test/data/requirements.json";
 import fees from "@/test/data/fees.json";
 import paymentMethods from "@/test/data/payment-methods.json";
+import { generateSchemaFromRequirements } from "../schema/RequirementsSchema";
+import { sanitizeName } from "@/utils/stringUtils";
 
 const StepTwo = () => {
   const [isUploaded, setIsUploaded] = useState<boolean>(false);
@@ -33,8 +35,19 @@ const StepTwo = () => {
     return fees.reduce((total, fee) => total + fee.feeBreakdown.reduce((subTotal, breakdown) => subTotal + breakdown.feeAmount, 0), 0);
   };
 
-  const form = useForm<z.infer<typeof stepTwoSchema>>({
-    resolver: zodResolver(stepTwoSchema),
+  // Generate dynamic schema for the requirements
+  const requirementsSchema = generateSchemaFromRequirements(requirements);
+
+  // Generate default values for the requirementsSchema
+  const requirementsDefaultValues = Object.fromEntries(
+    requirements.map((req) => [sanitizeName(req.name), undefined])
+  );  
+
+  // Merge stepTwoSchema and requirementsSchema
+  const finalSchema = stepTwoSchema.merge(requirementsSchema);
+
+  const form = useForm<z.infer<typeof finalSchema>>({
+    resolver: zodResolver(finalSchema),
     defaultValues: {
       fatherFN: "",
       fatherMN: "",
@@ -44,11 +57,12 @@ const StepTwo = () => {
       maidenMotherLN: "",
       paymentMethodName: "",
       isAgree: undefined,
-      paymentProof: undefined
+      paymentProof: undefined,
+      ...requirementsDefaultValues
     },
   });
 
-  const onSubmit = (data: z.infer<typeof stepTwoSchema>) => {
+  const onSubmit = (data: z.infer<typeof finalSchema>) => {
     console.log(data);
   };
 
@@ -60,8 +74,6 @@ const StepTwo = () => {
     (method) => method.id === parseInt(selectedPaymentMethod)
   );
 
-  console.log(form.formState.errors.paymentProof?.message, "payment proof error message");
-
   return (
     <section className="w-screen flex flex-col items-center justify-center p-12 bg-container-1">
       <div className="text-center space-y-1.5">
@@ -71,10 +83,7 @@ const StepTwo = () => {
         <p className="text-text-2 text-sm font-semibold">Please submit the needed requirements</p>
       </div>
 
-      <div 
-        className="rounded-[10px] bg-accent py-0.5 px-2.5 space-x-1 mt-6"
-        // onClick={() => setShowModals(true)}
-      >
+      <div className="rounded-[10px] bg-accent py-0.5 px-2.5 space-x-1 mt-6">
         <span className="text-sm font-semibold">
           Need help? Just tap the <FontAwesomeIcon icon={faInfoCircle} className="text-primary"/> icon!  
         </span>
@@ -179,10 +188,15 @@ const StepTwo = () => {
                 <div key={index} className="mb-6">
                   <UploadBox 
                     control={form.control}
-                    name="paymentProof"
+                    name={sanitizeName(requirement.name)}
                     label={requirement.name} 
                     requirementType={requirement.requirementType} 
                   />
+                  {form.formState.errors[sanitizeName(requirement.name)] && (
+                    <span className="text-danger text-sm">
+                      Please upload a file
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
