@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
@@ -11,16 +10,17 @@ import { Form } from "@/components/ui/form";
 import CustomInput from "@/components/CustomInput";
 import FeeBreakdown from "../components/FeeBreakdown";
 import CustomDropdown from "@/components/CustomDropdown";
+import { Button } from "@/components/ui/button";
 
 // Sample data
 import requirements from "@/test/data/requirements.json";
 import fees from "@/test/data/fees.json";
 import paymentMethods from "@/test/data/payment-methods.json";
-import { Button } from "@/components/ui/button";
 
 const StepTwo = () => {
-  const [isUploaded, setIsUploaded] = useState<boolean>(true);
+  const [isUploaded, setIsUploaded] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isErrorUploading, setIsErrorUploading] = useState<boolean>(false);
 
   // Show tooltips
   const [showFatherDetailsTooltip, setShowFatherDetailsTooltip] = useState<boolean>(false);
@@ -32,31 +32,6 @@ const StepTwo = () => {
   const calculateTotalFees = () => {
     return fees.reduce((total, fee) => total + fee.feeBreakdown.reduce((subTotal, breakdown) => subTotal + breakdown.feeAmount, 0), 0);
   };
-
-  // Generate dynamic Zod schema for the requirements field
-  const generateSchemaFromRequirements = (requirements: any[]) => {
-    const shape: Record<string, z.ZodTypeAny> = {};
-  
-    requirements.forEach((req) => {
-      shape[req.name] = req.isRequired
-        ? z
-            .instanceof(File)
-            .refine((file) => file.size > 0, "File is required")
-        : z.union([z.instanceof(File), z.undefined()]);
-    });
-  
-    return z.object(shape);
-  };
-  const requirementsSchema = generateSchemaFromRequirements(requirements);
-  // console.log(JSON.stringify(requirementsSchema, null, 2), "requirements schema");  // debugging
-
-  // Generate default values for the requirements schema
-  const requirementsDefault = Object.fromEntries(
-    requirements.map((req) => [req.name, null])
-  );
-
-  // Merge requirementsSchema and stepTwoSchema
-  const finalSchema = stepTwoSchema.merge(requirementsSchema);
 
   const form = useForm<z.infer<typeof stepTwoSchema>>({
     resolver: zodResolver(stepTwoSchema),
@@ -200,16 +175,16 @@ const StepTwo = () => {
                   </div>
                 )}
               </div>
-              {/* {requirements.map((requirement, index) => (
+              {requirements.map((requirement, index) => (
                 <div key={index} className="mb-6">
                   <UploadBox 
                     control={form.control}
-                    name={`requirements.${requirement.requirementId}`} 
+                    name="paymentProof"
                     label={requirement.name} 
                     requirementType={requirement.requirementType} 
                   />
                 </div>
-              ))} */}
+              ))}
             </div>
 
             <div className="w-full">
@@ -300,25 +275,31 @@ const StepTwo = () => {
             </div>
 
             <div className="flex flex-col gap-y-2 items-center">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full font-semibold text-background py-6 rounded-[10px] bg-accent`}
-              >
-                {isLoading ? "Submitting" : "Submit Requirements"}
-              </Button>
-              
-              {/* Only display when the form is partially filled */}
-              {form.formState.isDirty && (
+              {!isUploaded ? (
                 <>
-                  <span className="text-sm text-text-2">or</span>
                   <Button
-                    // onclick
-                    className="w-full font-semibold bg-success/10 border border-success rounded-[10px] py-6 text-success text-sm"
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full font-semibold text-background py-6 rounded-[10px] bg-accent`}
                   >
-                    Save as Draft
+                    {isLoading ? "Submitting" : "Submit Requirements"}
                   </Button>
+
+                  {/* Only display when the form is partially filled */}
+                  {form.formState.isDirty && (
+                    <>
+                      <span className="text-sm text-text-2">or</span>
+                      <Button
+                        // onclick
+                        className="w-full font-semibold bg-success/10 border border-success rounded-[10px] py-6 text-success text-sm"
+                      >
+                        Save as Draft
+                      </Button>
+                    </>
+                  )}
                 </>
+              ) : (
+                <div className="rounded-[10px] bg-success py-3 text-background font-semibold w-full text-center">Uploaded successfully</div>
               )}
             </div>
           </form>
@@ -326,7 +307,7 @@ const StepTwo = () => {
       </div>
 
       {/* Display if upload failed */}
-      {!isUploaded && (
+      {isErrorUploading && (
         <div className="text-sm text-danger font-semibold text-center mt-4">
           Upload failed. Please make sure you have a strong internet connection.
         </div>
