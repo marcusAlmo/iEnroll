@@ -2,7 +2,6 @@ import { instance } from "@/lib/axios";
 import { AnnouncementResponse } from "../types/announcement";
 
 export const getAnnoucements = async () => {
-  alert(import.meta.env.VITE_ENABLE_AXIOS)
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
     return instance.get<AnnouncementResponse>(
       "/api/enrollment/landing/announcement",
