@@ -10,7 +10,6 @@ import { Form } from "@/components/ui/form";
 import CustomInput from "@/components/CustomInput";
 import FeeBreakdown from "../components/FeeBreakdown";
 import CustomDropdown from "@/components/CustomDropdown";
-import { modalContent } from "./modalContent";
 
 // Sample data
 import requirements from "@/test/data/requirements.json";
@@ -19,15 +18,8 @@ import paymentMethods from "@/test/data/payment-methods.json";
 import { Button } from "@/components/ui/button";
 
 const StepTwo = () => {
-  const [isUploaded, setIsUploaded] = useState<boolean>(false);
+  const [isUploaded, setIsUploaded] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  // Show modals
-  const [showModals, setShowModals] = useState({
-    helpModal: false,
-    submitModal: false,
-    saveDraftModal: false
-  });
 
   // Show tooltips
   const [showFatherDetailsTooltip, setShowFatherDetailsTooltip] = useState<boolean>(false);
@@ -218,7 +210,7 @@ const StepTwo = () => {
                     label: method.methodName,
                     ...method,
                   }))}
-                  buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
+                  buttonClassName="rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
                   menuClassName="w-full rounded-[10px] bg-white"
                   itemClassName="rounded-[10px] transition-all ease-in-out"
                   label=""
@@ -267,7 +259,7 @@ const StepTwo = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full font-semibold bg-accent text-background py-6 rounded-[10px]"
+                className={`w-full font-semibold text-background py-6 rounded-[10px] bg-accent`}
               >
                 {isLoading ? "Submitting" : "Submit Requirements"}
               </Button>
@@ -290,7 +282,11 @@ const StepTwo = () => {
       </div>
 
       {/* Display if upload failed */}
-      {!isUploaded }
+      {!isUploaded && (
+        <div className="text-sm text-danger font-semibold text-center mt-4">
+          Upload failed. Please make sure you have a strong internet connection.
+        </div>
+      )}
     </section>
   )
 }
