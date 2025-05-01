@@ -1,4 +1,5 @@
-import { faFaceSmileWink, faInfo, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import UploadBox from "../components/UploadBox";
@@ -32,6 +33,31 @@ const StepTwo = () => {
     return fees.reduce((total, fee) => total + fee.feeBreakdown.reduce((subTotal, breakdown) => subTotal + breakdown.feeAmount, 0), 0);
   };
 
+  // Generate dynamic Zod schema for the requirements field
+  const generateSchemaFromRequirements = (requirements: any[]) => {
+    const shape: Record<string, z.ZodTypeAny> = {};
+  
+    requirements.forEach((req) => {
+      shape[req.name] = req.isRequired
+        ? z
+            .instanceof(File)
+            .refine((file) => file.size > 0, "File is required")
+        : z.union([z.instanceof(File), z.undefined()]);
+    });
+  
+    return z.object(shape);
+  };
+  const requirementsSchema = generateSchemaFromRequirements(requirements);
+  // console.log(JSON.stringify(requirementsSchema, null, 2), "requirements schema");  // debugging
+
+  // Generate default values for the requirements schema
+  const requirementsDefault = Object.fromEntries(
+    requirements.map((req) => [req.name, null])
+  );
+
+  // Merge requirementsSchema and stepTwoSchema
+  const finalSchema = stepTwoSchema.merge(requirementsSchema);
+
   const form = useForm<z.infer<typeof stepTwoSchema>>({
     resolver: zodResolver(stepTwoSchema),
     defaultValues: {
@@ -42,7 +68,8 @@ const StepTwo = () => {
       maidenMotherMN: "",
       maidenMotherLN: "",
       paymentMethodName: "",
-      isAgree: undefined
+      isAgree: undefined,
+      paymentProof: undefined
     },
   });
 
@@ -57,6 +84,8 @@ const StepTwo = () => {
   const selectedPaymentDetails = paymentMethods.find(
     (method) => method.id === parseInt(selectedPaymentMethod)
   );
+
+  console.log(form.formState.errors.paymentProof?.message, "payment proof error message");
 
   return (
     <section className="w-screen flex flex-col items-center justify-center p-12 bg-container-1">
@@ -171,11 +200,16 @@ const StepTwo = () => {
                   </div>
                 )}
               </div>
-              {requirements.map((requirement, index) => (
+              {/* {requirements.map((requirement, index) => (
                 <div key={index} className="mb-6">
-                  <UploadBox label={requirement.name} requirementType={requirement.requirementType} />
+                  <UploadBox 
+                    control={form.control}
+                    name={`requirements.${requirement.requirementId}`} 
+                    label={requirement.name} 
+                    requirementType={requirement.requirementType} 
+                  />
                 </div>
-              ))}
+              ))} */}
             </div>
 
             <div className="w-full">
@@ -236,8 +270,18 @@ const StepTwo = () => {
 
             <div className="w-full">
               <div className="text-primary font-semibold text-sm mb-4">Please upload proof of your payment</div>
-              <UploadBox label="" requirementType=".pdf" /> 
-              {/* if passing image, pass "image/*" */}
+              <UploadBox 
+                label=""
+                control={form.control}
+                name="paymentProof" 
+                requirementType=".pdf" 
+              /> 
+              {/* NOTE -> if passing image, pass "image/*" */}
+              {form.formState.errors.paymentProof && (
+                <span className="text-danger text-sm">
+                  Please upload a file
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col gap-y-2">

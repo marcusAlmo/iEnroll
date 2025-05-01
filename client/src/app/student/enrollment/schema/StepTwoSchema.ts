@@ -23,7 +23,7 @@ export const stepTwoSchema = z.object({
   }),
   paymentProof: z
     .instanceof(File)
-    .nullable() // Allow null (no file selected initially)
+    // .nullable() // Allow null (no file selected initially)
     .refine(file => file === null || file.size > 0, {
       message: "File is required",
     }),
