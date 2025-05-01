@@ -1,10 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useEnrolledStudents } from '../../../../context/enrolledStudentsContext';
-import enrolledStudentsData from '../../test/enrolledStudentsData.json';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useEnrolledStudents } from "../../../../context/enrolledStudentsContext";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getAllStudentsEnrolled,
+  getAllStudentsEnrolledByGradeLevel,
+} from "@/services/desktop-web-app/enrollment-review/enrolled";
+
+interface EnrolledStudent {
+  studentId: number; // Unique identifier for the student
+  studentName: string; // Full name of the student (for display purposes)
+  firstName: string; // Student's first name
+  middleName: string | null; // Student's middle name
+  lastName: string; // Student's last name
+  suffix: string | null; // Student's suffix (e.g., "Jr.", "III")
+  applicationStatus: string; // Current status of the student (e.g., "Enrolled")
+  enrollmentDate: string; // Date when the student was enrolled
+  gradeLevel: string; // Grade level of the student
+  section: string; // Section of the student
+}
 
 /**
  * PrintButton Component
- * 
+ *
  * This component provides a dropdown menu with different printing options for enrolled students.
  * It allows users to print:
  * - All enrolled students
@@ -15,93 +32,147 @@ interface PrintButtonProps {
   className?: string;
 }
 
-const PrintButton: React.FC<PrintButtonProps> = ({ className = '' }) => {
+const PrintButton: React.FC<PrintButtonProps> = ({ className = "" }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [mode, setMode] = useState<1 | 2 | 3 | undefined>();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const {
     gradeLevels,
     selectedGradeLevel,
     sections,
     selectedSection,
-    students,
+    students: sectionStudents,
+    isSectionsPending,
     searchTerm,
   } = useEnrolledStudents();
+
+  const toEnrolledStudents = (students: EnrolledStudent[]) => students;
+
+  const { data: gradeLevelStudents, isPending: isGradeLevelPending } = useQuery(
+    {
+      queryKey: ["enrolledStudentsGradeLevelPrint"],
+      queryFn: () =>
+        getAllStudentsEnrolledByGradeLevel(selectedGradeLevel!, searchTerm),
+      select: (data) => {
+        const raw = data.data;
+        return toEnrolledStudents(
+          raw.map((student) => ({
+            studentId: student.studentId,
+            studentName: [
+              student.firstName,
+              student.middleName,
+              student.lastName,
+              student.suffix,
+            ]
+              .filter(Boolean)
+              .join(" "),
+            firstName: student.firstName,
+            middleName: student.middleName,
+            lastName: student.lastName,
+            suffix: student.suffix,
+            applicationStatus: "Enrolled",
+            enrollmentDate: student.enrollmentDate.toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+            gradeLevel: student.gradeLevel,
+            section: student.sectionName,
+          })),
+        );
+      },
+      enabled: !!selectedGradeLevel && mode === 2,
+    },
+  );
+  const { data: allStudents, isPending: isAllStudentsPending } = useQuery({
+    queryKey: ["enrolledStudentsPrint"],
+    queryFn: () => getAllStudentsEnrolled(searchTerm),
+    select: (data) => {
+      const raw = data.data;
+      return toEnrolledStudents(
+        raw.map((student) => ({
+          studentId: student.studentId,
+          studentName: [
+            student.firstName,
+            student.middleName,
+            student.lastName,
+            student.suffix,
+          ]
+            .filter(Boolean)
+            .join(" "),
+          firstName: student.firstName,
+          middleName: student.middleName,
+          lastName: student.lastName,
+          suffix: student.suffix,
+          applicationStatus: "Enrolled",
+          enrollmentDate: student.enrollmentDate.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          gradeLevel: student.gradeLevel,
+          section: student.sectionName,
+        })),
+      );
+    },
+    enabled: !!selectedSection && mode === 1,
+  });
 
   // Handle clicks outside the dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
 
     // Add event listener when dropdown is open
     if (isDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     // Clean up event listener
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isDropdownOpen]);
 
   // Get the grade level name for the selected grade level
-  const getGradeLevelName = () => {
-    if (!selectedGradeLevel) return 'All Grade Levels';
-    const gradeLevel = gradeLevels.find(level => level.gradeId === selectedGradeLevel);
-    return gradeLevel ? gradeLevel.gradeName : 'All Grade Levels';
-  };
+  const getGradeLevelName = useCallback(() => {
+    if (!selectedGradeLevel) return "All Grade Levels";
+    const gradeLevel = gradeLevels?.find(
+      (level) => level.gradeId === selectedGradeLevel,
+    );
+    return gradeLevel ? gradeLevel.gradeName : "All Grade Levels";
+  }, [selectedGradeLevel, gradeLevels]);
 
   // Get the section name for the selected section
   const getSectionName = () => {
-    if (!selectedSection) return 'All Sections';
-    const section = sections.find(section => section.sectionId === selectedSection);
-    return section ? section.sectionName : 'All Sections';
+    if (!selectedSection) return "All Sections";
+    const section = sections?.find(
+      (section) => section.sectionId === selectedSection,
+    );
+    return section ? section.sectionName : "All Sections";
   };
 
   // Filter students based on search term
-  const filteredStudents = students.filter(student => 
-    student.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.studentId.toString().includes(searchTerm)
-  );
-
-  // Handle printing all students
-  const handlePrintAll = () => {
-    // Get all students from all sections
-    const allStudents = Object.values(enrolledStudentsData.students)
-      .flat();
-    
-    printStudents(allStudents, 'All Enrolled Students');
-  };
-
-  // Handle printing students by grade level
-  const handlePrintByGradeLevel = () => {
-    if (!selectedGradeLevel) return;
-    
-    // Get all students from the selected grade level
-    const gradeLevelStudents = Object.values(enrolledStudentsData.students)
-      .flat()
-      .filter(student => student.gradeLevel === selectedGradeLevel);
-    
-    printStudents(gradeLevelStudents, `Students in ${getGradeLevelName()}`);
-  };
-
-  // Handle printing students by section
-  const handlePrintBySection = () => {
-    if (!selectedSection) return;
-    
-    printStudents(filteredStudents, `Students in ${getGradeLevelName()} - ${getSectionName()}`);
-  };
+  // const filteredStudents = students.filter(student =>
+  //   student.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   student.studentId.toString().includes(searchTerm)
+  // );
 
   // Generic print function
-  const printStudents = (studentsToPrint: typeof students, title: string) => {
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+  const printStudents = useCallback(
+    (studentsToPrint: NonNullable<typeof sectionStudents>, title: string) => {
+      // Create a new window for printing
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) return;
 
-    // Create the HTML content for printing
-    const htmlContent = `
+      // Create the HTML content for printing
+      const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -159,73 +230,107 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = '' }) => {
               </tr>
             </thead>
             <tbody>
-              ${studentsToPrint.map(student => `
+              ${studentsToPrint
+                .map(
+                  (student) => `
                 <tr>
                   <td>${student.studentId}</td>
                   <td>${student.studentName}</td>
-                  <td>${getGradeLevelNameById(student.gradeLevel)}</td>
-                  <td>${getSectionNameById(student.section)}</td>
+                  <td>${student.gradeLevel}</td>
+                  <td>${student.section}</td>
                   <td>${student.applicationStatus}</td>
                   <td>${student.enrollmentDate}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join("")}
             </tbody>
           </table>
         </body>
       </html>
     `;
 
-    // Write the HTML content to the new window
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+      // Write the HTML content to the new window
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
 
-    // Wait for the content to load before printing
-    printWindow.onload = () => {
-      printWindow.print();
-      // Close the window after printing (optional)
-      // printWindow.close();
-    };
-  };
+      // Wait for the content to load before printing
+      printWindow.onload = () => {
+        printWindow.print();
+        // Close the window after printing (optional)
+        // printWindow.close();
+      };
+    },
+    [],
+  );
 
-  // Helper function to get grade level name by ID
-  const getGradeLevelNameById = (gradeId: number) => {
-    const gradeLevel = gradeLevels.find(level => level.gradeId === gradeId);
-    return gradeLevel ? gradeLevel.gradeName : '';
-  };
+  // Handle printing all students
+  const handlePrintAll = useCallback(() => {
+    setMode(1);
+  }, []);
 
-  // Helper function to get section name by ID
-  const getSectionNameById = (sectionId: number) => {
-    // First try to find the section in the current sections list
-    const section = sections.find(section => section.sectionId === sectionId);
-    if (section) return section.sectionName;
-    
-    // If not found in current sections, search through all sections in the data
-    for (const gradeKey in enrolledStudentsData.sections) {
-      const gradeSections = enrolledStudentsData.sections[gradeKey as keyof typeof enrolledStudentsData.sections];
-      const foundSection = gradeSections.find(s => s.sectionId === sectionId);
-      if (foundSection) return foundSection.sectionName;
+  useEffect(() => {
+    if (mode === 1 && !isAllStudentsPending && allStudents) {
+      printStudents(allStudents, "All Enrolled Students");
+      setMode(undefined);
     }
-    
-    return 'Unknown Section';
+  }, [mode, allStudents, printStudents, isAllStudentsPending]);
+
+  const handlePrintByGradeLevel = () => {
+    if (!selectedGradeLevel) return;
+
+    setMode(2);
+  };
+
+  useEffect(() => {
+    if (mode === 2 && !isGradeLevelPending && gradeLevelStudents) {
+      printStudents(gradeLevelStudents, `Students in ${getGradeLevelName()}`);
+      setMode(undefined);
+    }
+  }, [
+    mode,
+    gradeLevelStudents,
+    printStudents,
+    getGradeLevelName,
+    isGradeLevelPending,
+  ]);
+
+  // Handle printing students by section
+  const handlePrintBySection = () => {
+    if (!selectedSection || !sectionStudents || isSectionsPending) return;
+
+    printStudents(
+      sectionStudents,
+      `Students in ${getGradeLevelName()} - ${getSectionName()}`,
+    );
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className={`bg-primary text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-accent cursor-pointer button-transition ${className}`}
+        className={`bg-primary hover:bg-accent button-transition flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white ${className}`}
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z"
+            clipRule="evenodd"
+          />
         </svg>
         Print
       </button>
 
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+        <div className="absolute right-0 z-10 mt-2 w-48 rounded-md bg-white shadow-lg">
           <div className="py-1">
             <button
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer button-transition"
+              className="button-transition block w-full cursor-pointer px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
               onClick={() => {
                 handlePrintAll();
                 setIsDropdownOpen(false);
@@ -234,7 +339,7 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = '' }) => {
               Print All Students
             </button>
             <button
-              className={`block w-full text-left px-4 py-2 text-sm ${!selectedGradeLevel ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+              className={`block w-full px-4 py-2 text-left text-sm ${!selectedGradeLevel ? "cursor-not-allowed text-gray-400" : "text-gray-700 hover:bg-gray-100"}`}
               onClick={() => {
                 handlePrintByGradeLevel();
                 setIsDropdownOpen(false);
@@ -244,7 +349,7 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = '' }) => {
               Print by Grade Level
             </button>
             <button
-              className={`block w-full text-left px-4 py-2 text-sm ${!selectedSection ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+              className={`block w-full px-4 py-2 text-left text-sm ${!selectedSection ? "cursor-not-allowed text-gray-400" : "text-gray-700 hover:bg-gray-100"}`}
               onClick={() => {
                 handlePrintBySection();
                 setIsDropdownOpen(false);
@@ -260,4 +365,4 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = '' }) => {
   );
 };
 
-export default PrintButton; 
+export default PrintButton;
