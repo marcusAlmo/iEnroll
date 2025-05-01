@@ -1,56 +1,51 @@
-import CustomAlertDialog from "@/components/CustomAlertDialog";
 import { faCamera, faImage, faPaperclip } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRef, useState } from "react";
+import { FieldValues, useController, UseControllerProps } from "react-hook-form";
+import CustomAlertDialog from "@/components/CustomAlertDialog";
 
-type UploadBoxProps = {
+type UploadBoxProps<T extends FieldValues> = {
   label: string;
   requirementType: string;
-};
+} & UseControllerProps<T>;
 
-const UploadBox = ({
+const UploadBox = <T extends FieldValues>({
   label,
-  requirementType="image"
-}: UploadBoxProps) => {
-  const [isUploaded, setIsUploaded] = useState<boolean>(false);
+  requirementType = "image",
+  ...controllerProps
+}: UploadBoxProps<T>) => {
+  const { field } = useController(controllerProps);
   const [fileName, setFileName] = useState<string>("");
+  const [showModal, setShowModal] = useState<boolean>(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showModal, setShowModal] = useState<boolean>(false);
-
-  const handleCameraClick = () => {
-    cameraInputRef.current?.click();
-  };
-
-  const handleFilePickerClick = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    
+    console.log("file changed");  // Debugging
+    
     if (file) {
-      console.log("Selected file:", file);
       setFileName(file.name);
-      setIsUploaded(true);
+      field.onChange(file); // Register file with React Hook Form
     }
   };
 
   const clearFileInput = () => {
-    setFileName("");  // Clear the file name from state
-    setIsUploaded(false);  // Reset the uploaded state
+    setFileName("");
+    field.onChange(null); // Clear the file from form state
     setShowModal(false);
-  };  
-  
+  };
+
   return (
     <>
       <div className="text-primary text-sm font-semibold mb-2">{label}</div>
       <div className="rounded-[10px] border border-text-2 bg-border-1 py-4 px-7">
-        {!isUploaded ? (
+        {!field.value ? (
           <div className="flex flex-col gap-y-2.5">
-            {/* Hidden Inputs */}
             <input
               type="file"
-              accept={`${requirementType}`}
+              accept={requirementType}
               capture="environment"
               ref={cameraInputRef}
               onChange={handleFileChange}
@@ -58,17 +53,16 @@ const UploadBox = ({
             />
             <input
               type="file"
-              accept={`${requirementType}`}
+              accept={requirementType}
               ref={fileInputRef}
               onChange={handleFileChange}
               style={{ display: "none" }}
             />
 
-            {/* Camera Div */}
             <div
               role="button"
               tabIndex={0}
-              onClick={handleCameraClick}
+              onClick={() => cameraInputRef.current?.click()}
               className="cursor-pointer flex flex-row justify-center items-center gap-x-2.5 bg-background rounded-[10px] py-3"
             >
               <FontAwesomeIcon icon={faCamera} className="text-text-2" style={{ fontSize: "24px" }} />
@@ -77,11 +71,10 @@ const UploadBox = ({
 
             <span className="text-center text-sm font-semibold text-text-2">or</span>
 
-            {/* File Upload Div */}
             <div
               role="button"
               tabIndex={0}
-              onClick={handleFilePickerClick}
+              onClick={() => fileInputRef.current?.click()}
               className="cursor-pointer flex flex-row justify-center items-center gap-x-2.5 bg-background rounded-[10px] py-3"
             >
               <FontAwesomeIcon icon={faPaperclip} className="text-text-2" style={{ fontSize: "24px" }} />
@@ -94,7 +87,7 @@ const UploadBox = ({
               <FontAwesomeIcon icon={faImage} className="text-text-2" style={{ fontSize: "24px" }} />
               <span>{fileName.length > 10 ? fileName.slice(0,10).concat("...").concat((fileName.split('.').pop() || "").toLowerCase()) : fileName}</span>
             </div>
-            <div 
+            <div
               onClick={() => setShowModal(true)}
               className="rounded-[10px] border border-danger bg-danger/20 text-danger font-semibold py-3 text-sm text-center"
             >
@@ -104,7 +97,6 @@ const UploadBox = ({
         )}
       </div>
 
-      {/* For confirming reupload */}
       <CustomAlertDialog
         isOpen={showModal}
         title="Remove current upload?"
