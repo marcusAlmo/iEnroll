@@ -37,7 +37,7 @@ export const getAllStudentsEnrolledBySection = async (
 export const getAllStudentsEnrolled = async (keyword?: string) => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
     return instance.get<StudentResponse>(
-      `/api/enrollment/review/enrolled/students`,
+      `/api/enrollment/review/enrolled/students/school`,
       { params: { keyword } },
     );
   else return { data: getStudentsEnrolled(keyword) };
