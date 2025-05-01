@@ -7,11 +7,15 @@ import { z } from "zod";
 import CustomInput from "@/components/CustomInput";
 import { Form } from "@/components/ui/form";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
 import CustomDropdown from "@/components/CustomDropdown";
 import { sexAssignedAtBirth } from "./dropdownOptions";
+import { CustomCombobox } from "@/components/CustomComboBox";
+
+// Sample data
+import districts from "@/test/data/districts.json";
 
 const SignUpPage = () => {
   const { mobile } = useScreenSize();
@@ -196,13 +200,22 @@ const SignUpPage = () => {
               labelStyle="text-sm text-text-2"
             />
 
-            <CustomInput
+            {/* <CustomInput
               control={form.control}
               name="district"
               label="District"
               placeholder="ex. Second District"
               inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
               labelStyle="text-sm text-text-2"
+            /> */}
+
+            <CustomCombobox 
+              control={form.control}
+              name="district"
+              label="District"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={districts}
+              placeholder="Enter district..."
             />
 
             <CustomInput
