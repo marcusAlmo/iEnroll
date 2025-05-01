@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from "@/components/ui/form";
@@ -21,6 +21,76 @@ const schoolDetailsSchema = z.object({
 
 type SchoolFormData = z.infer<typeof schoolDetailsSchema>;
 
+const CustomSelect = ({
+  control,
+  name,
+  label,
+  options,
+  labelStyle,
+  selectStyle
+}: {
+  control: any,
+  name: keyof SchoolFormData,
+  label: string,
+  options: any[],
+  labelStyle: string,
+  selectStyle: string
+}) => (
+  <Controller
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <div>
+        <label className={labelStyle}>{label}</label>
+        <select
+          {...field}
+          className={`${selectStyle} text-sm h-[48px]`} // Added height and text size
+          onChange={(e) => {
+            const selectedValue = e.target.value;
+            field.onChange(selectedValue);
+            const selectedOption = options.find(opt =>
+              opt[name] === selectedValue
+            );
+            console.log(`Selected ${name}:`, selectedOption);
+          }}
+        >
+          <option value="" className="text-text-2">Select {label}</option>
+          {options.map((option) => (
+            <option
+              key={option[`${name}Id`]}
+              value={option[name]}
+              className="text-sm p-2" // Added option styling
+            >
+              {option[name]}
+            </option>
+          ))}
+        </select>
+      </div>
+    )}
+  />
+);
+
+// Mock data
+const provinces = [
+  { provinceId: 1, province: 'Masbate' },
+  { provinceId: 2, province: 'Cebu' },
+];
+
+const municipalities = [
+  { municipalityId: 1, municipality: 'San Jacinto' },
+  { municipalityId: 2, municipality: 'Cebu City' },
+];
+
+const districts = [
+  { districtId: 1, district: 'San Jose District' },
+  { districtId: 2, district: 'North District' },
+];
+
+const streets = [
+  { streetId: 1, street: 'Main Street' },
+  { streetId: 2, street: 'Oak Street' },
+];
+
 export default function SchoolDetails() {
   const form = useForm<SchoolFormData>({
     resolver: zodResolver(schoolDetailsSchema),
@@ -40,14 +110,10 @@ export default function SchoolDetails() {
 
   const onSubmit = (data: SchoolFormData) => {
     const fullAddress = `${data.street}, ${data.district}, ${data.municipality}, ${data.province}`;
-    
-    // update the address field with the generated address
     form.setValue("address", fullAddress);
-  
-    console.log('Full Address:', fullAddress);
     console.log('School Details Submitted:', { ...data, address: fullAddress });
   };
-  
+
   return (
     <div className="bg-white shadow-md rounded-lg p-4 border-2 my-5 max-w-[900px] max-h-[100x]w-full mx-auto">
       <Form {...form}>
@@ -86,7 +152,7 @@ export default function SchoolDetails() {
               inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
               labelStyle="block text-sm font-semibold"
             />
-              <CustomInput
+            <CustomInput
               control={form.control}
               name="website"
               label="School Website"
@@ -98,46 +164,46 @@ export default function SchoolDetails() {
 
           {/* Column 2 */}
           <div className="flex flex-col gap-4">
-            <CustomInput
-              control={form.control}
-              name="street"
-              label="Street"
-              placeholder="123 Main St."
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-            <CustomInput
-              control={form.control}
-              name="district"
-              label="District"
-              placeholder="San Jose District"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-            <CustomInput
-              control={form.control}
-              name="municipality"
-              label="Municipality"
-              placeholder="San Jacinto"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-            <CustomInput
-              control={form.control}
-              name="province"
-              label="Province"
-              placeholder="Masbate"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-            <CustomInput
-              control={form.control}
-              name="address"
-              label="School Address"
-              placeholder="HP9P+P9R, San Jacinto, Masbate"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
+          <CustomSelect
+    control={form.control}
+    name="street"
+    label="Street"
+    options={streets}
+    selectStyle="w-full p-1 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+    labelStyle="block text-sm font-semibold"
+  />
+  <CustomSelect
+    control={form.control}
+    name="district"
+    label="District"
+    options={districts}
+    selectStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300"
+    labelStyle="block text-sm font-semibold"
+  />
+  <CustomSelect
+    control={form.control}
+    name="municipality"
+    label="Municipality"
+    options={municipalities}
+    selectStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300"
+    labelStyle="block text-sm font-semibold"
+  />
+  <CustomSelect
+    control={form.control}
+    name="province"
+    label="Province"
+    options={provinces}
+    selectStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300"
+    labelStyle="block text-sm font-semibold"
+  />
+  <CustomInput
+    control={form.control}
+    name="address"
+    label="School Address"
+    placeholder="HP9P+P9R, San Jacinto, Masbate"
+    inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+    labelStyle="block text-sm font-semibold"
+  />
           </div>
 
           {/* Submit Button */}
