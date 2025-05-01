@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeniedService } from './denied.service';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
 
 describe('DeniedService', () => {
   let service: DeniedService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DeniedService],
+      providers: [DeniedService, PrismaService],
     }).compile();
 
     service = module.get<DeniedService>(DeniedService);
