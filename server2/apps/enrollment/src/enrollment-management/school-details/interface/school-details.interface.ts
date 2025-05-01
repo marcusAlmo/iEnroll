@@ -11,4 +11,24 @@ export interface SchoolDetails {
     municipality: string;
     province: string;
   };
+
+  province: {
+    provinceId: number;
+    province: string;
+  };
+
+  municipality: {
+    municipalityId: number;
+    municipality: string;
+  };
+
+  district: {
+    districtId: number;
+    district: string;
+  };
+
+  street: {
+    streetId: number;
+    street: string;
+  };
 }

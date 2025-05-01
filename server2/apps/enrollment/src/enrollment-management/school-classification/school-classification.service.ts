@@ -66,7 +66,9 @@ export class SchoolClassificationService {
   public async getAllGradesLavels(
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log(schoolId);
     const acadCodes: string[] = await this.getData(schoolId);
+    console.log(acadCodes);
 
     const finalData: SchoolClassification['retrievedGradeLevels'] =
       await this.getCompleteAcadAndGradeLevels(acadCodes);
@@ -373,7 +375,11 @@ export class SchoolClassificationService {
       },
     });
 
-    return !data ? [] : (data.supported_acad_level as string[]);
+    const dataContents = data?.supported_acad_level;
+
+    console.log(dataContents);
+
+    return !dataContents ? [] : (dataContents as string[]);
   }
 
   private async getCompleteAcadAndGradeLevels(

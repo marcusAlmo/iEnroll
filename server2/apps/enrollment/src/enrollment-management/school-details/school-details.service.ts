@@ -86,6 +86,112 @@ export class SchoolDetailsService {
     });
   }
 
+  public async getProvince(): Promise<MicroserviceUtility['returnValue']> {
+    const result = await this.retrieveProvince();
+    return this.MicroserviceUtility.returnSuccess(result);
+  }
+
+  public async getMunicipality(
+    provinceId: number,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const result = await this.retrieveMunicipality(provinceId);
+    return this.MicroserviceUtility.returnSuccess(result);
+  }
+
+  public async getDistrict(
+    municipalityId: number,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const result = await this.retrieveDistrict(municipalityId);
+    return this.MicroserviceUtility.returnSuccess(result);
+  }
+
+  public async getStreet(
+    districtId: number,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const result = await this.retrieveStreet(districtId);
+    return this.MicroserviceUtility.returnSuccess(result);
+  }
+
+  // UTILITIES FUNCTION
+  private async retrieveProvince(): Promise<SchoolDetails['province'][]> {
+    const province = await this.prisma.province.findMany({
+      select: {
+        province_id: true,
+        province: true,
+      },
+    });
+
+    return province
+      ? province.map((province) => ({
+          provinceId: province.province_id,
+          province: province.province,
+        }))
+      : [];
+  }
+
+  private async retrieveMunicipality(
+    provinceId: number,
+  ): Promise<SchoolDetails['municipality'][]> {
+    const municipality = await this.prisma.municipality.findMany({
+      select: {
+        municipality_id: true,
+        municipality: true,
+      },
+      where: {
+        province_id: provinceId,
+      },
+    });
+
+    return municipality
+      ? municipality.map((municipality) => ({
+          municipalityId: municipality.municipality_id,
+          municipality: municipality.municipality,
+        }))
+      : [];
+  }
+
+  private async retrieveDistrict(
+    municipalityId: number,
+  ): Promise<SchoolDetails['district'][]> {
+    const district = await this.prisma.district.findMany({
+      select: {
+        district_id: true,
+        district: true,
+      },
+      where: {
+        municipality_id: municipalityId,
+      },
+    });
+
+    return district
+      ? district.map((district) => ({
+          districtId: district.district_id,
+          district: district.district,
+        }))
+      : [];
+  }
+
+  private async retrieveStreet(
+    districtId: number,
+  ): Promise<SchoolDetails['street'][]> {
+    const street = await this.prisma.street.findMany({
+      select: {
+        street_id: true,
+        street: true,
+      },
+      where: {
+        district_id: districtId,
+      },
+    });
+
+    return street
+      ? street.map((street) => ({
+          streetId: street.street_id,
+          street: street.street,
+        }))
+      : [];
+  }
+
   private baseSelect() {
     return {
       name: true,
