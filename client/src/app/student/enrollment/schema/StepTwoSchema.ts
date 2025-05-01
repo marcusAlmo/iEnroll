@@ -20,5 +20,11 @@ export const stepTwoSchema = z.object({
   }),
   isAgree: z.literal(true, {
     message: "Please agree to the terms and conditions before submitting"
-  })
+  }),
+  paymentProof: z
+    .instanceof(File)
+    .nullable() // Allow null (no file selected initially)
+    .refine(file => file === null || file.size > 0, {
+      message: "File is required",
+    }),
 });
