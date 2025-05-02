@@ -61,6 +61,8 @@ interface EnrolledStudentsContextProps {
   isStudentsPending: boolean; // Loading state for students
   selectedStudent: EnrolledStudent | null; // Currently selected student
   setSelectedStudent: (student: EnrolledStudent | null) => void; // Function to update selected student
+  refetchStudents: () => Promise<unknown>; // Function to refetch students
+  isStudentsRefetching: boolean; // Refetching state for students
 
   // Search state
   searchTerm: string; // Search term for filtering students
@@ -120,7 +122,12 @@ export const EnrolledStudentsProvider: React.FC<{
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: students, isPending: isStudentsPending } = useQuery({
+  const {
+    data: students,
+    isPending: isStudentsPending,
+    refetch: refetchStudents,
+    isRefetching: isStudentsRefetching,
+  } = useQuery({
     queryKey: ["enrolledStudents", selectedSection, searchTerm],
     queryFn: () =>
       getAllStudentsEnrolledBySection(
@@ -181,6 +188,8 @@ export const EnrolledStudentsProvider: React.FC<{
       isGradeLevelPending,
       isSectionsPending,
       isStudentsPending,
+      refetchStudents,
+      isStudentsRefetching,
     }),
     [
       gradeLevels,
@@ -193,6 +202,8 @@ export const EnrolledStudentsProvider: React.FC<{
       isGradeLevelPending,
       isSectionsPending,
       isStudentsPending,
+      refetchStudents,
+      isStudentsRefetching,
     ],
   );
 
