@@ -14,6 +14,10 @@ interface GradeAcadLevels {
   }[];
 };
 
+interface UpdateResponse {
+  message: string;
+}
+
 export default function SchoolForm() {
   const [schoolType, setSchoolType] = useState("");
   const [academicLevels, setAcademicLevels] = useState<GradeAcadLevels['academicLevels']>([]);
@@ -42,14 +46,41 @@ export default function SchoolForm() {
     fetchGradeLevels();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSchoolTypeChange = (type: string) => {
+    setSchoolType(prev => (prev === type ? "" : type));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const retrievedGradeLevels = {
-      schoolType,
-      academicLevels,
-      gradeLevels
-    };
-    console.log(retrievedGradeLevels);
+    const submitGradeLevels: string[] = gradeLevels.filter((item) => item.checked === true).map((item) => {
+      return item.name;
+    });
+
+    const submitAcademicLevels: string[] = academicLevels.filter((item) => item.checked === true).map((item) => {
+      return item.name;
+    });
+
+    try{
+      const data = await requestData<UpdateResponse>({
+        url: 'http://localhost:3000/api/school-classification/save',
+        method: 'POST',
+        body: {
+          schoolType: schoolType,
+          acadLevels: submitAcademicLevels,
+          gradeLevels: submitGradeLevels
+        }
+      });
+
+      if (data) {
+        console.log(data.message);
+        toast.success(data.message);
+        await fetchGradeLevels();
+      }
+    }catch(err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error has occurred');
+      console.log(err);
+    }
   };
 
   // Update academic level checked status

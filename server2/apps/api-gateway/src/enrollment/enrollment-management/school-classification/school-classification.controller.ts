@@ -14,7 +14,8 @@ export class SchoolClassificationController {
     @User('school_id') schoolId: number,
     @Body() schoolData: SchoolClassification,
   ) {
-    schoolId = 0;
+    schoolId = 686042;
+    console.log(schoolData);
     return await this.schoolClassification.saveSchoolClassification({
       schoolData,
       schoolId,
