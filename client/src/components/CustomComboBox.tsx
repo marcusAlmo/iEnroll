@@ -29,23 +29,53 @@ import {
 } from "./ui/form";
 import { clsx } from "clsx";
 
+/**
+ * Represents a selectable option for the combo box.
+ */
 type Options = {
-  id: number;
-  label: string;
+  /** The ID of the option, or null if it's a custom input. */
+  id: number | null;
+  /** The label to be displayed, or null if it's a custom input. */
+  label: string | null;
+  /** The actual value (typed or selected) that will be submitted. */
   value: string;
 };
 
+/**
+ * Props for the `CustomCombobox` component.
+ *
+ * @template TSchema - A Zod schema used to infer the form's field type.
+ */
 type CustomComboBoxProps<TSchema extends z.ZodType<any, any>> = {
+  /** `react-hook-form` control object for managing form state. */
   control: Control<z.infer<TSchema>>;
+  /** Field name in the form schema. */
   name: Path<z.infer<TSchema>>;
+  /** List of selectable values shown in the dropdown. */
   values: Options[];
+  /** Optional label displayed above the input. */
   label?: ReactNode;
+  /** Optional class name for styling the label. */
   labelClassName?: string;
+  /** Placeholder text shown when no value is selected. */
   placeholder: string;
-  onChangeValue?: (value: Options | null) => void;
+  /**
+   * Callback triggered when the value changes.
+   * If the input doesn't match a selection, this returns `{ id: null, label: null, value }`.
+   */
+  onChangeValue?: (value: Options) => void;
+  /**
+   * Callback triggered to indicate if the current value is an exact match to the options.
+   */
   onChangeIsExactMatch?: (isExactMatch: boolean) => void;
 };
 
+/**
+ * A custom combo box input with search, select, and free-text input capability.
+ * Integrates with `react-hook-form` and supports value change callbacks.
+ *
+ * @template TSchema - The Zod schema type for inferring form fields.
+ */
 export const CustomCombobox = <TSchema extends z.ZodType<any, any>>({
   control,
   name,
@@ -61,14 +91,24 @@ export const CustomCombobox = <TSchema extends z.ZodType<any, any>>({
   const value = useWatch({ control, name }) ?? "";
   const selectedOption = values.find(
     (item) =>
-      item.label.toLowerCase() === (value ? String(value).toLowerCase() : ""),
+      item.label?.toLowerCase() === (value ? String(value).toLowerCase() : ""),
   );
   const isExactMatch = !!selectedOption;
 
   useEffect(() => {
-    onChangeValue?.(selectedOption || null);
+    onChangeValue?.(
+      selectedOption
+        ? selectedOption
+        : { id: null, label: null, value: String(value) },
+    );
     onChangeIsExactMatch?.(isExactMatch);
-  }, [selectedOption, isExactMatch, onChangeValue, onChangeIsExactMatch]);
+  }, [
+    selectedOption,
+    isExactMatch,
+    value,
+    onChangeValue,
+    onChangeIsExactMatch,
+  ]);
 
   return (
     <FormField
@@ -76,7 +116,7 @@ export const CustomCombobox = <TSchema extends z.ZodType<any, any>>({
       name={name}
       render={({ field }) => {
         const filteredItems = values.filter((item) =>
-          item.label.toLowerCase().includes(String(value).toLowerCase()),
+          item.label?.toLowerCase().includes(String(value).toLowerCase()),
         );
 
         return (
@@ -132,7 +172,7 @@ export const CustomCombobox = <TSchema extends z.ZodType<any, any>>({
                         <CommandItem
                           key={item.value}
                           onSelect={() => {
-                            field.onChange(item.label);
+                            field.onChange(item.label ?? "");
                             setOpen(false);
                           }}
                         >
