@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from "@/components/ui/form";
-import CustomInput from '@/components/CustomInput';
+import ImportedCustomInput from '@/components/CustomInput';
 
 // Schema
 const schoolDetailsSchema = z.object({
@@ -13,7 +13,6 @@ const schoolDetailsSchema = z.object({
   district: z.string().max(100, { message: "District must not exceed 100 characters." }),
   municipality: z.string().max(100, { message: "Municipality must not exceed 100 characters." }),
   province: z.string().max(100, { message: "Province must not exceed 100 characters." }),
-  address: z.string().max(200, { message: "Address must not exceed 200 characters." }),
   contactNumber: z.string().max(20, { message: "Contact number must not exceed 20 characters." }),
   email: z.string().email({ message: "Invalid email format." }),
   website: z.string().url({ message: "Must be a valid URL." }).optional(),
@@ -21,50 +20,81 @@ const schoolDetailsSchema = z.object({
 
 type SchoolFormData = z.infer<typeof schoolDetailsSchema>;
 
+// Fixed CustomInput Component
+const CustomInput = ({
+  control,
+  name,
+  label,
+  placeholder,
+  inputStyle,
+  labelStyle,
+  optional = false
+}: {
+  control: any; 
+  name: string;
+  label: string;
+  placeholder: string;
+  inputStyle?: string;
+  labelStyle?: string;
+  optional?: boolean;
+}) => (
+  <Controller
+    control={control}
+    name={name}
+    render={({ field, fieldState: { error } }) => (
+      <div className="mb-4">
+        <label className={labelStyle || "block text-sm font-medium mb-2"}>
+          {label} {optional && <span className="text-gray-400 text-sm">(optional)</span>}
+        </label>
+        <input
+          {...field}
+          placeholder={placeholder}
+          className={inputStyle || "w-full p-3 rounded-md border border-gray-200 bg-gray-50"}
+          type={name === "email" ? "email" : "text"}
+        />
+        {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
+      </div>
+    )}
+  />
+);
+
+// Fixed CustomSelect Component
 const CustomSelect = ({
   control,
   name,
   label,
   options,
-  labelStyle,
-  selectStyle
+  selectStyle,
+  labelStyle
 }: {
-  control: any,
-  name: keyof SchoolFormData,
-  label: string,
-  options: any[],
-  labelStyle: string,
-  selectStyle: string
+  control: any;
+  name: string;
+  label: string;
+  options: { [key: string]: string | number }[];
+  selectStyle?: string;
+  labelStyle?: string;
 }) => (
   <Controller
     control={control}
     name={name}
-    render={({ field }) => (
-      <div>
-        <label className={labelStyle}>{label}</label>
+    render={({ field, fieldState: { error } }) => (
+      <div className="mb-4">
+        <label className={labelStyle || "block text-sm font-medium mb-2"}>{label}</label>
         <select
           {...field}
-          className={`${selectStyle} text-sm h-[48px]`} // Added height and text size
-          onChange={(e) => {
-            const selectedValue = e.target.value;
-            field.onChange(selectedValue);
-            const selectedOption = options.find(opt =>
-              opt[name] === selectedValue
-            );
-            console.log(`Selected ${name}:`, selectedOption);
-          }}
+          className={selectStyle || "w-full p-3 rounded-md border border-gray-200 bg-gray-50 appearance-none"}
         >
-          <option value="" className="text-text-2">Select {label}</option>
+          <option value="">Select {label}</option>
           {options.map((option) => (
             <option
               key={option[`${name}Id`]}
               value={option[name]}
-              className="text-sm p-2" // Added option styling
             >
               {option[name]}
             </option>
           ))}
         </select>
+        {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
       </div>
     )}
   />
@@ -79,16 +109,19 @@ const provinces = [
 const municipalities = [
   { municipalityId: 1, municipality: 'San Jacinto' },
   { municipalityId: 2, municipality: 'Cebu City' },
+  { municipalityId: 3, municipality: 'San Jose' },
 ];
 
 const districts = [
   { districtId: 1, district: 'San Jose District' },
   { districtId: 2, district: 'North District' },
+  { districtId: 3, district: 'San Jacinto' },
 ];
 
 const streets = [
-  { streetId: 1, street: 'Main Street' },
+  { streetId: 1, street: '123 Main Street' },
   { streetId: 2, street: 'Oak Street' },
+  { streetId: 3, street: 'Masbate' },
 ];
 
 export default function SchoolDetails() {
@@ -101,7 +134,6 @@ export default function SchoolDetails() {
       district: '',
       municipality: '',
       province: '',
-      address: '',
       contactNumber: '',
       email: '',
       website: '',
@@ -109,114 +141,122 @@ export default function SchoolDetails() {
   });
 
   const onSubmit = (data: SchoolFormData) => {
-    const fullAddress = `${data.street}, ${data.district}, ${data.municipality}, ${data.province}`;
-    form.setValue("address", fullAddress);
-    console.log('School Details Submitted:', { ...data, address: fullAddress });
+    console.log('School Details Submitted:', data);
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 border-2 my-5 max-w-[900px] max-h-[100x]w-full mx-auto">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-2 gap-6">
-          {/* Column 1 */}
-          <div className="flex flex-col gap-4">
-            <CustomInput
-              control={form.control}
-              name="name"
-              label="School Name"
-              placeholder="San Jacinto Elementary School"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-            <CustomInput
-              control={form.control}
-              name="contactNumber"
-              label="School Contact Number"
-              placeholder="09123456789"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-            <CustomInput
-              control={form.control}
-              name="id"
-              label="School ID"
-              placeholder="312312312"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-            <CustomInput
-              control={form.control}
-              name="email"
-              label="School Email"
-              placeholder="sanjacintoelem@gmail.com"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-            <CustomInput
-              control={form.control}
-              name="website"
-              label="School Website"
-              placeholder="https://sanJacintoElementary.ph"
-              inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-              labelStyle="block text-sm font-semibold"
-            />
-          </div>
+    <div className="bg-container-1 py-8 px-4">
+      <div className="w-full max-w-6xl mx-auto">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
+              {/* Left card */}
+              <div className="bg-white shadow-sm rounded-lg p-6">
+                <div className="space-y-4">
+                  <CustomInput
+                    control={form.control}
+                    name="name"
+                    label="School Name"
+                    placeholder="San Jacinto Elementary School"
+                    inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
 
-          {/* Column 2 */}
-          <div className="flex flex-col gap-4">
-          <CustomSelect
-    control={form.control}
-    name="street"
-    label="Street"
-    options={streets}
-    selectStyle="w-full p-1 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-    labelStyle="block text-sm font-semibold"
-  />
-  <CustomSelect
-    control={form.control}
-    name="district"
-    label="District"
-    options={districts}
-    selectStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300"
-    labelStyle="block text-sm font-semibold"
-  />
-  <CustomSelect
-    control={form.control}
-    name="municipality"
-    label="Municipality"
-    options={municipalities}
-    selectStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300"
-    labelStyle="block text-sm font-semibold"
-  />
-  <CustomSelect
-    control={form.control}
-    name="province"
-    label="Province"
-    options={provinces}
-    selectStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300"
-    labelStyle="block text-sm font-semibold"
-  />
-  <CustomInput
-    control={form.control}
-    name="address"
-    label="School Address"
-    placeholder="HP9P+P9R, San Jacinto, Masbate"
-    inputStyle="w-full p-4 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
-    labelStyle="block text-sm font-semibold"
-  />
-          </div>
+                  <CustomInput
+                    control={form.control}
+                    name="id"
+                    label="School ID"
+                    placeholder="312312312"
+                    inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
 
-          {/* Submit Button */}
+                  <CustomInput
+                    control={form.control}
+                    name="contactNumber"
+                    label="School Contact Number"
+                    placeholder="09123456789"
+                    inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
+                  
+                  <CustomInput
+                    control={form.control}
+                    name="email"
+                    label="School Email"
+                    placeholder="sanjacintoelem@gmail.com"
+                    inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
+                  
+                  <CustomInput
+                    control={form.control}
+                    name="website"
+                    label="School Website"
+                    placeholder="https://sanJacintoElementary.ph"
+                    inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                    optional={true}
+                  />
+                </div>
+              </div>
+              
+              {/* Right card */}
+              <div className="bg-white shadow-sm rounded-lg p-6">
+                <h2 className="text-lg font-medium text-accent mb-4">Address</h2>
+                <div className="space-y-4">
+                  <CustomSelect
+                    control={form.control}
+                    name="province"
+                    label="Province"
+                    options={provinces}
+                    selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
+                  
+                  <CustomSelect
+                    control={form.control}
+                    name="municipality"
+                    label="Municipality"
+                    options={municipalities}
+                    selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
+                  
+                  <CustomSelect
+                    control={form.control}
+                    name="district"
+                    label="District"
+                    options={districts}
+                    selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
+                  
+                  <CustomSelect
+                    control={form.control}
+                    name="street"
+                    label="Street"
+                    options={streets}
+                    selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
+                </div>
+              </div>
+            </div>
+            
+        {/* Submit Button */}
           <div className="col-span-2 mt-4 flex justify-center">
             <button
               type="submit"
-              className="bg-accent py-2 px-6 rounded-[10px] font-semibold text-white transition duration-300 hover:bg-primary hover:text-background"
+              className="bg-accent  mt-2 py-2 px-6 rounded-[10px] font-semibold text-white transition duration-300 hover:bg-primary hover:text-background"
             >
               Save Changes
             </button>
           </div>
-        </form>
-      </Form>
+
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }
