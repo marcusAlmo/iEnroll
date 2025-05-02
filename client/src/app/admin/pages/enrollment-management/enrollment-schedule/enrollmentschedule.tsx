@@ -4,8 +4,8 @@
  * Allows administrators to create, edit, and manage enrollment time slots.
  */
 
-import { useState, useMemo } from 'react'
-import scheduleData from './test/scheduleSample.json'
+import { useState, useMemo, useEffect } from 'react'
+//import scheduleData from './test/scheduleSample.json'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -17,6 +17,7 @@ import {
   faPlusCircle
 } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'react-toastify'
+import { requestData } from '@/lib/dataRequester'
 
 /**
  * Represents a time range with start and end times
@@ -27,18 +28,97 @@ interface TimeRange {
   endTime: string
 }
 
-/**
- * Represents an enrollment schedule for a specific date
- * @interface Schedule
- */
-interface Schedule {
-  id: string
-  date: string
-  timeRanges: TimeRange[]
-  status: 'active' | 'paused'
+interface EnrollmentScheduleDataType {
+  schoolCapacity: {
+    totalCapacity: number;
+    remainingSlots: number;
+  };
+  gradeLevels: GradeLevel[];
+};
+
+interface GradeLevel {
+  gradeLevel: string;
   allowSectionSelection: boolean
-  applications?: number // Number of students who have applied
-}
+  sections: Section[];
+  schedules: ScheduleData[];
+};
+
+interface Section {
+  sectionName: string;
+  sectionCapacity: number;
+  maximumApplication: number;
+  currentEnrolled: number;
+};
+
+interface ScheduleData {
+  id: number;
+  date: string; // in YYYY-MM-DD format
+  timeRanges: TimeRange[];
+  applications: number;
+  status: string;
+  gradeLevel: string;
+};
+
+const ScheduleItem = ({ 
+  schedule, 
+  onToggle, 
+  onDelete, 
+  isExisting 
+}: {
+  schedule: ScheduleData;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+  isExisting: boolean;
+}) => (
+  <div className='flex flex-col gap-2'>
+    <div className='flex items-center gap-3'>
+      <div className='flex items-center gap-2'>
+        <button 
+          onClick={() => onToggle(schedule.id.toString())}
+          className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer button-transition ${
+            schedule.status === 'active' 
+              ? 'bg-success/20 text-green-700 hover:bg-success/50' 
+              : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+          }`}
+        >
+          <FontAwesomeIcon icon={schedule.status === 'active' ? faPause : faPlay} />
+        </button>
+      </div>
+      <div className='flex-1 flex items-center gap-2 text-gray-600'>
+        <span className='rounded-md bg-text-2/10 px-3 py-1'>
+          {schedule.date}
+        </span>
+        {schedule.timeRanges.map((time, timeIndex) => (
+          <div key={timeIndex} className='flex items-center gap-2'>
+            <span className='rounded-md bg-text-2/10 px-3 py-1'>
+              {time.startTime}
+            </span>
+            <span>-</span>
+            <span className='rounded-md bg-text-2/10 px-3 py-1'>
+              {time.endTime}
+            </span>
+          </div>
+        ))}
+        {!isExisting && (
+          <span className='text-xs text-green-600 ml-2'>NEW</span>
+        )}
+      </div>
+      <div className='flex items-center gap-2'>
+        <button 
+          onClick={() => onDelete(schedule.id.toString())}
+          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            schedule.applications > 0 
+              ? 'bg-red-50 text-red-300 cursor-not-allowed' 
+              : 'bg-danger/20 text-red-500 hover:bg-danger/30'
+          }`}
+          disabled={schedule.applications > 0}
+        >
+          <FontAwesomeIcon icon={faTrash} />
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 /**
  * Main component for managing enrollment schedules
@@ -48,12 +128,108 @@ interface Schedule {
 export default function EnrollmentSchedule() {
   // State management
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null)
-  const [schedules, setSchedules] = useState<Schedule[]>([])
+  const [schedules, setSchedules] = useState<ScheduleData[]>([])
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([{ startTime: '', endTime: '' }])
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null)
   const [timeErrors, setTimeErrors] = useState<{[key: number]: string}>({})
+  const [data, setData] = useState<EnrollmentScheduleDataType>({
+    schoolCapacity: {
+      totalCapacity: 0,
+      remainingSlots: 0,
+    },
+    gradeLevels: [],
+  });
+  // Add this new state variable at the top of the component
+  const [newSchedules, setNewSchedules] = useState<ScheduleData[]>([])
+
+  // Modify handleSaveTimeSlot to add to newSchedules
+  const handleSaveTimeSlot = () => {
+    if (isSaveDisabled) {
+      toast.error('Please fill in all required fields and fix validation errors')
+      return
+    }
+
+    const newSchedule: ScheduleData = {
+      id: Date.now(), // Generate unique ID
+      date: selectedDate!.toISOString().split('T')[0],
+      timeRanges,
+      status: 'active',
+      applications: 0, // New schedules start with 0 applications
+      gradeLevel: selectedGrade!
+    }
+
+    if (editingScheduleId) {
+      // Check if editing existing or new schedule
+      const isExisting = schedules.some(s => s.id.toString() === editingScheduleId)
+      if (isExisting) {
+        setSchedules(schedules.map(s => 
+          s.id.toString() === editingScheduleId ? newSchedule : s
+        ))
+      } else {
+        setNewSchedules(newSchedules.map(s => 
+          s.id.toString() === editingScheduleId ? newSchedule : s
+        ))
+      }
+    } else {
+      setNewSchedules([...newSchedules, newSchedule])
+    }
+
+    setShowAddModal(false)
+    setSelectedDate(null)
+    setTimeRanges([{ startTime: '', endTime: '' }])
+    setEditingScheduleId(null)
+    setTimeErrors({})
+  }
+
+  // Modify handleSaveEnrollmentSchedule to only send newSchedules
+  const handleSaveEnrollmentSchedule = () => {
+    if (!selectedGrade) {
+      toast.error('Please select a grade level first')
+      return
+    }
+
+    if (newSchedules.length === 0) {
+      toast.error('Please add at least one new time slot')
+      return
+    }
+
+    // API call with only new schedules
+    console.log('Saving new enrollment schedules:', {
+      grade: selectedGrade,
+      schedules: newSchedules
+    })
+
+    // After successful submission, move new schedules to existing
+    setSchedules([...schedules, ...newSchedules])
+    setNewSchedules([])
+    toast.success('New enrollment schedules published successfully')
+  }
+
+  // retrieve schedule data
+  const retrieveSchedules = async () => {
+    try{
+      const response = await requestData<EnrollmentScheduleDataType>({
+        url: 'http://localhost:3000/api/enrollment-schedule/get-all-schedules',
+        method: 'GET',
+      });
+
+      if (response) {
+        setData(response);
+        console.log(response);
+      }
+    } catch(err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('Retrieve schedule failed');
+
+      console.log(err);
+    }
+  }
+
+  useEffect(() => {
+    retrieveSchedules();
+  }, []);
 
   /**
    * Memoized time options for the time selection dropdowns
@@ -88,8 +264,8 @@ export default function EnrollmentSchedule() {
    * @type {Object}
    */
   const selectedGradeData = useMemo(() => {
-    return scheduleData.gradeLevels.find(g => g.gradeLevel === selectedGrade)
-  }, [selectedGrade])
+    return data.gradeLevels.find(g => g.gradeLevel === selectedGrade)
+  }, [selectedGrade, data.gradeLevels])
 
   /**
    * Memoized schedule being edited
@@ -112,7 +288,7 @@ export default function EnrollmentSchedule() {
    * @type {boolean}
    */
   const isSaveDisabled = useMemo(() => {
-    return !selectedDate || 
+    return !selectedDate ||
            timeRanges.some(range => !range.startTime || !range.endTime) || 
            hasValidationErrors
   }, [selectedDate, timeRanges, hasValidationErrors])
@@ -122,52 +298,90 @@ export default function EnrollmentSchedule() {
    * @param {string} gradeLevel - The selected grade level
    */
   const handleGradeSelect = (gradeLevel: string) => {
-    setSelectedGrade(gradeLevel)
-    if (selectedGradeData) {
-      const typedSchedules: Schedule[] = selectedGradeData.schedules.map(schedule => ({
+    setSelectedGrade(gradeLevel);
+    const gradeData = data.gradeLevels.find(g => g.gradeLevel === gradeLevel);
+    
+    if (gradeData) {
+      const typedSchedules: ScheduleData[] = gradeData.schedules.map(schedule => ({
         ...schedule,
         status: schedule.status as 'active' | 'paused'
-      }))
-      setSchedules(typedSchedules)
-      toast.success(`Loaded schedules for ${gradeLevel}`)
+      }));
+      setSchedules(typedSchedules);
+      setNewSchedules([]); // Reset new schedules when changing grade
+      toast.success(`Loaded schedules for ${gradeLevel}`);
     } else {
-      setSchedules([])
-      toast.error('No schedules found for this grade level')
+      setSchedules([]);
+      toast.error('No schedules found for this grade level');
     }
-  }
+  };
 
   const handleAddTimeSlot = () => {
     setShowAddModal(true)
   }
 
   const handleDeleteSchedule = (scheduleId: string) => {
-    const schedule = schedules.find(s => s.id === scheduleId)
-    if (!schedule) return
-
-    if (schedule.applications && schedule.applications > 0) {
-      setSchedules(schedules.map(s => 
-        s.id === scheduleId 
-          ? { ...s, status: 'paused' }
-          : s
-      ))
-      toast.warning('Schedule paused due to existing applications')
-    } else {
-      setSchedules(schedules.filter(s => s.id !== scheduleId))
-      toast.success('Schedule deleted successfully')
+    // Check both existing and new schedules
+    const existingSchedule = schedules.find(s => s.id.toString() === scheduleId);
+    const newSchedule = newSchedules.find(s => s.id.toString() === scheduleId);
+  
+    if (existingSchedule) {
+      if (existingSchedule.applications > 0) {
+        setSchedules(schedules.map(s => 
+          s.id.toString() === scheduleId 
+            ? { ...s, status: 'paused' }
+            : s
+        ));
+        toast.warning('Schedule paused due to existing applications');
+      } else {
+        setSchedules(schedules.filter(s => s.id.toString() !== scheduleId));
+        toast.success('Schedule deleted successfully');
+      }
     }
-  }
+  
+    if (newSchedule) {
+      setNewSchedules(newSchedules.filter(s => s.id.toString() !== scheduleId));
+      toast.success('New schedule removed successfully');
+    }
+  };
 
   const handleToggleStatus = (scheduleId: string) => {
-    setSchedules(schedules.map(s => 
-      s.id === scheduleId 
-        ? { ...s, status: s.status === 'active' ? 'paused' : 'active' }
-        : s
-    ))
-    const schedule = schedules.find(s => s.id === scheduleId)
-    if (schedule) {
-      toast.info(`Schedule ${schedule.status === 'active' ? 'paused' : 'activated'}`)
+    // Check both existing and new schedules
+    const isExisting = schedules.some(s => s.id.toString() === scheduleId);
+    
+    if (isExisting) {
+      setSchedules(schedules.map(s => 
+        s.id.toString() === scheduleId 
+          ? { ...s, status: s.status === 'active' ? 'paused' : 'active' }
+          : s
+      ));
+    } else {
+      setNewSchedules(newSchedules.map(s => 
+        s.id.toString() === scheduleId 
+          ? { ...s, status: s.status === 'active' ? 'paused' : 'active' }
+          : s
+      ));
     }
-  }
+  
+    const schedule = [...schedules, ...newSchedules].find(s => s.id.toString() === scheduleId);
+    if (schedule) {
+      toast.info(`Schedule ${schedule.status === 'active' ? 'paused' : 'activated'}`);
+    }
+  };
+  const handleAllowSectionSelectionChange = (gradeLevel: string) => {
+    // Update the state directly by toggling the current value
+    setData(prev => ({
+      ...prev,
+      gradeLevels: prev.gradeLevels.map(g =>
+        g.gradeLevel === gradeLevel
+          ? { ...g, allowSectionSelection: !g.allowSectionSelection }
+          : g
+      ),
+    }));
+
+    // Get the updated state to show the correct toast message
+    const updatedValue = !selectedGradeData?.allowSectionSelection;
+    toast.info(`Allow section selection ${updatedValue ? 'enabled' : 'disabled'}`);
+  };
 
   /**
    * Handles time range changes and validation
@@ -210,64 +424,6 @@ export default function EnrollmentSchedule() {
   }
 
   /**
-   * Handles saving a time slot (individual schedule)
-   */
-  const handleSaveTimeSlot = () => {
-    if (isSaveDisabled) {
-      toast.error('Please fill in all required fields and fix validation errors')
-      return
-    }
-
-    const newSchedule: Schedule = {
-      id: editingScheduleId || `${selectedGrade}-schedule-${Date.now()}`,
-      date: selectedDate!.toISOString().split('T')[0],
-      timeRanges,
-      status: 'active',
-      allowSectionSelection: true,
-      applications: editingSchedule?.applications || 0
-    }
-
-    if (editingScheduleId) {
-      setSchedules(schedules.map(s => 
-        s.id === editingScheduleId ? newSchedule : s
-      ))
-      toast.success('Time slot updated successfully')
-    } else {
-      setSchedules([...schedules, newSchedule])
-      toast.success('New time slot created successfully')
-    }
-
-    setShowAddModal(false)
-    setSelectedDate(null)
-    setTimeRanges([{ startTime: '', endTime: '' }])
-    setEditingScheduleId(null)
-    setTimeErrors({})
-  }
-
-  /**
-   * Handles saving the entire enrollment schedule
-   */
-  const handleSaveEnrollmentSchedule = () => {
-    if (!selectedGrade) {
-      toast.error('Please select a grade level first')
-      return
-    }
-
-    if (schedules.length === 0) {
-      toast.error('Please add at least one time slot')
-      return
-    }
-
-    // Here you would typically make an API call to save the entire schedule
-    console.log('Saving entire enrollment schedule:', {
-      grade: selectedGrade,
-      schedules: schedules
-    })
-
-    toast.success('Enrollment schedule published successfully')
-  }
-
-  /**
    * Gets the appropriate color class based on capacity
    * @param {number} remaining - Remaining slots
    * @param {number} total - Total capacity
@@ -291,9 +447,9 @@ export default function EnrollmentSchedule() {
         <div className='rounded-[10px] bg-[#EFAA15]/20 px-2 py-2 text-sm font-semibold text-primary'>
           <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Step 1:</span> Select Grade
         </div>
-        <div className='bg-background h-[480px] rounded-[10px] shadow-md p-4'>
+        <div className='bg-background h-[480px] rounded-[10px] shadow-md p-4 overflow-y-auto'>
           <div className='flex flex-col gap-3'>
-            {scheduleData.gradeLevels.map((grade) => (
+            {data.gradeLevels.map((grade) => (
               <div 
                 key={grade.gradeLevel}
                 className={`flex flex-col gap-2 p-3 border border-text-2 rounded-[10px] hover:bg-text-2/20 cursor-pointer button-transition
@@ -314,75 +470,43 @@ export default function EnrollmentSchedule() {
         <div className='rounded-[10px] bg-[#EFAA15]/20 px-2 py-2 text-sm font-semibold text-primary'>
           <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Step 2:</span> Indicate enrollment date and time
         </div>
-        <div className='bg-background h-[480px] rounded-[10px] shadow-md p-4 overflow-y-aut overflow-x-auto'>
+        <div className='bg-background h-[480px] rounded-[10px] shadow-md p-4 overflow-y-auto overflow-x-auto'>
+
           {selectedGrade ? (
             <div className='flex flex-col gap-6'>
-              {schedules.map((schedule) => (
-                <div key={schedule.id} className='flex flex-col gap-2'>
-                  <div className='flex items-center gap-3'>
-                    <div className='flex items-center gap-2'>
-                      <button 
-                        onClick={() => handleToggleStatus(schedule.id)}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer button-transition ${
-                          schedule.status === 'active' 
-                            ? 'bg-success/20 text-green-700 hover:bg-success/50' 
-                            : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                        }`}
-                      >
-                        <FontAwesomeIcon icon={schedule.status === 'active' ? faPause : faPlay} />
-                      </button>
-                    </div>
-                    <div className='flex-1 flex items-center gap-2 text-gray-600'>
-                      <button className='button-transitio rounded-md bg-text-2/10 px-3 py-1 hover:bg-text-2/30'>
-                        {new Date(schedule.date).toLocaleDateString('en-US', { 
-                          weekday: 'long', 
-                          day: 'numeric', 
-                          month: 'long' 
-                        })}
-                      </button>
-                      {schedule.timeRanges.map((time, timeIndex) => (
-                        <div key={timeIndex} className='flex items-center gap-2'>
-                          <button className='button-transitio rounded-md bg-text-2/10 px-3 py-1 hover:bg-text-2/30n'>
-                            {time.startTime}
-                          </button>
-                          <span>-</span>
-                          <button className='button-transitio rounded-md bg-text-2/10 px-3 py-1 hover:bg-text-2/30'>
-                            {time.endTime}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <button 
-                        onClick={() => handleDeleteSchedule(schedule.id)}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center relative group cursor-pointer button-transition ${
-                          (schedule.applications && schedule.applications > 0) 
-                            ? 'bg-red-50 text-red-300 cursor-not-allowed' 
-                            : 'bg-danger/20 text-red-500 hover:bg-danger/30'
-                        }`}
-                        disabled={Boolean(schedule.applications && schedule.applications > 0)}
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                        {/* {schedule.applications && schedule.applications > 0 && (
-                          <div className="absolute bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-not-allowed">
-                            Cannot delete: Has applications
-                          </div>
-                        )} */}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <button 
-                onClick={handleAddTimeSlot}
-                className='flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg text-text-2 hover:bg-text-2/20 hover:border-gray-400 transition-colors button-transition cursor-pointer'
-              >
-                <FontAwesomeIcon 
-                  className='text-accent text-xl'
-                  icon={faPlusCircle} />
-                Add new time slot
-              </button>
-            </div>
+            {/* Existing schedules */}
+            {schedules.map((schedule) => (
+              <ScheduleItem 
+                key={schedule.id}
+                schedule={schedule}
+                onToggle={handleToggleStatus}
+                onDelete={handleDeleteSchedule}
+                isExisting={true}
+              />
+            ))}
+            
+            {/* New schedules */}
+            {newSchedules.map((schedule) => (
+              <ScheduleItem
+                key={schedule.id}
+                schedule={schedule}
+                onToggle={handleToggleStatus}
+                onDelete={handleDeleteSchedule}
+                isExisting={false}
+              />
+            ))}
+            
+            <button 
+              onClick={handleAddTimeSlot}
+              className='flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg text-text-2 hover:bg-text-2/20 hover:border-gray-400 transition-colors button-transition cursor-pointer'
+            >
+              <FontAwesomeIcon 
+                className='text-accent text-xl'
+                icon={faPlusCircle} 
+              />
+              Add new time slot
+            </button>
+          </div>
           ) : (
             <div className='flex items-center justify-center h-full text-text-2'>
               Select a grade level to manage schedules
@@ -402,7 +526,12 @@ export default function EnrollmentSchedule() {
           </div>
           <div className='bg-background rounded-[10px] shadow-md p-4'> 
             <div className='flex items-center gap-2 text-text'>
-              <input type="checkbox" className='form-checkbox h-4 w-4 cursor-pointer button-transition' />
+            <input 
+              type="checkbox" 
+              checked={selectedGradeData?.allowSectionSelection || false} 
+              onChange={() => handleAllowSectionSelectionChange(selectedGradeData?.gradeLevel || '')} 
+              className='form-checkbox h-4 w-4 cursor-pointer button-transition' 
+            />
               <span>Allow section selection</span>
             </div>
           </div>
@@ -432,17 +561,17 @@ export default function EnrollmentSchedule() {
                 <div className='text-sm text-text'>Plan Remaining Slots</div>
                 <div className={`text-lg font-semibold rounded-[10px] py-1 ${
                   getCapacityColor(
-                    scheduleData.schoolCapacity.remainingSlots,
-                    scheduleData.schoolCapacity.totalCapacity
+                    data.schoolCapacity.remainingSlots,
+                    data.schoolCapacity.totalCapacity
                   )
                 }`}>
-                  {scheduleData.schoolCapacity.remainingSlots} slots
+                  {data.schoolCapacity.remainingSlots} slots
                 </div>
               </div>
               <div className='flex flex-col text-center'>
                 <div className='text-sm text-text'>Total School Capacity</div>
                 <div className='text-lg font-semibold text-primary bg-accent/20 rounded-[10px] py-1'>
-                  {scheduleData.schoolCapacity.totalCapacity} slots
+                  {data.schoolCapacity.totalCapacity} slots
                 </div>
               </div>
             </div>

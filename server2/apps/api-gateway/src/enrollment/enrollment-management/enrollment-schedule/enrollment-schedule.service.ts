@@ -14,14 +14,14 @@ export class EnrollmentScheduleService {
 
   public async getAllGrades(
     payload: object,
-  ): Promise<EnrollmentSchedule['processedGradeLevel']> {
+  ): Promise<EnrollmentSchedule['gradeLevelFormat']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
       this.client.send({ cmd: 'get-all-schedules' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as EnrollmentSchedule['processedGradeLevel'];
+    return result.data as EnrollmentSchedule['gradeLevelFormat'];
   }
 
   public async storeData(

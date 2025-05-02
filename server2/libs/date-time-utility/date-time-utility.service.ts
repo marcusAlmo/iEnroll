@@ -100,6 +100,7 @@ export class DateTimeUtilityService {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
 
     return formattedDate;
@@ -124,10 +125,12 @@ export class DateTimeUtilityService {
     return `${year}-${month}-${day}`;
   }
 
-  static getTime12HourFormat(date: Date): string {
+  static getTime12HourFormatUTC(date: Date): string {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC',
     });
   }
 }
