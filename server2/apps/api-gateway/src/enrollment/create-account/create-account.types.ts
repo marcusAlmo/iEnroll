@@ -9,3 +9,16 @@ export type GetAllSchoolsReturn = Awaited<
 export type GetAllAddressesReturn = Awaited<
   ReturnType<CreateAccountController['getAllAddresses']>
 >;
+
+export type GetAllProvincesReturn = Awaited<
+  ReturnType<CreateAccountController['getAllProvinces']>
+>;
+export type GetAllMunicipalitiesByProvinceIdReturn = Awaited<
+  ReturnType<CreateAccountController['getAllMunicipalitiesByProvinceId']>
+>;
+export type GetAllDistrictsByMunicipalityIdReturn = Awaited<
+  ReturnType<CreateAccountController['getAllDistrictsByMunicipalityId']>
+>;
+export type GetAllStreetsByDistrictIdReturn = Awaited<
+  ReturnType<CreateAccountController['getAllStreetsByDistrictId']>
+>;

@@ -15,7 +15,20 @@ import { sexAssignedAtBirth } from "./dropdownOptions";
 import { CustomCombobox } from "@/components/CustomComboBox";
 
 // Sample data
-import districts from "@/test/data/districts.json";
+// import districts from "@/test/data/districts.json";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getAllDistrictsByMunicipalityId,
+  getAllMunicipalitiesByProvinceId,
+  getAllProvinces,
+  getAllStreetsByDistrictId,
+} from "@/services/mobile-web-app/create-account/address/src";
+
+type InputOptions = {
+  id: number;
+  label: string;
+  value: string;
+};
 
 const SignUpPage = () => {
   const { mobile } = useScreenSize();
@@ -43,6 +56,76 @@ const SignUpPage = () => {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] =
     useState<boolean>(false);
+
+  const { data: provinces } = useQuery({
+    queryKey: ["createAccountProvinces"],
+    queryFn: getAllProvinces,
+    select: (data): InputOptions[] => {
+      const raw = data.data;
+      return raw.map((province) => ({
+        id: province.provinceId,
+        label: province.province,
+        value: province.province,
+      }));
+    },
+  });
+
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
+    null,
+  );
+
+  const { data: municipalities } = useQuery({
+    queryKey: ["createAccountMunicipalities", selectedProvinceId],
+    queryFn: () => getAllMunicipalitiesByProvinceId(selectedProvinceId!),
+    select: (data): InputOptions[] => {
+      const raw = data.data;
+      return raw.map((municipality) => ({
+        id: municipality.municipalityId,
+        label: municipality.municipality,
+        value: municipality.municipality,
+      }));
+    },
+    enabled: !!selectedProvinceId,
+  });
+
+  const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<
+    number | null
+  >(null);
+
+  const { data: districts } = useQuery({
+    queryKey: ["createAccountDistricts", selectedMunicipalityId],
+    queryFn: () => getAllDistrictsByMunicipalityId(selectedMunicipalityId!),
+    select: (data): InputOptions[] => {
+      const raw = data.data;
+      return raw.map((district) => ({
+        id: district.districtId,
+        label: district.district,
+        value: district.district,
+      }));
+    },
+    enabled: !!selectedMunicipalityId,
+  });
+
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(
+    null,
+  );
+
+  const { data: streets } = useQuery({
+    queryKey: ["createAccountStreets", selectedDistrictId],
+    queryFn: () => getAllStreetsByDistrictId(selectedDistrictId!),
+    select: (data): InputOptions[] => {
+      const raw = data.data;
+      return raw.map((street) => ({
+        id: street.streetId,
+        label: street.street,
+        value: street.street,
+      }));
+    },
+    enabled: !!selectedDistrictId,
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [selectedStreetId, setSelectedStreetId] = useState<number | null>(null);
 
   const handleToggleVisibility = (field: string) => {
     if (field === "password") {
@@ -191,14 +274,62 @@ const SignUpPage = () => {
             <div className="text-primary mt-10 text-base font-semibold">
               Address
             </div>
-            <CustomInput
+            <CustomCombobox
+              control={form.control}
+              name="province"
+              label="Province"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={provinces ?? []}
+              placeholder="Enter province..."
+              onChangeValue={(value) => {
+                setSelectedProvinceId(value?.id ?? null);
+              }}
+            />
+
+            <CustomCombobox
+              control={form.control}
+              name="municipality"
+              label="City/Municipality"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={municipalities ?? []}
+              placeholder="Enter city/municipality..."
+              onChangeValue={(value) => {
+                setSelectedMunicipalityId(value?.id ?? null);
+              }}
+            />
+
+            <CustomCombobox
+              control={form.control}
+              name="district"
+              label="Barangay / District"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={districts ?? []}
+              placeholder="Enter barangay or district..."
+              onChangeValue={(value) => {
+                setSelectedDistrictId(value?.id ?? null);
+              }}
+            />
+
+            <CustomCombobox
+              control={form.control}
+              name="street"
+              label="Street"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={streets ?? []}
+              placeholder="Enter street..."
+              onChangeValue={(value) => {
+                setSelectedStreetId(value?.id ?? null);
+              }}
+            />
+
+            {/* <CustomInput
               control={form.control}
               name="street"
               label="Street"
               placeholder="ex. Cauayan Street"
               inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
               labelStyle="text-sm text-text-2"
-            />
+            /> */}
 
             {/* <CustomInput
               control={form.control}
@@ -209,23 +340,23 @@ const SignUpPage = () => {
               labelStyle="text-sm text-text-2"
             /> */}
 
-            <CustomCombobox 
+            {/* <CustomCombobox 
               control={form.control}
               name="district"
               label="District"
               labelClassName="text-sm font-semibold text-text-2"
               values={districts}
               placeholder="Enter district..."
-            />
+            /> */}
 
-            <CustomInput
+            {/* <CustomInput
               control={form.control}
               name="municipality"
               label="City/Municipality"
               placeholder="ex. Legazpi City"
               inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
               labelStyle="text-sm text-text-2"
-            />
+            /> */}
 
             <Button
               className="bg-accent mt-[30px] w-full py-6 text-base"

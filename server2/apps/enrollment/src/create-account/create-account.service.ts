@@ -381,6 +381,51 @@ export class CreateAccountService {
     }));
   }
 
+  async getAllProvinces() {
+    return this.prisma.province.findMany({
+      select: {
+        province_id: true,
+        province: true,
+      },
+    });
+  }
+
+  async getAllMunicipalitiesByProvinceId(provinceId: number) {
+    return this.prisma.municipality.findMany({
+      select: {
+        municipality_id: true,
+        municipality: true,
+      },
+      where: {
+        province_id: provinceId,
+      },
+    });
+  }
+
+  async getAllDistrictsByMunicipalityId(municipalityId: number) {
+    return this.prisma.district.findMany({
+      select: {
+        district_id: true,
+        district: true,
+      },
+      where: {
+        municipality_id: municipalityId,
+      },
+    });
+  }
+
+  async getAllStreetsByDistrictId(districtId: number) {
+    return this.prisma.street.findMany({
+      select: {
+        street_id: true,
+        street: true,
+      },
+      where: {
+        district_id: districtId,
+      },
+    });
+  }
+
   private parseGender(gender: 'M' | 'F' | 'O') {
     switch (gender) {
       case 'M':
