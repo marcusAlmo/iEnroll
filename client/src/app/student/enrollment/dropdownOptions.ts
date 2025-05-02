@@ -178,3 +178,16 @@ export const gradeLevels = [
     label: "Grade 12"
   }
 ];
+
+export const sections = [
+  { "id": 1, "label": "Section A" },
+  { "id": 2, "label": "Section B" },
+  { "id": 3, "label": "Section C" },
+  { "id": 4, "label": "Section D" },
+  { "id": 5, "label": "Section E" },
+  { "id": 6, "label": "Section F" },
+  { "id": 7, "label": "Section G" },
+  { "id": 8, "label": "Section H" },
+  { "id": 9, "label": "Section I" },
+  { "id": 10, "label": "Section J" }
+]
