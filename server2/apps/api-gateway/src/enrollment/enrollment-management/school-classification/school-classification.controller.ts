@@ -9,14 +9,6 @@ export class SchoolClassificationController {
     private readonly schoolClassification: SchoolClassificationService,
   ) {}
 
-  @Get('retrieve')
-  async getSchoolClassification(@User('school_id') schoolId: number) {
-    schoolId = 0;
-    return await this.schoolClassification.getSchoolClassification({
-      schoolId,
-    });
-  }
-
   @Post('save')
   async saveSchoolClassification(
     @User('school_id') schoolId: number,
@@ -31,7 +23,7 @@ export class SchoolClassificationController {
 
   @Get('retrieve-all-grade-levels')
   async getAllGradesLavels(@User('school_id') schoolId: number) {
-    schoolId = 0;
+    schoolId = 686042;
     return await this.schoolClassification.getAllGradesLavels({
       schoolId,
     });

@@ -53,6 +53,23 @@ export interface SchoolClassification {
     ids: SchoolClassification['idObject'];
   };
 
+  finalOutput: {
+    schoolType: string;
+    academicLevels: {
+      name: string;
+      checked: boolean;
+    }[];
+    gradeLevels: {
+      name: string;
+      checked: boolean;
+    }[];
+  };
+
+  getDataReturnType: {
+    schoolType: string;
+    supportedAcadLevel: string[];
+  };
+
   retrievedGradeLevels: {
     academicLevels: string[];
     gradeLevels: string[];
