@@ -13,10 +13,10 @@ export class EnrollmentScheduleService {
   ) {}
 
   public async getAllGrades(
-    schoolId: number,
+    payload: object,
   ): Promise<EnrollmentSchedule['processedGradeLevel']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'get-all-schedules' }, { schoolId }),
+      this.client.send({ cmd: 'get-all-schedules' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);

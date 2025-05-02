@@ -1,8 +1,12 @@
+import { $Enums } from '@prisma/client';
+import { application_status } from '@/services/common/types/enums';
+import { SelectionReturn } from './../../../../api-gateway/src/enrollment/enroll/enroll.types';
 import { MicroserviceUtilityService } from '@lib/microservice-utility/microservice-utility.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { EnrollmentSchedule } from './interface/enrollment-schedule.interface';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
+import { DateTimeUtilityService } from '@lib/date-time-utility/date-time-utility.service';
 
 @Injectable()
 export class EnrollmentScheduleService {
@@ -81,6 +85,20 @@ export class EnrollmentScheduleService {
   // UTILITY FUNCTIONS
 
   // for retrieval
+  private async collectData(
+    schoolId: number,
+  ): Promise<EnrollmentSchedule['gradeLevel'][]> {
+    const gradeLevels: string[] = await this.getGradeLevels(schoolId);
+    const slotCapacity: EnrollmentSchedule['gradeLevelFormat']['schoolCapacity'] =
+      await this.getSlotCapacity(schoolId);
+    const gradeSections: EnrollmentSchedule['sectionRaw'][] =
+      await this.getGradeSection(gradeLevels, schoolId);
+    const gradeSchedule: EnrollmentSchedule['scheduleRaw'][] =
+      await this.getgradeSchedule(schoolId);
+
+
+  }
+
   private async getGradesInfo(
     schoolId: number,
   ): Promise<EnrollmentSchedule['gradeLevelRaw']> {
@@ -115,12 +133,134 @@ export class EnrollmentScheduleService {
     return gradesLevelInfo;
   }
 
+  private async getGradeLevels(schoolId: number): Promise<string[]> {
+    const data = await this.prisma.grade_level_offered.findMany({
+      where: {
+        school_id: schoolId,
+      },
+      select: {
+        grade_level: {
+          select: {
+            grade_level: true,
+          },
+        },
+      },
+    });
+
+    return data.map((d) => d.grade_level.grade_level);
+  }
+
+  private async getGradeSection(
+    gradeLevels: string[],
+    schoolId: number,
+  ): Promise<EnrollmentSchedule['sectionRaw'][]> {
+    const data = await this.prisma.grade_section.findMany({
+      where: {
+        grade_section_program: {
+          grade_level_offered: {
+            grade_level: {
+              grade_level: {
+                in: gradeLevels,
+              },
+            },
+            school_id: schoolId,
+          },
+        },
+      },
+      select: {
+        grade_section_program: {
+          select: {
+            grade_level_offered: {
+              select: {
+                grade_level: {
+                  select: {
+                    grade_level: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        section_name: true,
+        admission_slot: true,
+        max_application_slot: true,
+        student_enrollment: {
+          select: {
+            enrollment_id: true,
+          },
+        },
+      },
+    });
+
+    return data.map((d) => ({
+      gradeLevel:
+        d.grade_section_program.grade_level_offered.grade_level.grade_level,
+      sectionName: d.section_name,
+      sectionCapacity: d.admission_slot,
+      maximumApplication: d.max_application_slot,
+      currentEnrolled: d.student_enrollment.length,
+    }));
+  }
+
+  private async getgradeSchedule(
+    schoolId: number,
+  ): Promise<EnrollmentSchedule['scheduleRaw'][]> {
+    const data = await this.prisma.enrollment_schedule.findMany({
+      where: {
+        grade_level_offered: {
+          school_id: schoolId,
+        },
+      },
+      select: {
+        grade_level_offered: {
+          select: {
+            grade_level: {
+              select: {
+                grade_level: true,
+              },
+            },
+          },
+        },
+        aux_schedule_slot: {
+          select: {
+            enrollment_application: {
+              where: {
+                status: $Enums.application_status.accepted,
+              },
+              select: {
+                application_id: true,
+              },
+            },
+          },
+        },
+        schedule_id: true,
+        start_datetime: true,
+        end_datetime: true,
+        is_paused: true,
+        can_choose_section: true,
+      },
+    });
+
+    return data.map((d) => ({
+      id: d.schedule_id,
+      applications: d.aux_schedule_slot
+        ? d.aux_schedule_slot.enrollment_application.length
+        : 0,
+      gradeLevel: d.grade_level_offered.grade_level.grade_level,
+      date: DateTimeUtilityService.getDateTOString(d.start_datetime),
+      timeRanges: [
+        DateTimeUtilityService.getTime12HourFormat(d.start_datetime),
+        DateTimeUtilityService.getTime12HourFormat(d.end_datetime),
+      ],
+      isPaused: d.is_paused,
+      allowSectionSelection: d.can_choose_section,
+    }));
+  }
+
   private async processRawData(
     gradeLevelRaw: EnrollmentSchedule['gradeLevelRaw'],
     schoolId: number,
-  ): Promise<EnrollmentSchedule['processedGradeLevel']> {
-    const slotCount: string = await this.getSlotCapacity(schoolId);
-
+  ) {
     return gradeLevelRaw.map((g) => {
       return {
         gradeLevelOfferedId: g.grade_level_offered_id,
@@ -134,12 +274,13 @@ export class EnrollmentScheduleService {
           isPaused: s.is_paused,
           canChooseSection: s.can_choose_section,
         })),
-        slotCapacity: slotCount,
       };
     });
   }
 
-  private async getSlotCapacity(schoolId: number): Promise<string> {
+  private async getSlotCapacity(
+    schoolId: number,
+  ): Promise<EnrollmentSchedule['gradeLevelFormat']['schoolCapacity']> {
     const maxStudentCount = await this.prisma.school_subscription.findFirst({
       where: {
         school_id: schoolId,
@@ -164,7 +305,11 @@ export class EnrollmentScheduleService {
         },
       });
 
-    return `${maxStudentCount?.plan.max_student_count || 0}/${currentApplicationCount}`;
+    return {
+      totalCapacity: maxStudentCount?.plan.max_student_count || 0,
+      remainingSlots:
+        maxStudentCount?.plan.max_student_count || 0 - currentApplicationCount,
+    };
   }
 
   // for storing

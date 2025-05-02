@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "react-router";
 import SettingsIcon from "@/assets/images/Settings.svg";
 import SmileyIcon from "@/assets/images/Smiley.svg";
+import { ToastContainer } from "react-toastify";
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -46,6 +47,18 @@ const Navbar: React.FC = () => {
           </Link>
         ))}
       </div>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
 
       {/* Settings Button */}
       <button className="p-2 hover:bg-gray-200 rounded-md transition duration-300">

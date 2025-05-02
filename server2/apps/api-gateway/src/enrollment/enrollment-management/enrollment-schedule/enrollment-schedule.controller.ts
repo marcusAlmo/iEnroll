@@ -13,7 +13,7 @@ export class EnrollmentScheduleController {
   @Get('get-all-schedules')
   async getAllGrades(@User('school_id') schoolId: number) {
     schoolId = 0;
-    return await this.enrollmentScheduleService.getAllGrades(schoolId);
+    return await this.enrollmentScheduleService.getAllGrades({ schoolId });
   }
 
   @Post('store-data')

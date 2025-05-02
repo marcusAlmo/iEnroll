@@ -9,21 +9,18 @@
       "sections": [
         {
           "sectionName": "Section A",
-          "sectionAdviser": "Mr. John Smith",
           "sectionCapacity": 40,
           "maximumApplication": 50,
           "currentEnrolled": 35
         },
         {
           "sectionName": "Section B",
-          "sectionAdviser": "Ms. Jane Doe",
           "sectionCapacity": 40,
           "maximumApplication": 50,
           "currentEnrolled": 30
         },
         {
           "sectionName": "Section C",
-          "sectionAdviser": "Mr. Robert Johnson",
           "sectionCapacity": 40,
           "maximumApplication": 50,
           "currentEnrolled": 25
@@ -44,8 +41,7 @@
             }
           ],
           "status": "active",
-          "allowSectionSelection": true,
-          "applications": 15
+          "allowSectionSelection": true
         }
       ]
     },
@@ -54,21 +50,18 @@
       "sections": [
         {
           "sectionName": "Section A",
-          "sectionAdviser": "Ms. Sarah Wilson",
           "sectionCapacity": 45,
           "maximumApplication": 55,
           "currentEnrolled": 40
         },
         {
           "sectionName": "Section B",
-          "sectionAdviser": "Mr. Michael Brown",
           "sectionCapacity": 45,
           "maximumApplication": 55,
           "currentEnrolled": 35
         },
         {
           "sectionName": "Section C",
-          "sectionAdviser": "Ms. Emily Davis",
           "sectionCapacity": 45,
           "maximumApplication": 55,
           "currentEnrolled": 30
@@ -85,8 +78,7 @@
             }
           ],
           "status": "paused",
-          "allowSectionSelection": false,
-          "applications": 0
+          "allowSectionSelection": false
         },
         {
           "id": "g8-schedule-2",
@@ -102,8 +94,7 @@
             }
           ],
           "status": "active",
-          "allowSectionSelection": true,
-          "applications": 25
+          "allowSectionSelection": true
         }
       ]
     },
@@ -112,21 +103,18 @@
       "sections": [
         {
           "sectionName": "Section A",
-          "sectionAdviser": "Mr. David Miller",
           "sectionCapacity": 50,
           "maximumApplication": 60,
           "currentEnrolled": 45
         },
         {
           "sectionName": "Section B",
-          "sectionAdviser": "Ms. Lisa Anderson",
           "sectionCapacity": 50,
           "maximumApplication": 60,
           "currentEnrolled": 40
         },
         {
           "sectionName": "Section C",
-          "sectionAdviser": "Mr. James Wilson",
           "sectionCapacity": 50,
           "maximumApplication": 60,
           "currentEnrolled": 35
@@ -143,8 +131,7 @@
             }
           ],
           "status": "active",
-          "allowSectionSelection": true,
-          "applications": 0
+          "allowSectionSelection": true
         }
       ]
     },
@@ -153,21 +140,18 @@
       "sections": [
         {
           "sectionName": "Section A",
-          "sectionAdviser": "Ms. Patricia Taylor",
           "sectionCapacity": 55,
           "maximumApplication": 65,
           "currentEnrolled": 50
         },
         {
           "sectionName": "Section B",
-          "sectionAdviser": "Mr. Thomas Moore",
           "sectionCapacity": 55,
           "maximumApplication": 65,
           "currentEnrolled": 45
         },
         {
           "sectionName": "Section C",
-          "sectionAdviser": "Ms. Jennifer White",
           "sectionCapacity": 55,
           "maximumApplication": 65,
           "currentEnrolled": 40
@@ -184,8 +168,7 @@
             }
           ],
           "status": "active",
-          "allowSectionSelection": false,
-          "applications": 10
+          "allowSectionSelection": false
         }
       ]
     }

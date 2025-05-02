@@ -9,16 +9,14 @@ import scheduleData from './test/scheduleSample.json'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faPlay, 
-  faPause, 
-  faTrash, 
+import {
+  faPlay,
+  faPause,
+  faTrash,
   faTimes,
-  faPen,
   faPlusCircle
 } from '@fortawesome/free-solid-svg-icons'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { toast } from 'react-toastify'
 
 /**
  * Represents a time range with start and end times
@@ -211,26 +209,6 @@ export default function EnrollmentSchedule() {
     }
   }
 
-  const handleEditSchedule = (scheduleId: string) => {
-    const schedule = schedules.find(s => s.id === scheduleId)
-    if (!schedule) return
-
-    if (schedule.applications && schedule.applications > 0) {
-      // If there are applications, only allow pausing
-      setSchedules(schedules.map(s => 
-        s.id === scheduleId 
-          ? { ...s, status: 'paused' }
-          : s
-      ))
-    } else {
-      // If no applications, allow editing
-      setEditingScheduleId(scheduleId)
-      setSelectedDate(new Date(schedule.date))
-      setTimeRanges(schedule.timeRanges)
-      setShowAddModal(true)
-    }
-  }
-
   /**
    * Handles saving a time slot (individual schedule)
    */
@@ -375,22 +353,6 @@ export default function EnrollmentSchedule() {
                       ))}
                     </div>
                     <div className='flex items-center gap-2'>
-                      <button 
-                        onClick={() => handleEditSchedule(schedule.id)}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center relative group cursor-pointer button-transition ${
-                          (schedule.applications && schedule.applications > 0) 
-                            ? 'bg-gray-50 text-text-2/50 0 cursor-not-allowed' 
-                            : 'bg-accent/70 text-primary hover:bg-accent/50'
-                        }`}
-                        disabled={Boolean(schedule.applications && schedule.applications > 0)}
-                      >
-                        <FontAwesomeIcon icon={faPen} />
-                        {/* {schedule.applications && schedule.applications > 0 && (
-                          <div className="absolute bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-not-allowed">
-                            Cannot edit: Has applications
-                          </div>
-                        )} */}
-                      </button>
                       <button 
                         onClick={() => handleDeleteSchedule(schedule.id)}
                         className={`w-8 h-8 rounded-full flex items-center justify-center relative group cursor-pointer button-transition ${
@@ -617,18 +579,6 @@ export default function EnrollmentSchedule() {
           </div>
         </div>
       )}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </div>
   )
 }

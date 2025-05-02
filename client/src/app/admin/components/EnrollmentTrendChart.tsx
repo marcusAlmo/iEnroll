@@ -1,8 +1,8 @@
 import { requestData } from "@/lib/dataRequester";
 //import { CodeSquare } from "lucide-react";
-import /**React, */ { useEffect, useState } from "react";
+import /**React, */ { useEffect, useRef, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
-
+import { toast } from "react-toastify";
 
 type EnrollmentTrendData = {
   [year: string]: number;
@@ -19,6 +19,7 @@ const EnrollmentChart = () => {
 
   const [data, setData] = useState<EnrollmentTrendResponse['record']>([]);
   const [years, setyears] = useState<string[]>([]);
+  const hasFetched = useRef(false);
 
   const fetchData = async () => {
     try{
@@ -28,17 +29,18 @@ const EnrollmentChart = () => {
       });
 
       if(response){
-        console.log('response: ', response);
         setyears(response.years.map(String));
         setData(response.record);
       }
     }catch(err){
-      if(err instanceof Error)
-        console.log(err.message);
+      if(err instanceof Error)toast.error(err.message);
+      else console.error(err);
     }
   }
 
   useEffect(() => {
+    if (hasFetched.current) return; // prevent double fetch
+    hasFetched.current = true;
     fetchData();
   }, []);
 

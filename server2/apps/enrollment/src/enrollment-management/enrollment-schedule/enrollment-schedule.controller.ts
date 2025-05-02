@@ -11,10 +11,11 @@ export class EnrollmentScheduleController {
   ) {}
 
   @MessagePattern({ cmd: 'get-all-schedules' })
-  async getAllGrades(
-    schoolId: number,
-  ): Promise<MicroserviceUtility['returnValue']> {
-    return this.enrollmentScheduleService.getAllGrades(schoolId);
+  async getAllGrades(payload: {
+    schoolId: number;
+  }): Promise<MicroserviceUtility['returnValue']> {
+    console.log('schoolIdL: ', payload.schoolId);
+    return this.enrollmentScheduleService.getAllGrades(payload.schoolId);
   }
 
   @MessagePattern({ cmd: 'store-data' })
