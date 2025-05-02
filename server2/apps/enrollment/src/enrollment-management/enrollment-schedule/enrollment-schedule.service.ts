@@ -1,6 +1,4 @@
 import { $Enums } from '@prisma/client';
-import { application_status } from '@/services/common/types/enums';
-import { SelectionReturn } from './../../../../api-gateway/src/enrollment/enroll/enroll.types';
 import { MicroserviceUtilityService } from '@lib/microservice-utility/microservice-utility.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
@@ -18,11 +16,8 @@ export class EnrollmentScheduleService {
   public async getAllGrades(
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    const gradeLevelRaw: EnrollmentSchedule['gradeLevelRaw'] =
-      await this.getGradesInfo(schoolId);
-
-    const processedSchedule: EnrollmentSchedule['processedGradeLevel'] =
-      await this.processRawData(gradeLevelRaw, schoolId);
+    const processedSchedule: EnrollmentSchedule['gradeLevelFormat'] =
+      await this.collectData(schoolId);
 
     return this.microserviceUtility.returnSuccess(processedSchedule);
   }
@@ -87,8 +82,9 @@ export class EnrollmentScheduleService {
   // for retrieval
   private async collectData(
     schoolId: number,
-  ): Promise<EnrollmentSchedule['gradeLevel'][]> {
-    const gradeLevels: string[] = await this.getGradeLevels(schoolId);
+  ): Promise<EnrollmentSchedule['gradeLevelFormat']> {
+    const gradeLevels: EnrollmentSchedule['gradeLevelCollection'][] =
+      await this.getGradeLevels(schoolId);
     const slotCapacity: EnrollmentSchedule['gradeLevelFormat']['schoolCapacity'] =
       await this.getSlotCapacity(schoolId);
     const gradeSections: EnrollmentSchedule['sectionRaw'][] =
@@ -96,7 +92,73 @@ export class EnrollmentScheduleService {
     const gradeSchedule: EnrollmentSchedule['scheduleRaw'][] =
       await this.getgradeSchedule(schoolId);
 
+    const processedschedules: EnrollmentSchedule['schedule'][] =
+      await this.mergeSchedules(gradeSchedule);
 
+    const finalOutput: EnrollmentSchedule['gradeLevelFormat'] = {
+      schoolCapacity: slotCapacity,
+      gradeLevels: gradeLevels.map((item) => {
+        return {
+          gradeLevel: item.gradeLevel,
+          allowSectionSelection: item.allowSectionSelection,
+          sections: gradeSections
+            .filter((section) => section.gradeLevel === item.gradeLevel)
+            .map((i) => {
+              return {
+                sectionName: i.sectionName,
+                sectionCapacity: i.sectionCapacity,
+                maximumApplication: i.maximumApplication,
+                currentEnrolled: i.currentEnrolled,
+              };
+            }),
+          schedules: processedschedules
+            .filter((schedule) => schedule.gradeLevel === item.gradeLevel)
+            .map((i) => {
+              return {
+                id: i.id,
+                date: i.date,
+                timeRanges: i.timeRanges,
+                applications: i.applications,
+                status: i.status,
+                gradeLevel: i.gradeLevel,
+              };
+            }),
+        };
+      }),
+    };
+
+    return finalOutput;
+  }
+
+  private async mergeSchedules(
+    scheduleRaw: EnrollmentSchedule['scheduleRaw'][],
+  ): Promise<EnrollmentSchedule['schedule'][]> {
+    const grouped = new Map<string, EnrollmentSchedule['scheduleRaw'][]>();
+
+    for (const entry of scheduleRaw) {
+      const key = `${entry.gradeLevel}|${entry.date}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push(entry);
+    }
+
+    const schedule: EnrollmentSchedule['schedule'][] = [];
+
+    for (const group of grouped.values()) {
+      const first = group[0];
+
+      schedule.push({
+        id: first.id,
+        date: first.date,
+        timeRanges: group.flatMap((item) => item.timeRanges),
+        applications: group.reduce((sum, item) => sum + item.applications, 0),
+        status: first.status,
+        gradeLevel: first.gradeLevel,
+      });
+    }
+
+    return schedule;
   }
 
   private async getGradesInfo(
@@ -133,12 +195,15 @@ export class EnrollmentScheduleService {
     return gradesLevelInfo;
   }
 
-  private async getGradeLevels(schoolId: number): Promise<string[]> {
+  private async getGradeLevels(
+    schoolId: number,
+  ): Promise<EnrollmentSchedule['gradeLevelCollection'][]> {
     const data = await this.prisma.grade_level_offered.findMany({
       where: {
         school_id: schoolId,
       },
       select: {
+        can_choose_section: true,
         grade_level: {
           select: {
             grade_level: true,
@@ -147,11 +212,14 @@ export class EnrollmentScheduleService {
       },
     });
 
-    return data.map((d) => d.grade_level.grade_level);
+    return data.map((d) => ({
+      gradeLevel: d.grade_level.grade_level,
+      allowSectionSelection: d.can_choose_section,
+    }));
   }
 
   private async getGradeSection(
-    gradeLevels: string[],
+    gradeLevels: EnrollmentSchedule['gradeLevelCollection'][],
     schoolId: number,
   ): Promise<EnrollmentSchedule['sectionRaw'][]> {
     const data = await this.prisma.grade_section.findMany({
@@ -160,7 +228,7 @@ export class EnrollmentScheduleService {
           grade_level_offered: {
             grade_level: {
               grade_level: {
-                in: gradeLevels,
+                in: gradeLevels.map((d) => d.gradeLevel),
               },
             },
             school_id: schoolId,
@@ -237,9 +305,10 @@ export class EnrollmentScheduleService {
         start_datetime: true,
         end_datetime: true,
         is_paused: true,
-        can_choose_section: true,
       },
     });
+
+    console.log(data);
 
     return data.map((d) => ({
       id: d.schedule_id,
@@ -248,34 +317,16 @@ export class EnrollmentScheduleService {
         : 0,
       gradeLevel: d.grade_level_offered.grade_level.grade_level,
       date: DateTimeUtilityService.getDateTOString(d.start_datetime),
-      timeRanges: [
-        DateTimeUtilityService.getTime12HourFormat(d.start_datetime),
-        DateTimeUtilityService.getTime12HourFormat(d.end_datetime),
-      ],
-      isPaused: d.is_paused,
-      allowSectionSelection: d.can_choose_section,
+      timeRanges: {
+        startTime: DateTimeUtilityService.getTime12HourFormatUTC(
+          new Date(d.start_datetime),
+        ),
+        endTime: DateTimeUtilityService.getTime12HourFormatUTC(
+          new Date(d.end_datetime),
+        ),
+      },
+      status: d.is_paused ? 'paused' : 'active',
     }));
-  }
-
-  private async processRawData(
-    gradeLevelRaw: EnrollmentSchedule['gradeLevelRaw'],
-    schoolId: number,
-  ) {
-    return gradeLevelRaw.map((g) => {
-      return {
-        gradeLevelOfferedId: g.grade_level_offered_id,
-        gradeLevelCode: g.grade_level_code,
-        gradeLevel: g.grade_level.grade_level,
-        enrollmentSchedule: g.enrollment_schedule.map((s) => ({
-          scheduleId: s.schedule_id,
-          applicationSlot: s.application_slot,
-          startDatetime: s.start_datetime,
-          endDatetime: s.end_datetime,
-          isPaused: s.is_paused,
-          canChooseSection: s.can_choose_section,
-        })),
-      };
-    });
   }
 
   private async getSlotCapacity(
@@ -304,6 +355,8 @@ export class EnrollmentScheduleService {
           },
         },
       });
+    console.log('currentApplicationCount', currentApplicationCount);
+    console.log('maxStudentCount', maxStudentCount);
 
     return {
       totalCapacity: maxStudentCount?.plan.max_student_count || 0,

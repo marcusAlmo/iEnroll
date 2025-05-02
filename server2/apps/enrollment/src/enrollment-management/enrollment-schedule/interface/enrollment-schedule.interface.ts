@@ -1,4 +1,3 @@
-import { EnrollmentSchedule } from 'apps/enrollment/src/enrollment-management/enrollment-schedule/interface/enrollment-schedule.interface';
 export interface EnrollmentSchedule {
   gradeLevelRaw: {
     grade_level_offered_id: number;
@@ -72,11 +71,12 @@ export interface EnrollmentSchedule {
       totalCapacity: number;
       remainingSlots: number;
     };
-    gradeLevels: EnrollmentSchedule['gradeLevelRaw'][];
+    gradeLevels: EnrollmentSchedule['gradeLevel'][];
   };
 
   gradeLevel: {
-    gradeLevel: string; // e.g., "Grade 7"
+    gradeLevel: string;
+    allowSectionSelection: boolean;
     sections: EnrollmentSchedule['section'][];
     schedules: EnrollmentSchedule['schedule'][];
   };
@@ -86,6 +86,11 @@ export interface EnrollmentSchedule {
     sectionCapacity: number;
     maximumApplication: number;
     currentEnrolled: number;
+  };
+
+  gradeLevelCollection: {
+    gradeLevel: string;
+    allowSectionSelection: boolean;
   };
 
   sectionRaw: {
@@ -99,19 +104,23 @@ export interface EnrollmentSchedule {
   schedule: {
     id: number;
     date: string; // in YYYY-MM-DD format
-    timeRanges: string[];
-    allowSectionSelection: boolean;
+    timeRanges: EnrollmentSchedule['timeRange'][];
     applications: number;
-    isPaused: boolean;
+    status: string;
+    gradeLevel: string;
+  };
+
+  timeRange: {
+    startTime: string;
+    endTime: string;
   };
 
   scheduleRaw: {
     id: number;
     date: string; // in YYYY-MM-DD format
-    timeRanges: string[];
-    allowSectionSelection: boolean;
+    timeRanges: EnrollmentSchedule['timeRange'];
     applications: number;
-    isPaused: boolean;
+    status: string;
     gradeLevel: string;
   };
 }

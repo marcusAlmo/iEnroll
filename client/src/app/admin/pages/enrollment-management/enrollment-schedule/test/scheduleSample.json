@@ -41,6 +41,7 @@
             }
           ],
           "status": "active",
+          "applications": 25,
           "allowSectionSelection": true
         }
       ]
@@ -94,6 +95,7 @@
             }
           ],
           "status": "active",
+          "applications": 25,
           "allowSectionSelection": true
         }
       ]
@@ -131,6 +133,7 @@
             }
           ],
           "status": "active",
+          "applications": 25,
           "allowSectionSelection": true
         }
       ]
@@ -168,6 +171,7 @@
             }
           ],
           "status": "active",
+          "applications": 25,
           "allowSectionSelection": false
         }
       ]

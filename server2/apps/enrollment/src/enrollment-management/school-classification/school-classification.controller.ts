@@ -9,13 +9,6 @@ export class SchoolClassificationController {
     private readonly schoolClassification: SchoolClassificationService,
   ) {}
 
-  @MessagePattern({ cmd: 'get-school-classification' })
-  async getSchoolClassification(payload: { schoolId: number }) {
-    return await this.schoolClassification.getShoolClassifications(
-      payload.schoolId,
-    );
-  }
-
   @MessagePattern({ cmd: 'save-school-classification' })
   async saveSchoolClassification(payload: {
     schoolData: SchoolClassification['schoolInfoParam'];
