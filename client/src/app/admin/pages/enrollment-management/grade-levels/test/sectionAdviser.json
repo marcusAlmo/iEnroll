@@ -1,0 +1,69 @@
+{
+  "sectionAdviser": [
+    {
+      "firstName": "John",
+      "middleName": "Michael",
+      "lastName": "Doe",
+      "phoneNumber": "+1234567890",
+      "email": "john.doe@example.com",
+      "address": {
+        "street": "123 Main Street",
+        "district": "Central District",
+        "municipality": "Springfield",
+        "province": "Illinois"
+      }
+    },
+    {
+      "firstName": "Juan",
+      "middleName": "Carlos",
+      "lastName": "Santos",
+      "phoneNumber": "+639171234567",
+      "email": "juan.santos@example.com",
+      "address": {
+        "street": "456 Rizal Avenue",
+        "district": "North District",
+        "municipality": "Quezon City",
+        "province": "Metro Manila"
+      }
+    },
+    {
+      "firstName": "Maria",
+      "middleName": "Clara",
+      "lastName": "Reyes",
+      "phoneNumber": "+639181234567",
+      "email": "maria.reyes@example.com",
+      "address": {
+        "street": "789 Mabini Street",
+        "district": "East District",
+        "municipality": "Pasig",
+        "province": "Metro Manila"
+      }
+    },
+    {
+      "firstName": "Jose",
+      "middleName": "Rizal",
+      "lastName": "Cruz",
+      "phoneNumber": "+639191234567",
+      "email": "jose.cruz@example.com",
+      "address": {
+        "street": "101 Bonifacio Street",
+        "district": "South District",
+        "municipality": "Makati",
+        "province": "Metro Manila"
+      }
+    },
+    {
+      "firstName": "Ana",
+      "middleName": "Luz",
+      "lastName": "Garcia",
+      "phoneNumber": "+639201234567",
+      "email": "ana.garcia@example.com",
+      "address": {
+        "street": "202 Aguinaldo Street",
+        "district": "West District",
+        "municipality": "Manila",
+        "province": "Metro Manila"
+      }
+    }
+  ]
+}

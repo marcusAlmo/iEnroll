@@ -40,6 +40,7 @@ interface Schedule {
   status: 'active' | 'paused'
   allowSectionSelection: boolean
   applications?: number // Number of students who have applied
+  maxApplications: number // Maximum number of applications allowed
 }
 
 /**
@@ -56,6 +57,8 @@ export default function EnrollmentSchedule() {
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([{ startTime: '', endTime: '' }])
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null)
   const [timeErrors, setTimeErrors] = useState<{[key: number]: string}>({})
+  const [maxApplications, setMaxApplications] = useState<number>(0)
+  const [maxApplicationsError, setMaxApplicationsError] = useState<string>('')
 
   /**
    * Memoized time options for the time selection dropdowns
@@ -84,6 +87,39 @@ export default function EnrollmentSchedule() {
     }
     return true
   }, [])
+
+  /**
+   * Validates the maximum applications value
+   * @param {number} value - The maximum applications value to validate
+   * @returns {boolean} True if the value is valid
+   */
+  const validateMaxApplications = (value: number) => {
+    if (value < 0) {
+      setMaxApplicationsError('Maximum applications cannot be negative')
+      return false
+    }
+    if (editingSchedule?.applications && value < editingSchedule.applications) {
+      setMaxApplicationsError(`Maximum applications cannot be less than current applications (${editingSchedule.applications})`)
+      return false
+    }
+
+    // Calculate total maximum applications for the selected grade level
+    const gradeLevel = selectedGradeData
+    if (gradeLevel) {
+      const totalMaxApplications = gradeLevel.sections.reduce(
+        (sum, section) => sum + section.maximumApplication,
+        0
+      )
+      
+      if (value > totalMaxApplications) {
+        setMaxApplicationsError(`Maximum applications cannot exceed the grade level's total capacity (${totalMaxApplications})`)
+        return false
+      }
+    }
+
+    setMaxApplicationsError('')
+    return true
+  }
 
   /**
    * Memoized data for the selected grade level
@@ -116,8 +152,21 @@ export default function EnrollmentSchedule() {
   const isSaveDisabled = useMemo(() => {
     return !selectedDate || 
            timeRanges.some(range => !range.startTime || !range.endTime) || 
-           hasValidationErrors
-  }, [selectedDate, timeRanges, hasValidationErrors])
+           hasValidationErrors ||
+           maxApplicationsError !== ''
+  }, [selectedDate, timeRanges, hasValidationErrors, maxApplicationsError])
+
+  /**
+   * Memoized total maximum applications for the selected grade level
+   * @type {number}
+   */
+  const totalGradeMaxApplications = useMemo(() => {
+    if (!selectedGradeData) return 0
+    return selectedGradeData.sections.reduce(
+      (sum, section) => sum + section.maximumApplication,
+      0
+    )
+  }, [selectedGradeData])
 
   /**
    * Handles grade level selection
@@ -227,6 +276,7 @@ export default function EnrollmentSchedule() {
       setEditingScheduleId(scheduleId)
       setSelectedDate(new Date(schedule.date))
       setTimeRanges(schedule.timeRanges)
+      setMaxApplications(schedule.maxApplications)
       setShowAddModal(true)
     }
   }
@@ -246,7 +296,8 @@ export default function EnrollmentSchedule() {
       timeRanges,
       status: 'active',
       allowSectionSelection: true,
-      applications: editingSchedule?.applications || 0
+      applications: editingSchedule?.applications || 0,
+      maxApplications: maxApplications
     }
 
     if (editingScheduleId) {
@@ -332,7 +383,7 @@ export default function EnrollmentSchedule() {
         </div>
       </div>
       {/* Step 2: Indicate enrollment date and time */}
-      <div className='w-7/12 flex flex-col gap-2'>
+      <div className='w-8/12 flex flex-col gap-2'>
         <div className='rounded-[10px] bg-[#EFAA15]/20 px-2 py-2 text-sm font-semibold text-primary'>
           <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Step 2:</span> Indicate enrollment date and time
         </div>
@@ -373,6 +424,10 @@ export default function EnrollmentSchedule() {
                           </button>
                         </div>
                       ))}
+                      <div className='flex items-center gap-2 ml-2'>
+                        <span className='text-sm text-gray-500'>Applications:</span>
+                        <span className='font-medium'>{schedule.applications || 0}/{schedule.maxApplications}</span>
+                      </div>
                     </div>
                     <div className='flex items-center gap-2'>
                       <button 
@@ -433,10 +488,10 @@ export default function EnrollmentSchedule() {
         Step 4: See the number of slots
         Step 5: Publish enrollment schedule
       */}
-      <div className='w-3/12 flex flex-col gap-4'>
+      <div className='w-2/12 flex flex-col gap-4'>
         <div className='flex flex-col gap-2'>
           <div className='rounded-[10px] bg-[#EFAA15]/20 px-2 py-2 text-sm font-semibold text-primary'>
-            <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Step 3:</span> Allow students to choose a section
+            <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Step 3:</span> 
           </div>
           <div className='bg-background rounded-[10px] shadow-md p-4'> 
             <div className='flex items-center gap-2 text-text'>
@@ -447,9 +502,9 @@ export default function EnrollmentSchedule() {
         </div>
         <div className='flex flex-col gap-2'>
           <div className='rounded-[10px] bg-[#EFAA15]/20 px-2 py-2 text-sm font-semibold text-primary'>
-            <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Step 4:</span> See the number of slots
+            <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Slots Remaining:</span>
           </div>
-          <div className='bg-background rounded-[10px] shadow-md p-4 h-[233px] overflow-y-auto'>
+          <div className='bg-background rounded-[10px] shadow-md p-4 h-[209px] overflow-y-auto'>
             {selectedGrade && (
               <div className='flex flex-col gap-2 mb-5'>
                 <div className='text-sm text-text font-semibold'>Selected Grade ({selectedGrade})</div>
@@ -488,7 +543,7 @@ export default function EnrollmentSchedule() {
         </div>
         <div className='flex flex-col gap-2'>
           <div className='rounded-[10px] bg-[#EFAA15]/20 px-2 py-2 text-sm font-semibold text-primary'>
-            <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Step 5:</span> Publish enrollment schedule
+            <span className='mr-2 rounded-[15px] bg-white px-2 py-1 font-bold'>Step 5:</span> Publish schedule
           </div>
           <div className='bg-background rounded-[10px] shadow-md p-4'>
             <button 
@@ -522,9 +577,9 @@ export default function EnrollmentSchedule() {
                 <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
-            <div className='flex gap-6'>
-              <div className=''>
-                <div className='flex-1'>
+            <div className='flex flex-row w-full gap-6'>
+              <div className='w-2/4'>
+                <div className='flex-1 w-full'>
                   <h4 className='mb-2 rounded-[10px] bg-text-2/10 px-2 py-1 text-sm font-semibold text-text-2'>Pick a Date</h4>
                   <Calendar
                     onChange={(value) => {
@@ -536,8 +591,34 @@ export default function EnrollmentSchedule() {
                     minDate={new Date()}
                     className='w-full'
                   />
+                  <div className='mt-4'>
+                    <h4 className='mb-2 rounded-[10px] bg-text-2/10 px-2 py-1 text-sm font-semibold text-text-2'>Maximum Applications</h4>
+                    <div className='flex flex-col gap-2'>
+                      <input
+                        type="number"
+                        value={maxApplications}
+                        onChange={(e) => {
+                          const value = Number(e.target.value)
+                          setMaxApplications(value)
+                          validateMaxApplications(value)
+                        }}
+                        min="0"
+                        max={totalGradeMaxApplications}
+                        className={`w-full rounded border px-2 py-1 ${
+                          maxApplicationsError ? 'border-danger' : 'border-text-2/50'
+                        }`}
+                        placeholder="Enter maximum number of applications"
+                      />
+                      <div className='text-sm text-gray-500'>
+                        Grade level total capacity: {totalGradeMaxApplications} applications
+                      </div>
+                      {maxApplicationsError && (
+                        <div className='text-danger text-sm'>{maxApplicationsError}</div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className='flex gap-2 mt-4'>
+                <div className='flex gap-2 mt-4 w-full'>
                   <button
                     onClick={() => {
                       setShowAddModal(false)
@@ -559,7 +640,7 @@ export default function EnrollmentSchedule() {
                   </button>
                 </div>
               </div>
-              <div className='flex-1'>
+              <div className='flex-1 w-2/4'>
                 <h4 className='mb-2 rounded-[10px] bg-text-2/10 px-2 py-1 text-sm font-semibold text-text-2'>Select Time Ranges</h4>
                 <div className='mb-4 rounded-[10px] border border-text-2 px-2 py-2'>
                   {timeRanges.map((range, index) => (
@@ -617,7 +698,7 @@ export default function EnrollmentSchedule() {
           </div>
         </div>
       )}
-      <ToastContainer
+      {/* <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
@@ -628,7 +709,7 @@ export default function EnrollmentSchedule() {
         draggable
         pauseOnHover
         theme="light"
-      />
+      /> */}
     </div>
   )
 }
