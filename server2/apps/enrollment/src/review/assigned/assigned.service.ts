@@ -64,6 +64,11 @@ export class AssignedService {
     const result = await this.prisma.student_enrollment.findMany({
       where: {
         grade_section_id: sectionId,
+        // enrollment_application: {
+        //   status: {
+        //     in: ['accepted', 'pending'],
+        //   },
+        // },
       },
       select: {
         enrollment_application: {
@@ -109,7 +114,13 @@ export class AssignedService {
   }
   async getAllStudentsUnassigned(gradeLevelId: number) {
     const result = await this.prisma.enrollment_application.findMany({
-      where: { grade_level_offered_id: gradeLevelId, student_enrollment: null },
+      where: {
+        grade_level_offered_id: gradeLevelId,
+        student_enrollment: null,
+        // status: {
+        //   in: ['accepted', 'pending'],
+        // },
+      },
       select: {
         status: true,
         student: {
@@ -156,6 +167,7 @@ export class AssignedService {
         status: true,
         attachment_type: true,
         text_content: true,
+        remarks: true,
         enrollment_requirement: {
           select: {
             name: true,
@@ -180,6 +192,8 @@ export class AssignedService {
         requirementType: data.attachment_type,
         requirementStatus: data.status,
 
+        remarks: data.remarks,
+
         // requirementType = image or document
         fileUrl: data.file?.uuid
           ? this.fileCommonService.formatFileUrl(data.file.uuid)
@@ -198,6 +212,7 @@ export class AssignedService {
     applicationId: number,
     requirementId: number,
     reviewerId: number,
+    remarks?: string,
   ) {
     let status: $Enums.attachment_status;
 
@@ -224,6 +239,7 @@ export class AssignedService {
         data: {
           status,
           reviewer_id: reviewerId,
+          remarks,
         },
       });
 

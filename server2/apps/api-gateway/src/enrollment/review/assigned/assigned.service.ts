@@ -86,6 +86,7 @@ export class AssignedService {
     requirementId: number;
     action: 'approve' | 'deny';
     reviewerId: number;
+    remarks?: string;
   }) {
     const injectPayload = (payload: ApproveOrDenyAttachmentPayload) => payload;
 
@@ -99,6 +100,7 @@ export class AssignedService {
           requirementId: payload.requirementId,
           action: payload.action,
           reviewerId: payload.reviewerId,
+          remarks: payload.remarks,
         }),
       ),
     );

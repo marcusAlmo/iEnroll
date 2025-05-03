@@ -76,6 +76,7 @@ export class AssignedController {
       applicationId: number;
       requirementId: number;
       reviewerId: number;
+      remarks?: string;
     },
   ) {
     return await this.assignedService.approveOrDenyAttachment(
@@ -83,6 +84,7 @@ export class AssignedController {
       payload.applicationId,
       payload.requirementId,
       payload.reviewerId,
+      payload.remarks,
     );
   }
 }

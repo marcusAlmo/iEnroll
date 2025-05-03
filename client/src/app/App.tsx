@@ -1,12 +1,13 @@
 import { ToastContainer } from "react-toastify";
 import AppRouter from "./router";
 import { AxiosProvider } from "@/lib/axios/AxiosProvider";
+import { useAuth } from "@/contexts/useAuth";
 
 function App() {
   const { accessToken, logout } = useAuth();
 
   return (
-    <>
+    <AxiosProvider token={accessToken} logout={logout}>
       <AppRouter />
       <ToastContainer
         position="top-right"
@@ -19,8 +20,8 @@ function App() {
         draggable
         pauseOnHover
         theme="light"
-      />      
-    </>
+      />
+    </AxiosProvider>
   );
 }
 
