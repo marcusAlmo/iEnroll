@@ -16,18 +16,28 @@ import { CustomCombobox } from "@/components/CustomComboBox";
 
 // Sample data
 // import districts from "@/test/data/districts.json";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getAllDistrictsByMunicipalityId,
   getAllMunicipalitiesByProvinceId,
   getAllProvinces,
   getAllStreetsByDistrictId,
 } from "@/services/mobile-web-app/create-account/address/src";
+import {
+  createAccount,
+  getAllSchools,
+} from "@/services/mobile-web-app/create-account/create";
 
 type InputOptions = {
   id: number;
   label: string;
   value: string;
+};
+
+type DropdownItem = {
+  id: string | number;
+  label: string;
+  sublabel?: string;
 };
 
 const SignUpPage = () => {
@@ -50,6 +60,7 @@ const SignUpPage = () => {
       street: "",
       district: "",
       municipality: "",
+      province: "",
     },
   });
 
@@ -124,8 +135,34 @@ const SignUpPage = () => {
     enabled: !!selectedDistrictId,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedStreetId, setSelectedStreetId] = useState<number | null>(null);
+
+  const { data: schools } = useQuery({
+    queryKey: ["createAccountSchools"],
+    queryFn: getAllSchools,
+    select: (data): DropdownItem[] => {
+      const raw = data.data;
+      return raw.map((school) => ({
+        id: school.schoolId,
+        label: school.school,
+        value: school.school,
+        sublabel: school.address,
+      }));
+    },
+  });
+
+  const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
+
+  const { mutate } = useMutation({
+    mutationKey: ["studentCreateAccount"],
+    mutationFn: createAccount,
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    onError: (error) => {
+      alert(error);
+    },
+  });
 
   const handleToggleVisibility = (field: string) => {
     if (field === "password") {
@@ -135,8 +172,41 @@ const SignUpPage = () => {
     }
   };
 
+  const getGender = (value: string) => {
+    if (value.trim().toLowerCase() === "male") return "M";
+    else if (value.trim().toLowerCase() === "female") return "F";
+    else return "O";
+  };
+
   const onSubmit = (values: z.infer<typeof signUpSchema>) => {
     console.log(values);
+
+    const payload = {
+      username: values.username,
+      email: values.email,
+      contactNumber: values.contactNumber,
+      password: values.password,
+      firstName: values.firstName,
+      middleName:
+        values.middleName?.trim() === "" ? undefined : values.middleName,
+      lastName: values.lastName,
+      suffix: values.suffix?.trim() === "" ? undefined : values.suffix,
+      dateOfBirth: values.dateOfBirth,
+      gender: getGender(values.sexAssignedAtBirth) as "M" | "F" | "O",
+      street: selectedStreetId ? undefined : values.street,
+      district: selectedDistrictId ? undefined : values.district,
+      municipality: selectedMunicipalityId ? undefined : values.municipality,
+      province: selectedProvinceId ? undefined : values.province,
+      streetId: selectedStreetId ?? undefined,
+      districtId: selectedDistrictId ?? undefined,
+      municipalityId: selectedMunicipalityId ?? undefined,
+      provinceId: selectedProvinceId ?? undefined,
+      schoolId: selectedSchoolId!,
+    };
+
+    alert(JSON.stringify(payload, null, 2));
+
+    mutate(payload);
   };
 
   // Redirect to warning page if screen size is not mobile
@@ -252,6 +322,15 @@ const SignUpPage = () => {
 
             <CustomInput
               control={form.control}
+              name="suffix"
+              label="Suffix (optional)"
+              placeholder="ex. Jr."
+              inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
+              labelStyle="text-sm text-text-2"
+            />
+
+            <CustomInput
+              control={form.control}
               name="dateOfBirth"
               label="Date of Birth"
               placeholder="Select your date of birth"
@@ -289,10 +368,10 @@ const SignUpPage = () => {
             <CustomCombobox
               control={form.control}
               name="municipality"
-              label="City/Municipality"
+              label="City / Municipality"
               labelClassName="text-sm font-semibold text-text-2"
               values={municipalities ?? []}
-              placeholder="Enter city/municipality..."
+              placeholder="Enter city or municipality..."
               onChangeValue={(value) => {
                 setSelectedMunicipalityId(value?.id ?? null);
               }}
@@ -322,41 +401,23 @@ const SignUpPage = () => {
               }}
             />
 
-            {/* <CustomInput
-              control={form.control}
-              name="street"
-              label="Street"
-              placeholder="ex. Cauayan Street"
-              inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
-              labelStyle="text-sm text-text-2"
-            /> */}
+            <div className="text-primary mt-10 text-base font-semibold">
+              School
+            </div>
 
-            {/* <CustomInput
+            <CustomDropdown
               control={form.control}
-              name="district"
-              label="District"
-              placeholder="ex. Second District"
-              inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
-              labelStyle="text-sm text-text-2"
-            /> */}
-
-            {/* <CustomCombobox 
-              control={form.control}
-              name="district"
-              label="District"
+              name="school"
+              label="School"
               labelClassName="text-sm font-semibold text-text-2"
-              values={districts}
-              placeholder="Enter district..."
-            /> */}
-
-            {/* <CustomInput
-              control={form.control}
-              name="municipality"
-              label="City/Municipality"
-              placeholder="ex. Legazpi City"
-              inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
-              labelStyle="text-sm text-text-2"
-            /> */}
+              buttonClassName="w-full mr-14 mr-4 rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
+              menuClassName="w-full rounded-[10px] bg-white"
+              values={schools ?? []}
+              placeholder="Enter school..."
+              onChangeValue={(value) => {
+                setSelectedSchoolId((value?.id as number) ?? null);
+              }}
+            />
 
             <Button
               className="bg-accent mt-[30px] w-full py-6 text-base"

@@ -41,7 +41,7 @@ export class CreateAccountController {
   async getAllDistrictsByMunicipalityId(
     @Payload() payload: { municipalityId: number },
   ) {
-    return this.usersService.getAllMunicipalitiesByProvinceId(
+    return this.usersService.getAllDistrictsByMunicipalityId(
       payload.municipalityId,
     );
   }

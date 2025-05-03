@@ -320,7 +320,7 @@ export class CreateAccountService {
   }
 
   async getAllSchools() {
-    return this.prisma.school.findMany({
+    const result = await this.prisma.school.findMany({
       select: {
         school_id: true,
         name: true,
@@ -335,6 +335,13 @@ export class CreateAccountService {
         is_active: true,
       },
     });
+
+    return result.map((school) => ({
+      schoolId: school.school_id,
+      school: school.name,
+      address: school.address.address_line_1,
+      // contactNumber: school.contact_number,
+    }));
   }
 
   async getAllAddresses() {
@@ -382,16 +389,21 @@ export class CreateAccountService {
   }
 
   async getAllProvinces() {
-    return this.prisma.province.findMany({
+    const result = await this.prisma.province.findMany({
       select: {
         province_id: true,
         province: true,
       },
     });
+
+    return result.map((province) => ({
+      provinceId: province.province_id,
+      province: province.province,
+    }));
   }
 
   async getAllMunicipalitiesByProvinceId(provinceId: number) {
-    return this.prisma.municipality.findMany({
+    const result = await this.prisma.municipality.findMany({
       select: {
         municipality_id: true,
         municipality: true,
@@ -400,10 +412,15 @@ export class CreateAccountService {
         province_id: provinceId,
       },
     });
+
+    return result.map((municipality) => ({
+      municipalityId: municipality.municipality_id,
+      municipality: municipality.municipality,
+    }));
   }
 
   async getAllDistrictsByMunicipalityId(municipalityId: number) {
-    return this.prisma.district.findMany({
+    const result = await this.prisma.district.findMany({
       select: {
         district_id: true,
         district: true,
@@ -412,10 +429,15 @@ export class CreateAccountService {
         municipality_id: municipalityId,
       },
     });
+
+    return result.map((district) => ({
+      districtId: district.district_id,
+      district: district.district,
+    }));
   }
 
   async getAllStreetsByDistrictId(districtId: number) {
-    return this.prisma.street.findMany({
+    const result = await this.prisma.street.findMany({
       select: {
         street_id: true,
         street: true,
@@ -424,6 +446,11 @@ export class CreateAccountService {
         district_id: districtId,
       },
     });
+
+    return result.map((street) => ({
+      streetId: street.street_id,
+      street: street.street,
+    }));
   }
 
   private parseGender(gender: 'M' | 'F' | 'O') {
