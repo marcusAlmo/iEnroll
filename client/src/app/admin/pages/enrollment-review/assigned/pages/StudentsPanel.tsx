@@ -87,22 +87,14 @@ export const StudentsPanel: React.FC = () => {
                 <td className="w-1/12 border-b p-1 text-xs">
                   <span
                     className={`cursor-pointer rounded px-2 py-1 font-semibold transition-all duration-300 ease-in-out ${
-                      student.applicationStatus
-                        .toLocaleLowerCase()
-                        .includes("pending")
-                        ? "bg-accent/20 rounded-full border border-blue-700 px-3 text-blue-700" // Blue for pending
-                        : student.applicationStatus
-                              .toLocaleLowerCase()
-                              .includes("accepted")
-                          ? "bg-success/20 rounded-full border border-green-700 px-3 text-green-700" // Green color for accepted
-                          : student.applicationStatus
-                                .toLocaleLowerCase()
-                                .includes("denied")
-                            ? "bg-danger/20 rounded-full border border-red-700 px-3 text-red-700" // Red for denied
-                            : student.applicationStatus
-                                  .toLocaleLowerCase()
-                                  .includes("invalid")
-                              ? "bg-warning/20 rounded-full border border-yellow-900 px-3 text-yellow-900" // Yellow for invalid
+                      student.applicationStatus.toLocaleLowerCase().includes("pending")
+                        ? "rounded-full border border-blue-700 bg-accent/20 px-3 text-blue-700" // Blue for pending
+                        : student.applicationStatus.toLocaleLowerCase().includes("accepted")
+                          ? "rounded-full border border-green-700 bg-success/20 px-3 text-green-700" // Green color for accepted
+                          : student.applicationStatus.toLocaleLowerCase().includes("denied")
+                            ? "rounded-full border border-red-700 bg-danger/20 px-3 text-red-700" // Red for denied
+                            : student.applicationStatus.toLocaleLowerCase().includes("invalid")
+                              ? "rounded-full border border-yellow-900 bg-warning/20 px-3 text-yellow-900" // Yellow for invalid
                               : "bg-container_1" // Default gray for unknown statuses
                     }`}
                   >
