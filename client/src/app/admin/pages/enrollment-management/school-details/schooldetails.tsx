@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from "@/components/ui/form";
 import ImportedCustomInput from '@/components/CustomInput';
+import { toast } from 'react-toastify';
+import { requestData } from '@/lib/dataRequester';
 
 // Schema
 const schoolDetailsSchema = z.object({
@@ -58,14 +60,14 @@ const CustomInput = ({
   />
 );
 
-// Fixed CustomSelect Component
 const CustomSelect = ({
   control,
   name,
   label,
   options,
   selectStyle,
-  labelStyle
+  labelStyle,
+  onSelectChange,
 }: {
   control: any;
   name: string;
@@ -73,6 +75,7 @@ const CustomSelect = ({
   options: { [key: string]: string | number }[];
   selectStyle?: string;
   labelStyle?: string;
+  onSelectChange?: (selectedOption: any) => void;
 }) => (
   <Controller
     control={control}
@@ -82,6 +85,18 @@ const CustomSelect = ({
         <label className={labelStyle || "block text-sm font-medium mb-2"}>{label}</label>
         <select
           {...field}
+          value={field.value || ''}
+          onChange={(e) => {
+            const selectedValue = e.target.value;
+            const selectedOption = options.find(
+              (option) => String(option[name]) === selectedValue
+            );
+            
+            field.onChange(selectedValue);
+            if (selectedOption && onSelectChange) {
+              onSelectChange(selectedOption);
+            }
+          }}
           className={selectStyle || "w-full p-3 rounded-md border border-gray-200 bg-gray-50 appearance-none"}
         >
           <option value="">Select {label}</option>
@@ -100,31 +115,37 @@ const CustomSelect = ({
   />
 );
 
-// Mock data
-const provinces = [
-  { provinceId: 1, province: 'Masbate' },
-  { provinceId: 2, province: 'Cebu' },
-];
+interface ProvinceInterface {
+  provinceId: number;
+  province: string;
+}
 
-const municipalities = [
-  { municipalityId: 1, municipality: 'San Jacinto' },
-  { municipalityId: 2, municipality: 'Cebu City' },
-  { municipalityId: 3, municipality: 'San Jose' },
-];
+interface MunicipalityInterface {
+  municipalityId: number;
+  municipality: string;
+}
 
-const districts = [
-  { districtId: 1, district: 'San Jose District' },
-  { districtId: 2, district: 'North District' },
-  { districtId: 3, district: 'San Jacinto' },
-];
+interface DistrictInterface {
+  districtId: number;
+  district: string;
+}
 
-const streets = [
-  { streetId: 1, street: '123 Main Street' },
-  { streetId: 2, street: 'Oak Street' },
-  { streetId: 3, street: 'Masbate' },
-];
+interface StreetInterface {
+  streetId: number;
+  street: string;
+}
 
 export default function SchoolDetails() {
+  const [provinces, setProvinces] = useState<ProvinceInterface[]>([]);
+  const [municipalities, setMunicipalities] = useState<MunicipalityInterface[]>([]);
+  const [districts, setDistricts] = useState<DistrictInterface[]>([]);
+  const [streets, setStreets] = useState<StreetInterface[]>([]);
+
+  const [selectedProvinces, setSelectedProvinces] = useState<ProvinceInterface | null>(null);
+  const [selectedMunicipalities, setSelectedMunicipalities] = useState<MunicipalityInterface | null>(null);
+  const [selectedDistricts, setSelectedDistricts] = useState<DistrictInterface | null>(null);
+  const [selectedStreets, setSelectedStreets] = useState<StreetInterface | null>(null);
+
   const form = useForm<SchoolFormData>({
     resolver: zodResolver(schoolDetailsSchema),
     defaultValues: {
@@ -139,6 +160,132 @@ export default function SchoolDetails() {
       website: '',
     },
   });
+
+  // retrieve provinces
+  const getProvinces = async () => {
+    try{
+      const response = await requestData<ProvinceInterface[]>({
+        url: 'http://localhost:3000/api/school-details/province',
+        method: 'GET',
+      });
+
+      if (response) {
+        setProvinces(response);
+        //form.setValue('province', initialProvince.province); // Directly set form value
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error occurred');
+
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    getProvinces();
+  }, []);
+
+  // retrieve municipalities
+  const getMunicipalities = async () => {
+    try{
+      const response = await requestData<MunicipalityInterface[]>({
+        url: `http://localhost:3000/api/school-details/municipality/${selectedProvinces?.provinceId}`,
+        method: 'GET',
+      });
+
+      if (response) {
+        setMunicipalities(response);
+        const initialMunicipality = response[0];
+        setSelectedMunicipalities(initialMunicipality);
+        form.setValue('municipality', initialMunicipality.municipality);
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error occurred');
+
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedProvinces) getMunicipalities();
+  }, [selectedProvinces]);
+
+  // retrieve districts
+  const getDistricts = async () => {
+    try{
+      const response = await requestData<DistrictInterface[]>({
+        url: `http://localhost:3000/api/school-details/district/${selectedMunicipalities?.municipalityId}`,
+        method: 'GET',
+      });
+
+      if (response) {
+        setDistricts(response);
+        const initialDistrict = response[0];
+        setSelectedDistricts(initialDistrict);
+        form.setValue('district', initialDistrict.district);
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error occurred');
+
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedMunicipalities) getDistricts();
+  }, [selectedMunicipalities]);
+
+  // retrieve streets
+  const getStreets = async () => {
+    try{
+      const response = await requestData<StreetInterface[]>({
+        url: `http://localhost:3000/api/school-details/street/${selectedDistricts?.districtId}`,
+        method: 'GET',
+      });
+
+      if (response) {
+        setStreets(response);
+        const initialStreet = response[0];
+        setSelectedStreets(initialStreet);
+        form.setValue('street', initialStreet.street);
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error occurred');
+
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedDistricts) getStreets();
+  }, [selectedDistricts]);
+
+  useEffect(() => {
+    if (selectedProvinces) {
+      form.setValue('province', selectedProvinces.province);
+    }
+  }, [selectedProvinces, form]);
+
+  useEffect(() => {
+    if (selectedMunicipalities) {
+      form.setValue('municipality', selectedMunicipalities.municipality);
+    }
+  }, [selectedMunicipalities, form]);
+
+  useEffect(() => {
+    if (selectedDistricts) {
+      form.setValue('district', selectedDistricts.district);
+    }
+  }, [selectedDistricts, form]);
+
+  useEffect(() => {
+    if (selectedStreets) {
+      form.setValue('street', selectedStreets.street);
+    }
+  }, [selectedStreets, form]);
 
   const onSubmit = (data: SchoolFormData) => {
     console.log('School Details Submitted:', data);
@@ -179,7 +326,7 @@ export default function SchoolDetails() {
                     inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
                     labelStyle="block text-sm font-semibold"
                   />
-                  
+
                   <CustomInput
                     control={form.control}
                     name="email"
@@ -188,7 +335,7 @@ export default function SchoolDetails() {
                     inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
                     labelStyle="block text-sm font-semibold"
                   />
-                  
+
                   <CustomInput
                     control={form.control}
                     name="website"
@@ -200,7 +347,7 @@ export default function SchoolDetails() {
                   />
                 </div>
               </div>
-              
+
               {/* Right card */}
               <div className="bg-white shadow-sm rounded-lg p-6">
                 <h2 className="text-lg font-medium text-accent mb-4">Address</h2>
@@ -210,33 +357,37 @@ export default function SchoolDetails() {
                     name="province"
                     label="Province"
                     options={provinces}
+                    onSelectChange={(selectedProvince) => setSelectedProvinces(selectedProvince)}
                     selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
                     labelStyle="block text-sm font-semibold"
                   />
-                  
+
                   <CustomSelect
                     control={form.control}
                     name="municipality"
                     label="Municipality"
                     options={municipalities}
+                    onSelectChange={(selectedMunicipality) => setSelectedMunicipalities(selectedMunicipality)}
                     selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
                     labelStyle="block text-sm font-semibold"
                   />
-                  
+
                   <CustomSelect
                     control={form.control}
                     name="district"
                     label="District"
                     options={districts}
+                    onSelectChange={(selectedDistrict) => setSelectedDistricts(selectedDistrict)}
                     selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
                     labelStyle="block text-sm font-semibold"
                   />
-                  
+
                   <CustomSelect
                     control={form.control}
                     name="street"
                     label="Street"
                     options={streets}
+                    onSelectChange={(selectedStreet) => setSelectedStreets(selectedStreet)}
                     selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
                     labelStyle="block text-sm font-semibold"
                   />
