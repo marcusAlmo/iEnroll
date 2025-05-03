@@ -191,8 +191,7 @@ export class CreateAccountService {
     } else if (
       createUserDto.street &&
       createUserDto.district &&
-      createUserDto.municipalityId &&
-      createUserDto.provinceId
+      createUserDto.municipalityId
     ) {
       const district = await this.createDistrict(
         tx,
@@ -212,12 +211,7 @@ export class CreateAccountService {
         municipalityId: createUserDto.municipalityId,
         provinceId: createUserDto.provinceId,
       });
-    } else if (
-      createUserDto.street &&
-      createUserDto.districtId &&
-      createUserDto.municipalityId &&
-      createUserDto.provinceId
-    ) {
+    } else if (createUserDto.street && createUserDto.districtId) {
       const street = await this.createStreet(
         tx,
         createUserDto.street,
@@ -231,12 +225,7 @@ export class CreateAccountService {
         municipalityId: createUserDto.municipalityId,
         provinceId: createUserDto.provinceId,
       });
-    } else if (
-      createUserDto.streetId &&
-      createUserDto.districtId &&
-      createUserDto.municipalityId &&
-      createUserDto.provinceId
-    ) {
+    } else if (createUserDto.streetId) {
       return await this.createAddress(tx, {
         streetId: createUserDto.streetId,
         street: createUserDto.street,
