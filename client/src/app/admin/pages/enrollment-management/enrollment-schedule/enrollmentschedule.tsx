@@ -18,6 +18,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'react-toastify'
 import { requestData } from '@/lib/dataRequester'
+import { string } from 'zod'
 
 /**
  * Represents a time range with start and end times
@@ -184,15 +185,15 @@ export default function EnrollmentSchedule() {
   }
 
   // Modify handleSaveEnrollmentSchedule to only send newSchedules
-  const handleSaveEnrollmentSchedule = () => {
+  const handleSaveEnrollmentSchedule = async () => {
     if (!selectedGrade) {
       toast.error('Please select a grade level first')
-      return
+      return;
     }
 
     if (newSchedules.length === 0) {
       toast.error('Please add at least one new time slot')
-      return
+      return;
     }
 
     // API call with only new schedules
@@ -201,10 +202,44 @@ export default function EnrollmentSchedule() {
       schedules: newSchedules
     })
 
+    await saveNewSchedToServer(selectedGrade, newSchedules)
+
     // After successful submission, move new schedules to existing
     setSchedules([...schedules, ...newSchedules])
     setNewSchedules([])
     toast.success('New enrollment schedules published successfully')
+  }
+
+  const saveNewSchedToServer = async (
+    grade: string,
+    schedule: ScheduleData[]
+  ) => {
+    try {
+
+      const processedSchedule = schedule.map((s) => ({
+        DateString: s.date,
+        timeRanges: s.timeRanges,
+      }));
+
+      const response = await requestData<{ message: string }>({
+        url: 'http://localhost:3000/api/enrollment-schedule/store-data',
+        method: 'POST',
+        body: {
+          gradeLevel: grade,
+          schedDate: processedSchedule
+        }
+      });
+
+      if (response) {
+        toast.success(response.message);
+        setNewSchedules([]);
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error('Failed saving new schedules');
+
+      console.log(error);
+    }
   }
 
   // retrieve schedule data
@@ -319,32 +354,54 @@ export default function EnrollmentSchedule() {
     setShowAddModal(true)
   }
 
-  const handleDeleteSchedule = (scheduleId: string) => {
+  const handleDeleteSchedule = async (scheduleId: string) => {
     // Check both existing and new schedules
     const existingSchedule = schedules.find(s => s.id.toString() === scheduleId);
     const newSchedule = newSchedules.find(s => s.id.toString() === scheduleId);
-  
+
     if (existingSchedule) {
       if (existingSchedule.applications > 0) {
-        setSchedules(schedules.map(s => 
-          s.id.toString() === scheduleId 
+        setSchedules(schedules.map(s =>
+          s.id.toString() === scheduleId
             ? { ...s, status: 'paused' }
             : s
         ));
         toast.warning('Schedule paused due to existing applications');
       } else {
+        // Only log if we're actually deleting an existing schedule
+        console.log('Deleting existing schedule with ID:', scheduleId);
+        await deleteRecord(Number(scheduleId));
         setSchedules(schedules.filter(s => s.id.toString() !== scheduleId));
-        toast.success('Schedule deleted successfully');
       }
     }
-  
+
     if (newSchedule) {
+      // Don't log for new unsaved schedules
       setNewSchedules(newSchedules.filter(s => s.id.toString() !== scheduleId));
       toast.success('New schedule removed successfully');
     }
   };
 
-  const handleToggleStatus = (scheduleId: string) => {
+  const deleteRecord = async (id: number) => {
+    try{
+      const response = await requestData<{message: string}>({
+        url: `http://localhost:3000/api/enrollment-schedule/delete-schedule/${id}`,
+        method: 'DELETE'
+      });
+
+      if (response){
+        await retrieveSchedules();
+        toast.success(response.message);
+      }
+    }catch(err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('Delete record failed');
+
+      console.log(err);
+    }
+  }
+
+  const handleToggleStatus = async (scheduleId: string) => {
     // Check both existing and new schedules
     const isExisting = schedules.some(s => s.id.toString() === scheduleId);
     
@@ -364,10 +421,32 @@ export default function EnrollmentSchedule() {
   
     const schedule = [...schedules, ...newSchedules].find(s => s.id.toString() === scheduleId);
     if (schedule) {
+      console.log(scheduleId)
+      await pauseSchedule(Number(scheduleId), schedule.status === 'active');
       toast.info(`Schedule ${schedule.status === 'active' ? 'paused' : 'activated'}`);
     }
   };
-  const handleAllowSectionSelectionChange = (gradeLevel: string) => {
+
+  const pauseSchedule = async (scheduleId: number, status: boolean) => {
+    try{
+      const response = await requestData<{message: string}>({
+        url: `http://localhost:3000/api/enrollment-schedule/pause-schedule?scheduleId=${scheduleId}&status=${status}`,
+        method: 'PUT'
+      });
+
+      if (response){
+        await retrieveSchedules();
+        toast.success(response.message);
+      }
+    }catch(err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('Pause schedule failed');
+
+      console.log(err);
+    }
+  }
+
+  const handleAllowSectionSelectionChange = async (gradeLevel: string) => {
     // Update the state directly by toggling the current value
     setData(prev => ({
       ...prev,
@@ -380,8 +459,27 @@ export default function EnrollmentSchedule() {
 
     // Get the updated state to show the correct toast message
     const updatedValue = !selectedGradeData?.allowSectionSelection;
+    await changeAllowSelection(gradeLevel);
     toast.info(`Allow section selection ${updatedValue ? 'enabled' : 'disabled'}`);
   };
+
+  const changeAllowSelection = async (gradeLevel: string) => {
+    try{
+      const response = await requestData<{ message: string}>({
+        url: `http://localhost:3000/api/enrollment-schedule/update-allow-selection?gradeLevel=${gradeLevel}`,
+        method: 'PUT'
+      });
+
+      if(response){
+        toast.success(response.message);
+      }
+    }catch(err) {
+      if(err instanceof Error) toast.error(err.message);
+      else toast.error('An error has occured');
+
+      console.error(err)
+    }
+  }
 
   /**
    * Handles time range changes and validation

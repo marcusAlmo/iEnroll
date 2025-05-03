@@ -31,15 +31,14 @@ export interface EnrollmentSchedule {
   }[];
 
   receivedData: {
-    gradeLevelCode: string[];
+    gradeLevel: string;
     schedDate: {
-      isPaused: boolean;
       DateString: string;
-      startTime: string;
-      endTime: string;
+      timeRanges: {
+        startTime: string;
+        endTime: string;
+      }[];
     }[];
-    canChooseSection: boolean;
-    slotCapacity: number;
   };
 
   processStringDateReturn: {
@@ -62,9 +61,12 @@ export interface EnrollmentSchedule {
     application_slot: number;
     start_datetime: Date;
     end_datetime: Date;
-    is_paused: boolean;
-    can_choose_section: boolean;
   }[];
+
+  storeDataReturn: {
+    success: boolean;
+    message: string;
+  };
 
   gradeLevelFormat: {
     schoolCapacity: {
@@ -122,5 +124,10 @@ export interface EnrollmentSchedule {
     applications: number;
     status: string;
     gradeLevel: string;
+  };
+
+  scheduleReturn: {
+    id: number;
+    pastValue: boolean;
   };
 }

@@ -125,6 +125,14 @@ export class DateTimeUtilityService {
     return `${year}-${month}-${day}`;
   }
 
+  static stringToDate(date: string, time: string) {
+    const dateTimeString = `${date}T${time}:00`;
+
+    const dateObject = new Date(dateTimeString);
+
+    return dateObject;
+  }
+
   static getTime12HourFormatUTC(date: Date): string {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
