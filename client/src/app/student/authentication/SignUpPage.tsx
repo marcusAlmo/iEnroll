@@ -27,6 +27,7 @@ import {
   createAccount,
   getAllSchools,
 } from "@/services/mobile-web-app/create-account/create";
+import { AxiosError } from "axios";
 
 type InputOptions = {
   id: number;
@@ -55,7 +56,7 @@ const SignUpPage = () => {
       firstName: "",
       middleName: "",
       lastName: "",
-      dateOfBirth: "",
+      dateOfBirth: undefined,
       sexAssignedAtBirth: "",
       street: "",
       district: "",
@@ -67,6 +68,17 @@ const SignUpPage = () => {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] =
     useState<boolean>(false);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
+    null,
+  );
+  const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<
+    number | null
+  >(null);
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(
+    null,
+  );
+  const [selectedStreetId, setSelectedStreetId] = useState<number | null>(null);
+  const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
 
   const { data: provinces } = useQuery({
     queryKey: ["createAccountProvinces"],
@@ -80,10 +92,6 @@ const SignUpPage = () => {
       }));
     },
   });
-
-  const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
-    null,
-  );
 
   const { data: municipalities } = useQuery({
     queryKey: ["createAccountMunicipalities", selectedProvinceId],
@@ -99,10 +107,6 @@ const SignUpPage = () => {
     enabled: !!selectedProvinceId,
   });
 
-  const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<
-    number | null
-  >(null);
-
   const { data: districts } = useQuery({
     queryKey: ["createAccountDistricts", selectedMunicipalityId],
     queryFn: () => getAllDistrictsByMunicipalityId(selectedMunicipalityId!),
@@ -116,10 +120,6 @@ const SignUpPage = () => {
     },
     enabled: !!selectedMunicipalityId,
   });
-
-  const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(
-    null,
-  );
 
   const { data: streets } = useQuery({
     queryKey: ["createAccountStreets", selectedDistrictId],
@@ -135,8 +135,6 @@ const SignUpPage = () => {
     enabled: !!selectedDistrictId,
   });
 
-  const [selectedStreetId, setSelectedStreetId] = useState<number | null>(null);
-
   const { data: schools } = useQuery({
     queryKey: ["createAccountSchools"],
     queryFn: getAllSchools,
@@ -151,16 +149,39 @@ const SignUpPage = () => {
     },
   });
 
-  const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
-
   const { mutate } = useMutation({
     mutationKey: ["studentCreateAccount"],
     mutationFn: createAccount,
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: () => {
+      // TODO: Handle success response with fancy UI
+      alert("Account created successfully! Redirecting to login...");
+      setTimeout(() => {
+        window.location.href = "/log-in";
+      }, 2000);
     },
     onError: (error) => {
-      alert(error);
+      if (error instanceof AxiosError) {
+        const status = error.response?.data.statusCode;
+        const message = error.response?.data.message;
+
+        if (status === 409 && message === "ERR_USERNAME_EXISTS") {
+          form.setError("username", {
+            type: "manual",
+            message: "Username already exists.",
+          });
+        } else {
+          // Optionally set a form-level error or log it
+          form.setError("root", {
+            type: "manual",
+            message: "An unexpected error occurred.",
+          });
+        }
+      } else {
+        form.setError("root", {
+          type: "manual",
+          message: String(error),
+        });
+      }
     },
   });
 
@@ -181,6 +202,45 @@ const SignUpPage = () => {
   const onSubmit = (values: z.infer<typeof signUpSchema>) => {
     console.log(values);
 
+    /**
+     * Constructs the payload object for the sign-up process.
+     *
+     * @property {string} username - The username provided by the user.
+     * @property {string} email - The email address provided by the user.
+     * @property {string} contactNumber - The contact number provided by the user.
+     * @property {string} password - The password provided by the user.
+     * @property {string} firstName - The first name of the user.
+     * @property {string | undefined} middleName - The middle name of the user,
+     *   set to `undefined` if the trimmed value is an empty string.
+     * @property {string} lastName - The last name of the user.
+     * @property {string | undefined} suffix - The suffix of the user's name,
+     *   set to `undefined` if the trimmed value is an empty string.
+     * @property {string} dateOfBirth - The user's date of birth.
+     * @property {"M" | "F" | "O"} gender - The user's gender, derived from the
+     *   `sexAssignedAtBirth` value using the `getGender` function.
+     * @property {string | undefined} street - The street address provided by the user,
+     *   set to `undefined` if a `selectedStreetId` is present.
+     * @property {string | undefined} district - The district address provided by the user,
+     *   set to `undefined` if a `selectedDistrictId` is present.
+     * @property {string | undefined} municipality - The municipality address provided by the user,
+     *   set to `undefined` if a `selectedMunicipalityId` is present.
+     * @property {string | undefined} province - The province address provided by the user,
+     *   set to `undefined` if a `selectedProvinceId` is present.
+     * @property {string | undefined} streetId - The ID of the selected street,
+     *   or `undefined` if not selected.
+     * @property {string | undefined} districtId - The ID of the selected district,
+     *   set to `undefined` if a `selectedStreetId` is present, or derived from `selectedDistrictId`.
+     * @property {string | undefined} municipalityId - The ID of the selected municipality,
+     *   set to `undefined` if a `selectedDistrictId` is present, or derived from `selectedMunicipalityId`.
+     * @property {string | undefined} provinceId - The ID of the selected province,
+     *   set to `undefined` if a `selectedMunicipalityId` is present, or derived from `selectedProvinceId`.
+     * @property {string} schoolId - The ID of the selected school, which is required.
+     *
+     * The logic ensures that if a specific ID (e.g., `selectedStreetId`) is provided,
+     * the corresponding textual address field (e.g., `street`) is set to `undefined`
+     * to avoid redundancy. Similarly, hierarchical dependencies between IDs and
+     * textual fields are handled to maintain data consistency.
+     */
     const payload = {
       username: values.username,
       email: values.email,
@@ -198,13 +258,20 @@ const SignUpPage = () => {
       municipality: selectedMunicipalityId ? undefined : values.municipality,
       province: selectedProvinceId ? undefined : values.province,
       streetId: selectedStreetId ?? undefined,
-      districtId: selectedDistrictId ?? undefined,
-      municipalityId: selectedMunicipalityId ?? undefined,
-      provinceId: selectedProvinceId ?? undefined,
+      districtId: selectedStreetId
+        ? undefined
+        : (selectedDistrictId ?? undefined),
+      municipalityId: selectedDistrictId
+        ? undefined
+        : (selectedMunicipalityId ?? undefined),
+      provinceId: selectedMunicipalityId
+        ? undefined
+        : (selectedProvinceId ?? undefined),
       schoolId: selectedSchoolId!,
     };
 
-    alert(JSON.stringify(payload, null, 2));
+    // For debugging
+    // alert(JSON.stringify(payload, null, 2));
 
     mutate(payload);
   };
