@@ -152,9 +152,12 @@ const SignUpPage = () => {
   const { mutate } = useMutation({
     mutationKey: ["studentCreateAccount"],
     mutationFn: createAccount,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data.data.mock) {
+        alert("Notice: You are currently using mock data. To enable real data, set VITE_ENABLE_AXIOS to true in the .env file. Mock account created successfully!");
+      }
       // TODO: Handle success response with fancy UI
-      alert("Account created successfully! Redirecting to login...");
+      else alert("Account created successfully! Redirecting to login...");
       setTimeout(() => {
         window.location.href = "/log-in";
       }, 2000);
