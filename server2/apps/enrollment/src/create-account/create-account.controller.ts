@@ -22,4 +22,32 @@ export class CreateAccountController {
   async getAllAddresses() {
     return this.usersService.getAllAddresses();
   }
+
+  @MessagePattern({ cmd: 'get_all_provinces' })
+  async getAllProvinces() {
+    return this.usersService.getAllProvinces();
+  }
+
+  @MessagePattern({ cmd: 'get_all_municipalities_by_province_id' })
+  async getAllMunicipalitiesByProvinceId(
+    @Payload() payload: { provinceId: number },
+  ) {
+    return this.usersService.getAllMunicipalitiesByProvinceId(
+      payload.provinceId,
+    );
+  }
+
+  @MessagePattern({ cmd: 'get_all_districts_by_municipality_id' })
+  async getAllDistrictsByMunicipalityId(
+    @Payload() payload: { municipalityId: number },
+  ) {
+    return this.usersService.getAllDistrictsByMunicipalityId(
+      payload.municipalityId,
+    );
+  }
+
+  @MessagePattern({ cmd: 'get_all_streets_by_district_id' })
+  async getAllStreetsByDistrictId(@Payload() payload: { districtId: number }) {
+    return this.usersService.getAllStreetsByDistrictId(payload.districtId);
+  }
 }
