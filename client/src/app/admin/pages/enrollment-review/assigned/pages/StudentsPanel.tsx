@@ -1,8 +1,8 @@
 import React from "react";
 import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
-import { UNASSIGNED_SECTION_ID } from "../../../../context/enrollmentReviewContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSquareCheck } from "@fortawesome/free-solid-svg-icons";
+import Enums from "@/services/common/types/enums";
 
 /**
  * StudentsPanel Component
@@ -17,36 +17,31 @@ import { faSquareCheck } from "@fortawesome/free-solid-svg-icons";
  * - A function to update the selected student.
  */
 export const StudentsPanel: React.FC = () => {
-  // Destructure required state and functions from the EnrollmentReview context
   const {
-    selectedSection, // ID of the currently selected section
-    students, // List of students in the selected section
-    selectedStudent, // Object representing the currently selected student
-    setSelectedStudent, // Function to update the selected student
+    selectedSection,
+    students,
+    selectedStudent,
+    setSelectedStudent,
     setIsSectionModalOpen,
+    isStudentPending,
   } = useEnrollmentReview();
 
-  // Check if the current section is "Unassigned"
-  const isUnassignedSection = selectedSection === UNASSIGNED_SECTION_ID;
+  const isUnassignedSection = selectedSection?._unassigned;
 
-  // Function to handle button click
   const handleSectionButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsSectionModalOpen(true);
   };
 
   return (
-    <div className="border-text-2 bg-background h-[530px] w-[600px] overflow-y-scroll border px-2 shadow-md">
+    <div className="border-text-2 bg-background h-[530px] w-[600px] overflow-y-scroll rounded-[10px] rounded-r border px-2 shadow-md">
       {/* Student Table */}
       <table className="w-full table-auto border-collapse">
-        {/* Table Header */}
         <thead className="text-text-2 w-full justify-between text-left">
           <tr>
-            <th className="w-1/12 pl-4">#</th> {/* Column for student number */}
-            <th className="w-8/12 pl-1">STUDENT</th>{" "}
-            {/* Column for student names */}
-            <th className="w-1/12 pl-1">STATUS</th>{" "}
-            {/* Column for application status */}
+            <th className="w-1/12 pl-4">#</th>
+            <th className="w-8/12 pl-1">STUDENT</th>
+            <th className="w-1/12 pl-1">STATUS</th>
             <th className="w-2/12 pl-1">
               <button
                 onClick={handleSectionButtonClick}
@@ -58,47 +53,60 @@ export const StudentsPanel: React.FC = () => {
           </tr>
         </thead>
 
-        {/* Table Body */}
         <tbody className="w-full text-left text-sm">
-          {/* Student Rows - Only shown if a section is selected */}
-          {selectedSection &&
-            students.map((student, index) => (
+          {/* Show loader if data is being fetched */}
+          {isStudentPending ? (
+            <tr>
+              <td colSpan={4} className="text-text-2 py-20 text-center text-sm">
+                Loading students...
+              </td>
+            </tr>
+          ) : selectedSection && students?.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="text-text-2 py-20 text-center text-sm">
+                No students in this section.
+              </td>
+            </tr>
+          ) : (
+            selectedSection &&
+            students?.map((student, index) => (
               <tr
-                key={student.studentId} // Unique identifier for each student
+                key={student.studentId}
                 className={`hover:bg-accent/50 w-full cursor-pointer rounded-[10px] ${
                   selectedStudent?.studentId === student.studentId
-                    ? "bg-accent" // Highlight the selected student
+                    ? "bg-accent"
                     : ""
                 }`}
-                onClick={() => setSelectedStudent(student)} // Update the selected student on click
+                onClick={() => setSelectedStudent(student)}
               >
-                {/* Student Number */}
                 <td className="w-1/12 border-b text-center">{index + 1}</td>
-
-                {/* Student Name - Formatted as LASTNAME, FirstName MiddleName */}
                 <td className="w-8/12 border-b p-3">
                   <span className="font-semibold">
                     {student.lastName.toLocaleUpperCase()}
                   </span>
                   , {student.firstName} {student.middleName}
                 </td>
-
-                {/* Application Status - Color-coded based on status value */}
                 <td className="w-1/12 border-b p-1 text-xs">
                   <span
                     className={`cursor-pointer rounded px-2 py-1 font-semibold transition-all duration-300 ease-in-out ${
-                      student.applicationStatus.toLocaleLowerCase().includes("pending")
-                        ? "rounded-full border border-blue-700 bg-accent/20 px-3 text-blue-700" // Blue for pending
-                        : student.applicationStatus.toLocaleLowerCase().includes("accepted")
-                          ? "rounded-full border border-green-700 bg-success/20 px-3 text-green-700" // Green color for accepted
-                          : student.applicationStatus.toLocaleLowerCase().includes("denied")
-                            ? "rounded-full border border-red-700 bg-danger/20 px-3 text-red-700" // Red for denied
-                            : student.applicationStatus.toLocaleLowerCase().includes("invalid")
-                              ? "rounded-full border border-yellow-900 bg-warning/20 px-3 text-yellow-900" // Yellow for invalid
-                              : "bg-container_1" // Default gray for unknown statuses
+                      student.applicationStatus
+                        .toLocaleLowerCase()
+                        .includes("pending")
+                        ? "bg-accent/20 rounded-full border border-blue-700 px-3 text-blue-700"
+                        : student.applicationStatus ===
+                            Enums.application_status.accepted
+                          ? "bg-success/20 rounded-full border border-green-700 px-3 text-green-700"
+                          : student.applicationStatus ===
+                              Enums.application_status.denied
+                            ? "bg-danger/20 rounded-full border border-red-700 px-3 text-red-700"
+                            : student.applicationStatus ===
+                                Enums.application_status.invalid
+                              ? "bg-warning/20 rounded-full border border-yellow-900 px-3 text-yellow-900"
+                              : "bg-container_1"
                     }`}
                   >
-                    {student.applicationStatus}
+                    {student.applicationStatus.charAt(0).toUpperCase() +
+                      student.applicationStatus.slice(1).toLowerCase()}
                   </span>
                 </td>
                 <td className="w-2/12">
@@ -108,7 +116,8 @@ export const StudentsPanel: React.FC = () => {
                   />
                 </td>
               </tr>
-            ))}
+            ))
+          )}
         </tbody>
       </table>
     </div>

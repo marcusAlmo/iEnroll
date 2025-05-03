@@ -4,14 +4,14 @@ import {
   attachment_type,
 } from "@/services/common/types/enums";
 
-interface GradeLevel {
+export interface GradeLevel {
   gradeId: number;
   gradeName: string;
 }
 
 export type GradeLevelResponse = GradeLevel[];
 
-interface Section {
+export interface Section {
   sectionId: number;
   sectionName: string;
 }
@@ -38,6 +38,14 @@ export interface Requirement {
   fileUrl: string | null;
   fileName: string | null;
   userInput: string | null;
+  remarks: string | null;
 }
 
 export type RequirementResponse = Requirement[];
+
+export interface ApproveOrDenyBody {
+  action: "approve" | "deny";
+  applicationId: number;
+  requirementId: number;
+  remarks?: string;
+}

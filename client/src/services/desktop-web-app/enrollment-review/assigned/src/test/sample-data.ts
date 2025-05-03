@@ -1,6 +1,20 @@
 import Enums from "@/services/common/types/enums";
+import { Requirement, Student, Section, GradeLevel } from "../../types";
 
-export const data = [
+interface Stu extends Student {
+  requirements: Requirement[];
+}
+
+interface Sec extends Section {
+  students: Stu[];
+}
+
+interface Gra extends GradeLevel {
+  sections: Sec[];
+  unassigned: Stu[];
+}
+
+export const data: Gra[] = [
   {
     gradeId: 4,
     gradeName: "Grade 1",
@@ -23,9 +37,11 @@ export const data = [
                 requirementName: "Birth Certificate",
                 requirementType: Enums.attachment_type.image,
                 requirementStatus: Enums.attachment_status.pending,
-                fileUrl: null,
-                fileName: null,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+                fileName: "birth_certificate.jpg",
                 userInput: null,
+                remarks: null,
               },
               {
                 applicationId: 1,
@@ -33,9 +49,11 @@ export const data = [
                 requirementName: "Report Card",
                 requirementType: Enums.attachment_type.image,
                 requirementStatus: Enums.attachment_status.pending,
-                fileUrl: null,
-                fileName: null,
+                fileUrl:
+                  "https://imgv2-2-f.scribdassets.com/img/document/508555750/original/dd51abd099/1?v=1",
+                fileName: "report_card.jpg",
                 userInput: null,
+                remarks: null,
               },
             ],
           },
@@ -53,9 +71,11 @@ export const data = [
                 requirementName: "Birth Certificate",
                 requirementType: Enums.attachment_type.image,
                 requirementStatus: Enums.attachment_status.pending,
-                fileUrl: null,
-                fileName: null,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+                fileName: "birth_certificate.jpg",
                 userInput: null,
+                remarks: null,
               },
               {
                 applicationId: 2,
@@ -63,9 +83,11 @@ export const data = [
                 requirementName: "Good Moral Certificate",
                 requirementType: Enums.attachment_type.image,
                 requirementStatus: Enums.attachment_status.pending,
-                fileUrl: null,
-                fileName: null,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+                fileName: "good_moral_certificate.jpg",
                 userInput: null,
+                remarks: null,
               },
             ],
           },
@@ -89,19 +111,23 @@ export const data = [
                 requirementName: "Birth Certificate",
                 requirementType: Enums.attachment_type.image,
                 requirementStatus: Enums.attachment_status.pending,
-                fileUrl: null,
-                fileName: null,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+                fileName: "birth_certificate.jpg",
                 userInput: null,
+                remarks: null,
               },
               {
                 applicationId: 3,
                 requirementId: 2,
-                requirementName: "Medical Clearance",
+                requirementName: "Good Moral",
                 requirementType: Enums.attachment_type.image,
                 requirementStatus: Enums.attachment_status.pending,
-                fileUrl: null,
-                fileName: null,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+                fileName: "goodmoral.jpg",
                 userInput: null,
+                remarks: null,
               },
             ],
           },
@@ -119,19 +145,23 @@ export const data = [
                 requirementName: "Birth Certificate",
                 requirementType: Enums.attachment_type.image,
                 requirementStatus: Enums.attachment_status.pending,
-                fileUrl: null,
-                fileName: null,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+                fileName: "birth_certificate.jpg",
                 userInput: null,
+                remarks: null,
               },
               {
                 applicationId: 4,
                 requirementId: 2,
-                requirementName: "Vaccination Card",
+                requirementName: "Good Moral",
                 requirementType: Enums.attachment_type.image,
                 requirementStatus: Enums.attachment_status.pending,
-                fileUrl: null,
-                fileName: null,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+                fileName: "goodmoral.jpg",
                 userInput: null,
+                remarks: null,
               },
               {
                 applicationId: 4,
@@ -142,6 +172,7 @@ export const data = [
                 fileUrl: null,
                 fileName: null,
                 userInput: "Maria Leonor Gerona Robredo",
+                remarks: null,
               },
             ],
           },
@@ -150,7 +181,78 @@ export const data = [
       {
         sectionId: 3,
         sectionName: "Section C",
-        students: [],
+        students: [
+          {
+            studentId: 1006,
+            firstName: "Mark June",
+            middleName: null,
+            lastName: "Almojuela",
+            suffix: null,
+            enrollmentStatus: Enums.application_status.accepted,
+            requirements: [
+              {
+                applicationId: 6,
+                requirementId: 1,
+                requirementName: "Birth Certificate",
+                requirementType: Enums.attachment_type.image,
+                requirementStatus: Enums.attachment_status.accepted,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+                fileName: "birth_certificate.jpg",
+                userInput: null,
+                remarks: null,
+              },
+              {
+                applicationId: 6,
+                requirementId: 2,
+                requirementName: "Good Moral",
+                requirementType: Enums.attachment_type.image,
+                requirementStatus: Enums.attachment_status.accepted,
+                fileUrl:
+                  "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+                fileName: "goodmoral.jpg",
+                userInput: null,
+                remarks: null,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    unassigned: [
+      {
+        studentId: 1005,
+        firstName: "Maria Leonor",
+        middleName: "Gerona",
+        lastName: "Robredo",
+        suffix: null,
+        enrollmentStatus: Enums.application_status.pending,
+        requirements: [
+          {
+            applicationId: 5,
+            requirementId: 1,
+            requirementName: "Birth Certificate",
+            requirementType: Enums.attachment_type.image,
+            requirementStatus: Enums.attachment_status.pending,
+            fileUrl:
+              "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
+            fileName: "birth_certificate.jpg",
+            userInput: null,
+            remarks: null,
+          },
+          {
+            applicationId: 5,
+            requirementId: 2,
+            requirementName: "Good Moral Certificate",
+            requirementType: Enums.attachment_type.image,
+            requirementStatus: Enums.attachment_status.pending,
+            fileUrl:
+              "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
+            fileName: "good_moral_certificate.jpg",
+            userInput: null,
+            remarks: null,
+          },
+        ],
       },
     ],
   },

@@ -1,10 +1,19 @@
 import { instance } from "@/lib/axios";
-import { GradeLevelResponse } from "../types";
+import {
+  ApproveOrDenyBody,
+  GradeLevelResponse,
+  Requirement,
+  RequirementResponse,
+  SectionResponse,
+  StudentResponse,
+} from "../types";
 import {
   getGradeLevels,
   getRequirementsByStudentId,
   getSectionsByGradeId,
-  getStudentsBySectionId,
+  getAssignedStudentsBySectionId,
+  getUnasssignedStudentsByGradeId,
+  approveOrDenyMockRequirement,
 } from "./test";
 
 export const getAllGradeLevels = async () => {
@@ -17,25 +26,41 @@ export const getAllGradeLevels = async () => {
 
 export const getAllSectionsByGradeLevel = async (gradeLevelId: number) => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
-    return instance.get<GradeLevelResponse>(
+    return instance.get<SectionResponse>(
       `/api/enrollment/review/assigned/sections/${gradeLevelId}`,
     );
   else return { data: getSectionsByGradeId(gradeLevelId) };
 };
 
-// TODO: Make logic for unassigned students
-export const getAllStudentsEnrolledBySection = async (sectionId: number) => {
+export const getAllStudentsAssignedBySection = async (sectionId: number) => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
-    return instance.get<GradeLevelResponse>(
-      `/api/enrollment/review/assigned/section/${sectionId}`,
+    return instance.get<StudentResponse>(
+      `/api/enrollment/review/students/assigned/${sectionId}`,
     );
-  else return { data: getStudentsBySectionId(sectionId) };
+  else return { data: getAssignedStudentsBySectionId(sectionId) };
+};
+
+export const getAllStudentsUnassignedByGradeLevel = async (gradeId: number) => {
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
+    return instance.get<StudentResponse>(
+      `/api/enrollment/review//students/unassigned/${gradeId}`,
+    );
+  else return { data: getUnasssignedStudentsByGradeId(gradeId) };
 };
 
 export const getAllRequirementsByStudentId = async (studentId: number) => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
-    return instance.get<GradeLevelResponse>(
+    return instance.get<RequirementResponse>(
       `/api/enrollment/review/assigned/requirements/${studentId}`,
     );
   else return { data: getRequirementsByStudentId(studentId) };
+};
+
+export const approveOrDenyRequirement = async (payload: ApproveOrDenyBody) => {
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
+    return instance.post<Requirement>(
+      `/api/enrollment/review/assigned/requirements/approve-or-deny`,
+      payload,
+    );
+  else return { data: approveOrDenyMockRequirement(payload) };
 };
