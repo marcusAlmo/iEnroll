@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 // import mockData from "../pages/enrollment-review/test/mockData.json";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -20,6 +14,7 @@ import {
   attachment_status,
   attachment_type,
 } from "@/services/common/types/enums";
+import { EnrollmentReviewContext } from "./EnrollmentReviewContext.1";
 
 // Constants
 export const UNASSIGNED_SECTION_ID = 999;
@@ -73,7 +68,7 @@ interface Student {
  * Props for the EnrollmentReviewContext
  * Defines all state variables and setter functions available in the context
  */
-interface EnrollmentReviewContextProps {
+export interface EnrollmentReviewContextProps {
   // Navigation state
   activeItem: string; // Currently active navigation item
   setActiveItem: (item: string) => void; // Function to update active navigation item
@@ -122,11 +117,6 @@ interface EnrollmentReviewContextProps {
   sectionModalType: "assign" | "reassign"; // Type of section modal to display
   setSectionModalType: (type: "assign" | "reassign") => void; // Function to set section modal type
 }
-
-// Create the context with undefined default value
-const EnrollmentReviewContext = createContext<
-  EnrollmentReviewContextProps | undefined
->(undefined);
 
 /**
  * Provider component for the EnrollmentReview context
@@ -399,67 +389,6 @@ export const EnrollmentReviewProvider: React.FC<{
   }, [selectedRequirement]);
 
   /**
-   * Load grade levels from mock data when component mounts
-   */
-  // useEffect(() => {
-  //   setGradeLevels(mockData.gradeLevels);
-  // }, []);
-
-  /**
-   * Update sections when a grade level is selected
-   * Reset section selection, students list when grade level changes
-   */
-  // useEffect(() => {
-  //   if (selectedGradeLevel) {
-  //     const gradeKey = selectedGradeLevel.toString();
-  //     const fetchedSections =
-  //       mockData.sections[gradeKey as keyof typeof mockData.sections] || [];
-  //     setSections(fetchedSections);
-  //     setSelectedSection(null); // Reset selected section
-  //     setStudents([]); // Reset students
-  //   } else {
-  //     setSections([]);
-  //   }
-  // }, [selectedGradeLevel]);
-
-  /**
-   * Update students when a section is selected
-   * Reset student selection when section changes
-   */
-  // useEffect(() => {
-  //   if (selectedSection) {
-  //     const sectionKey = selectedSection.toString();
-  //     const fetchedStudents =
-  //       mockData.students[sectionKey as keyof typeof mockData.students] || [];
-
-  //     setStudents(fetchedStudents);
-  //     setSelectedStudent(null); // Reset selected student
-  //   } else {
-  //     setStudents([]);
-  //   }
-  // }, [selectedSection]);
-
-  /**
-   * Update requirements when a student is selected
-   */
-  // useEffect(() => {
-  //   if (selectedStudent) {
-  //     setRequirements(selectedStudent.requirements);
-  //   } else {
-  //     setRequirements([]);
-  //   }
-  // }, [selectedStudent]);
-
-  // useEffect(() => {
-  //   if (selectedRequirement && requirements.length > 0) {
-  //     const newIndex = requirements.findIndex(
-  //       (req) => req.requirementName === selectedRequirement.requirementName,
-  //     );
-  //     setCurrentIndex(newIndex);
-  //   }
-  // }, [selectedRequirement, requirements]);
-
-  /**
    * Memoized context value to prevent unnecessary re-renders
    * Only recalculates when any of the dependency values change
    */
@@ -533,23 +462,4 @@ export const EnrollmentReviewProvider: React.FC<{
       {children}
     </EnrollmentReviewContext.Provider>
   );
-};
-
-/**
- * Custom hook to use the EnrollmentReview context
- *
- * This hook provides a convenient way to access the context in components
- * and includes error handling to ensure it's used correctly.
- *
- * @returns The EnrollmentReview context value
- * @throws Error if used outside of EnrollmentReviewProvider
- */
-export const useEnrollmentReview = () => {
-  const context = React.useContext(EnrollmentReviewContext);
-  if (!context) {
-    throw new Error(
-      "useEnrollmentReview must be used within an EnrollmentReviewProvider",
-    );
-  }
-  return context;
 };

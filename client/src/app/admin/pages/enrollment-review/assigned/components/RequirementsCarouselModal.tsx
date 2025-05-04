@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Input } from "@headlessui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -10,7 +10,7 @@ import {
   faMagnifyingGlassPlus,
   faMagnifyingGlassMinus,
 } from "@fortawesome/free-solid-svg-icons";
-import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
+import { useEnrollmentReview } from "@/app/admin/context/useEnrollmentReview";
 import Enums from "@/services/common/types/enums";
 import { useQuery } from "@tanstack/react-query";
 import { getFile } from "@/services/common/file";
@@ -61,11 +61,11 @@ export const RequirementsCarouselModal: React.FC = () => {
   //   }
   // };
 
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     if (fileUrl) {
       window.open(fileUrl, "_blank");
     }
-  };
+  }, [fileUrl]);
 
   const handleZoomIn = () => {
     setZoomLevel((prev) => Math.min(prev + 0.25, 3));

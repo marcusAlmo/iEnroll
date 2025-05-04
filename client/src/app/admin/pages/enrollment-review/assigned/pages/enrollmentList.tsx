@@ -7,29 +7,29 @@ import { RequirementsPanel } from "./RequirementsPanel";
 import { RequirementsCarouselModal } from "../components/RequirementsCarouselModal";
 import ReassignSectionModal from "../components/ReassignSectionModal";
 import AssignSectionModal from "../components/AssignSectionModal";
-import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
+import { useEnrollmentReview } from "@/app/admin/context/useEnrollmentReview";
 
 /**
  * EnrollmentList Component
- * 
+ *
  * This component serves as the main interface for managing student enrollments.
  * It provides a hierarchical selection pattern where users can:
  * 1. Select a grade level from the `GradeLevelsPanel`.
  * 2. View sections within the selected grade level in the `SectionsPanel`.
  * 3. View students within the selected section in the `StudentsPanel`.
  * 4. View and interact with enrollment requirements for a selected student in the `RequirementsPanel`.
- * 
+ *
  * Additionally, the `RequirementsCarouselModal` allows users to view detailed requirement documents
  * in a modal popup when a specific requirement is selected.
- * 
+ *
  * The component assumes that data is passed down or managed via context or a parent state manager.
  */
 const EnrollmentList: React.FC = () => {
   // Get the section modal type from the context
   const { sectionModalType } = useEnrollmentReview();
-  
+
   return (
-    <div className="w-full flex flex-row">
+    <div className="flex w-full flex-row">
       {/* 
         Grade Levels Panel
         Displays a scrollable list of all available grade levels.
@@ -69,13 +69,17 @@ const EnrollmentList: React.FC = () => {
         - Controlled by internal state or props (e.g., `isModalOpen`).
       */}
       <RequirementsCarouselModal />
-      
+
       {/* 
         Section Modals
         Conditionally render either the AssignSectionModal or ReassignSectionModal
         based on the sectionModalType state from the context.
       */}
-      {sectionModalType === 'assign' ? <AssignSectionModal /> : <ReassignSectionModal />}
+      {sectionModalType === "assign" ? (
+        <AssignSectionModal />
+      ) : (
+        <ReassignSectionModal />
+      )}
     </div>
   );
 };

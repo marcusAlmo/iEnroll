@@ -1,6 +1,6 @@
 import { Dialog, Transition, Combobox } from "@headlessui/react";
-import { Fragment, useMemo, useState } from "react";
-import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
+import { Fragment, useCallback, useMemo, useState } from "react";
+import { useEnrollmentReview } from "@/app/admin/context/useEnrollmentReview";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUserPlus,
@@ -97,7 +97,10 @@ export default function AssignSectionModal() {
   });
 
   // Filter out the "Unassigned" section from the available sections
-  const availableSections = sections?.filter((section) => !section._unassigned);
+  const availableSections = useMemo(
+    () => sections?.filter((section) => !section._unassigned),
+    [sections],
+  );
 
   /**
    * Closes the modal and resets the form state
@@ -113,7 +116,7 @@ export default function AssignSectionModal() {
    * Currently logs the action and closes the modal
    * Please replace with the actual API call
    */
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (selectedNewSection && selectedStudent) {
       console.log(
         `Assigning student ${selectedStudent.studentName} to section ${selectedNewSection.sectionName}`,
@@ -125,7 +128,7 @@ export default function AssignSectionModal() {
         sectionId: selectedNewSection.sectionId,
       });
     }
-  };
+  }, [mutateEnroll, selectedNewSection, selectedStudent]);
 
   // useEffect(() => {
   //   console.log("ASSIGN",!selectedNewSection || !canAssign)
@@ -135,12 +138,15 @@ export default function AssignSectionModal() {
    * Filters sections based on the search query
    * Returns all sections if query is empty, otherwise filters by section name
    */
-  const filteredSections =
-    query === ""
-      ? availableSections
-      : availableSections?.filter((section) =>
-          section.sectionName.toLowerCase().includes(query.toLowerCase()),
-        );
+  const filteredSections = useMemo(
+    () =>
+      query === ""
+        ? availableSections
+        : availableSections?.filter((section) =>
+            section.sectionName.toLowerCase().includes(query.toLowerCase()),
+          ),
+    [availableSections, query],
+  );
 
   return (
     <Transition appear show={isSectionModalOpen} as={Fragment}>
