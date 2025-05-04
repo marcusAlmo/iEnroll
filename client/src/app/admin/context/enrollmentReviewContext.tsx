@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-// import mockData from "../pages/enrollment-review/test/mockData.json";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   approveOrDenyRequirement,
@@ -17,9 +16,6 @@ import Enums, {
 } from "@/services/common/types/enums";
 import { EnrollmentReviewContext } from "./EnrollmentReviewContext.1";
 import { EnrollmentStatus } from "@/services/desktop-web-app/enrollment-review/assigned/types";
-
-// Constants
-export const UNASSIGNED_SECTION_ID = 999;
 
 /**
  * Represents a school grade level
@@ -63,7 +59,6 @@ interface Student {
   suffix: string | null; // Student's suffix (e.g., "Jr.", "Sr.")
   lastName: string; // Student's last name
   applicationStatus: application_status; // Current status of the enrollment application
-  // requirements: Requirement[]; // List of enrollment requirements for this student
 }
 
 /**
@@ -72,8 +67,8 @@ interface Student {
  */
 export interface EnrollmentReviewContextProps {
   // Navigation state
-  activeItem: string; // Currently active navigation item
-  setActiveItem: (item: string) => void; // Function to update active navigation item
+  activeItem: string;
+  setActiveItem: (item: string) => void;
   currentIndex: number;
   setCurrentIndex: (index: number) => void;
   handleNext: () => void;
@@ -81,43 +76,43 @@ export interface EnrollmentReviewContextProps {
   handleRequirementStatus: (status: boolean, reason?: string) => void;
 
   // Grade level state
-  gradeLevels: GradeLevel[] | undefined; // Available grade levels
-  selectedGradeLevel: number | null; // Currently selected grade level ID
-  setSelectedGradeLevel: (gradeId: number | null) => void; // Function to update selected grade level
-  isGradeLevelPending: boolean; // Loading state for grade levels
+  gradeLevels: GradeLevel[] | undefined;
+  selectedGradeLevel: number | null;
+  setSelectedGradeLevel: (gradeId: number | null) => void;
+  isGradeLevelPending: boolean;
 
   // Section state
-  sections: Section[] | undefined; // Available sections for the selected grade
-  selectedSection: Section | null; // Currently selected section ID
-  setSelectedSection: (section: Section | null) => void; // Function to update selected section
-  isSectionsPending: boolean; // Loading state for sections
+  sections: Section[] | undefined;
+  selectedSection: Section | null;
+  setSelectedSection: (section: Section | null) => void;
+  isSectionsPending: boolean;
 
   // Student state
-  students: Student[] | undefined; // Available students for the selected section
-  selectedStudent: Student | null; // Currently selected student
-  setSelectedStudent: (student: Student | null) => void; // Function to update selected student
-  isStudentPending: boolean; // Loading state for students
+  students: Student[] | undefined;
+  selectedStudent: Student | null;
+  setSelectedStudent: (student: Student | null) => void;
+  isStudentPending: boolean;
 
   // Requirement state
-  requirements: Requirement[] | undefined; // Requirements for the selected student
-  selectedRequirement: Requirement | null; // Currently selected requirement
-  setSelectedRequirement: (requirement: Requirement | null) => void; // Function to update selected requirement
-  isStudentRequirementPending: boolean; // Loading state for requirements
+  requirements: Requirement[] | undefined;
+  selectedRequirement: Requirement | null;
+  setSelectedRequirement: (requirement: Requirement | null) => void;
+  isStudentRequirementPending: boolean;
 
   // Modal state
-  isModalOpen: boolean; // Controls visibility of the modal
-  setIsModalOpen: (isOpen: boolean) => void; // Function to toggle modal visibility
+  isModalOpen: boolean;
+  setIsModalOpen: (isOpen: boolean) => void;
 
   // Deny state
-  isDenied: boolean; // Controls visibility of the deny text field
-  setIsDenied: (isDenied: boolean) => void; // Function to toggle deny text field visibility
+  isDenied: boolean;
+  setIsDenied: (isDenied: boolean) => void;
 
-  isSectionModalOpen: boolean; // Controls visibility of the section modal
-  setIsSectionModalOpen: (isOpen: boolean) => void; // Function to toggle section modal visibility
+  isSectionModalOpen: boolean;
+  setIsSectionModalOpen: (isOpen: boolean) => void;
 
   // Section modal type
-  sectionModalType: "assign" | "reassign"; // Type of section modal to display
-  setSectionModalType: (type: "assign" | "reassign") => void; // Function to set section modal type
+  sectionModalType: "assign" | "reassign";
+  setSectionModalType: (type: "assign" | "reassign") => void;
 }
 
 /**
@@ -134,30 +129,33 @@ export const EnrollmentReviewProvider: React.FC<{
   const queryClient = useQueryClient();
 
   // State Management
-  const [activeItem, setActiveItem] = useState("gradeLevels"); // Default active item is grade levels
-  // const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
-
-  const { data: gradeLevels, isPending: isGradeLevelPending } = useQuery({
-    queryKey: ["assignedGradeLevels"],
-    queryFn: getAllGradeLevels,
-    select: (data): GradeLevel[] => {
-      const raw = data.data;
-      return raw.map((grade: { gradeId: number; gradeName: string }) => ({
-        gradeId: grade.gradeId,
-        gradeName: grade.gradeName,
-      }));
-    },
-  });
-
+  const [activeItem, setActiveItem] = useState("gradeLevels");
   const [selectedGradeLevel, setSelectedGradeLevel] = useState<number | null>(
     null,
   );
+  const [selectedSection, setSelectedSection] = useState<Section | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedRequirement, setSelectedRequirement] =
+    useState<Requirement | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isDenied, setIsDenied] = useState(false);
+  const [denialReason, setDenialReason] = useState("");
+  const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
+  const [sectionModalType, setSectionModalType] = useState<
+    "assign" | "reassign"
+  >("reassign");
 
-  useEffect(() => {
-    if (!isGradeLevelPending && gradeLevels?.length) {
-      setSelectedGradeLevel(gradeLevels[0].gradeId);
-    }
-  }, [isGradeLevelPending, gradeLevels]);
+  // Queries
+  const { data: gradeLevels, isPending: isGradeLevelPending } = useQuery({
+    queryKey: ["assignedGradeLevels"],
+    queryFn: getAllGradeLevels,
+    select: (data): GradeLevel[] =>
+      data.data.map((grade: { gradeId: number; gradeName: string }) => ({
+        gradeId: grade.gradeId,
+        gradeName: grade.gradeName,
+      })),
+  });
 
   const { data: sections, isPending: isSectionsPending } = useQuery({
     queryKey: ["enrolledSections", selectedGradeLevel],
@@ -182,15 +180,6 @@ export const EnrollmentReviewProvider: React.FC<{
     enabled: selectedGradeLevel !== null,
   });
 
-  // const [sections, setSections] = useState<Section[]>([]);
-  const [selectedSection, setSelectedSection] = useState<Section | null>(null);
-
-  useEffect(() => {
-    if (!isSectionsPending && sections?.length) {
-      setSelectedSection(sections[0]);
-    }
-  }, [isSectionsPending, sections]);
-
   const { data: students, isPending: isStudentPending } = useQuery({
     queryKey: [
       "enrolledStudents",
@@ -201,9 +190,8 @@ export const EnrollmentReviewProvider: React.FC<{
       selectedSection?._unassigned
         ? getAllStudentsUnassignedByGradeLevel(selectedSection!.sectionId)
         : getAllStudentsAssignedBySection(selectedSection!.sectionId),
-    select: (data): Student[] => {
-      const raw = data.data;
-      return raw.map((student) => ({
+    select: (data): Student[] =>
+      data.data.map((student) => ({
         studentId: student.studentId,
         studentName: [
           student.firstName,
@@ -218,57 +206,32 @@ export const EnrollmentReviewProvider: React.FC<{
         suffix: student.suffix,
         lastName: student.lastName,
         applicationStatus: student.enrollmentStatus,
-      }));
-    },
+      })),
     enabled: selectedSection?.sectionId !== null,
   });
-
-  // const [students, setStudents] = useState<Student[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-
-  useEffect(() => {
-    if (!isStudentPending && students?.length) {
-      setSelectedStudent(students[0]);
-    }
-  }, [isStudentPending, students]);
 
   const { data: requirements, isPending: isRequirementsPending } = useQuery({
     queryKey: ["enrolledRequirements", selectedStudent?.studentId],
     queryFn: () => getAllRequirementsByStudentId(selectedStudent!.studentId),
-    select: (data): Requirement[] => {
-      const raw = data.data;
-
-      return raw.map((requirement) => {
-        return {
-          applicationId: requirement.applicationId,
-          requirementId: requirement.requirementId,
-          requirementName: requirement.requirementName,
-          requirementStatus: requirement.requirementStatus,
-          imageUrl: requirement.fileUrl ?? undefined,
-          userInput: requirement.userInput ?? undefined,
-          requirementType: requirement.requirementType,
-          fileName: requirement.fileName ?? null,
-        };
-      });
-    },
+    select: (data): Requirement[] =>
+      data.data.map((requirement) => ({
+        applicationId: requirement.applicationId,
+        requirementId: requirement.requirementId,
+        requirementName: requirement.requirementName,
+        requirementStatus: requirement.requirementStatus,
+        imageUrl: requirement.fileUrl ?? undefined,
+        userInput: requirement.userInput ?? undefined,
+        requirementType: requirement.requirementType,
+        fileName: requirement.fileName ?? null,
+      })),
     enabled: Boolean(selectedStudent?.studentId),
   });
 
-  // const [requirements, setRequirements] = useState<Requirement[]>([]);
-  const [selectedRequirement, setSelectedRequirement] =
-    useState<Requirement | null>(null);
-
-  useEffect(() => {
-    if (!isRequirementsPending && requirements?.length) {
-      setSelectedRequirement(requirements[0]);
-    }
-  }, [isRequirementsPending, requirements]);
-
+  // Mutations
   const { mutate: mutateUpdateEnrollmentStatus } = useMutation({
     mutationKey: ["assignedUpdateEnrollmentStatus", selectedStudent?.studentId],
     mutationFn: updateEnrollmentStatus,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onSuccess: (_data) => {
+    onSuccess: () => {
       console.log("Update enroll success.");
       queryClient.invalidateQueries({
         queryKey: [
@@ -282,6 +245,51 @@ export const EnrollmentReviewProvider: React.FC<{
       console.log("UPDATE_ENROLLMENT_ERROR", error);
     },
   });
+
+  const { mutate: mutateApproveOrDenyRequirement } = useMutation({
+    mutationKey: [
+      "assignedApproveOrDenyDocument",
+      selectedRequirement?.applicationId,
+      selectedRequirement?.requirementId,
+    ],
+    mutationFn: approveOrDenyRequirement,
+    onSuccess: () => {
+      console.log("Approve or deny success");
+      handleNext();
+      queryClient.invalidateQueries({
+        queryKey: ["enrolledRequirements", selectedStudent?.studentId],
+      });
+      setIsDenied(false);
+    },
+    onError: (error) => {
+      console.log("APPROVE_OR_DENY_ERROR", error);
+    },
+  });
+
+  // Effects
+  useEffect(() => {
+    if (!isGradeLevelPending && gradeLevels?.length) {
+      setSelectedGradeLevel(gradeLevels[0].gradeId);
+    }
+  }, [isGradeLevelPending, gradeLevels]);
+
+  useEffect(() => {
+    if (!isSectionsPending && sections?.length) {
+      setSelectedSection(sections[0]);
+    }
+  }, [isSectionsPending, sections]);
+
+  useEffect(() => {
+    if (!isStudentPending && students?.length) {
+      setSelectedStudent(students[0]);
+    }
+  }, [isStudentPending, students]);
+
+  useEffect(() => {
+    if (!isRequirementsPending && requirements?.length) {
+      setSelectedRequirement(requirements[0]);
+    }
+  }, [isRequirementsPending, requirements]);
 
   useEffect(() => {
     if (selectedStudent && !isRequirementsPending && requirements?.length) {
@@ -302,10 +310,8 @@ export const EnrollmentReviewProvider: React.FC<{
 
       const total = requirements.length;
 
-      // All pending: no action
       if (pending === total) return;
 
-      // All accepted
       if (accepted === total) {
         mutateUpdateEnrollmentStatus({
           status: EnrollmentStatus.ACCEPTED,
@@ -314,7 +320,6 @@ export const EnrollmentReviewProvider: React.FC<{
         return;
       }
 
-      // All denied (no accepted, no pending)
       if (accepted === 0 && pending === 0) {
         mutateUpdateEnrollmentStatus({
           status: EnrollmentStatus.DENIED,
@@ -323,7 +328,6 @@ export const EnrollmentReviewProvider: React.FC<{
         return;
       }
 
-      // Else: some accepted, some rejected (mixed)
       mutateUpdateEnrollmentStatus({
         status: EnrollmentStatus.INVALID,
         studentId: selectedStudent.studentId,
@@ -336,47 +340,15 @@ export const EnrollmentReviewProvider: React.FC<{
     selectedStudent,
   ]);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDenied, setIsDenied] = useState(false);
-  const [denialReason, setDenialReason] = useState(""); // State to store the denial reason
-  const [isSectionModalOpen, setIsSectionModalOpen] = useState(false); // State to control section modal visibility
-  const [sectionModalType, setSectionModalType] = useState<
-    "assign" | "reassign"
-  >("reassign"); // Default to reassign modal
+  useEffect(() => {
+    console.log("Modal Opened with Selected Requirement:", selectedRequirement);
+  }, [selectedRequirement]);
 
-  const { mutate: mutateApproveOrDenyRequirement } = useMutation({
-    mutationKey: [
-      "assignedApproveOrDenyDocument",
-      selectedRequirement?.applicationId,
-      selectedRequirement?.requirementId,
-    ],
-    mutationFn: approveOrDenyRequirement,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onSuccess: (_data) => {
-      console.log("Approve or deny success");
-
-      // Move to the next requirement
-      handleNext();
-
-      queryClient.invalidateQueries({
-        queryKey: ["enrolledRequirements", selectedStudent?.studentId],
-      });
-
-      // Reset denial state
-      setIsDenied(false);
-    },
-    onError: (error) => {
-      console.log("APPROVE_OR_DENY_ERROR", error);
-    },
-  });
-
-  // Function to handle section modal opening with type
+  // Handlers
   const handleSetSectionModalOpen = useCallback(
     (isOpen: boolean) => {
       setIsSectionModalOpen(isOpen);
       if (isOpen) {
-        // Only set the modal type if it needs to change
         const newType = selectedSection?._unassigned ? "assign" : "reassign";
         if (newType !== sectionModalType) {
           setSectionModalType(newType);
@@ -405,10 +377,6 @@ export const EnrollmentReviewProvider: React.FC<{
       });
   }, [requirements]);
 
-  const handleOpenDenialReson = () => {
-    setIsDenied(true);
-  };
-
   const handleRequirementStatus = useCallback(
     (status: boolean, reason?: string) => {
       if (!selectedRequirement) return;
@@ -419,53 +387,11 @@ export const EnrollmentReviewProvider: React.FC<{
         action: status ? "approve" : "deny",
         remarks: reason,
       });
-
-      // Create a copy of requirements
-      // const updatedRequirements = requirements?.map((req) =>
-      //   req.requirementName === selectedRequirement.requirementName
-      //     ? { ...req, requirementStatus: status, denialReason: reason || "" }
-      //     : req,
-      // );
-
-      // // Update the requirements in the selected student
-      // if (selectedStudent) {
-      //   setSelectedStudent({
-      //     ...selectedStudent,
-      //     requirements: updatedRequirements,
-      //   });
-      // }
-
-      // // Update the state
-      // setRequirements((prevRequirements) =>
-      //   prevRequirements.map((req) =>
-      //     req.requirementName === selectedRequirement.requirementName
-      //       ? { ...req, requirementStatus: status, denialReason: reason || "" }
-      //       : req,
-      //   ),
-      // );
-
-      // // Move to the next requirement
-      // handleNext();
-
-      // // // Reset the selected requirement based on the new index
-      // // setSelectedRequirement(updatedRequirements[currentIndex]);
-
-      // // Reset denial state
-      // setIsDenied(false);
-
-      // console.log("Updated requirement:", updatedRequirements[currentIndex]);
     },
     [mutateApproveOrDenyRequirement, selectedRequirement],
   );
 
-  useEffect(() => {
-    console.log("Modal Opened with Selected Requirement:", selectedRequirement);
-  }, [selectedRequirement]);
-
-  /**
-   * Memoized context value to prevent unnecessary re-renders
-   * Only recalculates when any of the dependency values change
-   */
+  // Memoized Context Value
   const value = useMemo(
     () => ({
       activeItem,
@@ -475,7 +401,6 @@ export const EnrollmentReviewProvider: React.FC<{
       handleNext,
       handlePrevious,
       handleRequirementStatus,
-      handleOpenDenialReson,
       gradeLevels,
       selectedGradeLevel,
       setSelectedGradeLevel,
@@ -501,7 +426,6 @@ export const EnrollmentReviewProvider: React.FC<{
       isGradeLevelPending,
       isSectionsPending,
       isStudentPending,
-      // isRequirementsPending,
       isStudentRequirementPending: isRequirementsPending,
     }),
     [
