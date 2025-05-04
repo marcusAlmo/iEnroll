@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormResetContext } from "@/app/admin/pages/personnel-center/PersonnelCenter";
 import { toast } from "react-hot-toast";
+import { requestData } from "@/lib/dataRequester";
 
 // Zod schema for validation
 const schema = z.object({
@@ -11,23 +12,13 @@ const schema = z.object({
   middleName: z.string().optional(),
   lastName: z.string().min(1, { message: "Last Name is required" }),
   suffix: z.string().optional(),
-  birthdate: z.string().min(1, { message: "Birthdate is required" }),
   sex: z.string().min(1, { message: "Sex is required" }),
   phoneNumber: z.string().min(10, { message: "Phone Number must be at least 10 characters" }),
   email: z.string().email({ message: "Invalid email format" }),
   username: z.string().min(3, { message: "Username is required" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }).optional(),
-  address: z.object({
-    houseNumber: z.string().min(1, { message: "House Number is required" }),
-    street: z.string().min(1, { message: "Street is required" }),
-    district: z.string().min(1, { message: "District is required" }),
-    province: z.string().min(1, { message: "Province is required" }),
-  }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }).nullable(),
   // Add schema for role management
-  role: z.object({
-    admin: z.boolean().optional(),
-    registrar: z.boolean().optional(),
-  }).optional(),
+  role: z.enum(['admin', 'registrar']).optional(),
   accessPermissions: z.object({
     dashboard: z.object({
       view: z.boolean().optional(),
@@ -49,10 +40,42 @@ const schema = z.object({
       view: z.boolean().optional(),
       canMakeChanges: z.boolean().optional(),
     }),
-  }).optional(),
+  }),
 });
 
+interface Personnel {
+  userId: number;
+  name: string;
+  role: string;
+}
+
 type FormData = z.infer<typeof schema>;
+type ServerPersonnelResponse = {
+  profileSettings: {
+    personalInformation: {
+      fName: string;
+      mName: string;
+      lName: string;
+      suffix: string;
+      gender: string;
+    };
+    contactInformation: {
+      phone: string;
+    };
+  };
+  accountSettings: {
+    username: string;
+    email: string;
+  };
+  roleManagement: {
+    role: 'admin' | 'registrar';
+    dashboardAccess: 'other' | 'view' | 'edit';
+    enrollmentReview: 'other' | 'view' | 'edit';
+    enrollmentManagement: 'other' | 'view' | 'edit';
+    personnelCenter: 'other' | 'view' | 'edit';
+    systemSettings: 'other' | 'view' | 'edit';
+  };
+};
 
 const CustomInput = ({
   label,
@@ -117,7 +140,7 @@ const SelectInput = ({
 );
 
 interface RolesAccessProps {
-  selectedPersonnel?: FormData | null;
+  selectedPersonnel?: Personnel | null;
   onSave?: (data: FormData) => void;
   searchQuery?: string;
 }
@@ -125,6 +148,7 @@ interface RolesAccessProps {
 const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, searchQuery }) => {
   const [activeTab, setActiveTab] = useState("profile-settings");
   const { shouldResetForm, setShouldResetForm } = useContext(FormResetContext);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -133,22 +157,12 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
       middleName: "",
       lastName: "",
       suffix: "",
-      birthdate: "",
-      sex: "Male", 
+      sex: "male",
       phoneNumber: "",
       email: "",
       username: "",
-      password: "",
-      address: {
-        houseNumber: "",
-        street: "",
-        district: "",
-        province: ""
-      },
-      role: {
-        admin: false,
-        registrar: false
-      },
+      password: null,
+      role: undefined,
       accessPermissions: {
         dashboard: { view: false, canMakeChanges: false },
         enrollmentReview: { view: false, canMakeChanges: false },
@@ -179,6 +193,68 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
       });
     }
   }, [shouldResetForm, reset, setShouldResetForm]);
+
+  const mapAccessTypeToForm = (accessType: string) => {
+    switch (accessType) {
+      case 'other':
+        return { view: false, canMakeChanges: false };
+      case 'read':
+        return { view: true, canMakeChanges: false };
+      case 'modify':
+        return { view: true, canMakeChanges: true };
+      default:
+        return { view: false, canMakeChanges: false };
+    }
+  };
+
+  const fetchPersonnelInfo = async (userId: number) => {
+    try {
+      console.log(selectedPersonnel)
+      console.log(userId)
+      const data = await requestData<ServerPersonnelResponse>({
+        url: `http://localhost:3000/api/profile-settings/get-employee-info/${userId}`,
+        method: 'GET'
+      });
+
+      if (data) {
+        setValue('firstName', data.profileSettings.personalInformation.fName);
+        setValue('middleName', data.profileSettings.personalInformation.mName);
+        setValue('lastName', data.profileSettings.personalInformation.lName);
+        setValue('suffix', data.profileSettings.personalInformation.suffix);
+        setValue('sex', data.profileSettings.personalInformation.gender);
+        setValue('phoneNumber', data.profileSettings.contactInformation.phone);        
+        setValue('username', data.accountSettings.username);
+        setValue('email', data.accountSettings.email);
+
+        // Map role
+        setValue('role', data.roleManagement.role);
+
+        setValue('accessPermissions.dashboard', 
+          mapAccessTypeToForm(data.roleManagement.dashboardAccess));
+        setValue('accessPermissions.enrollmentReview', 
+          mapAccessTypeToForm(data.roleManagement.enrollmentReview));
+        setValue('accessPermissions.enrollmentManagement', 
+          mapAccessTypeToForm(data.roleManagement.enrollmentManagement));
+        setValue('accessPermissions.personnelCenter', 
+          mapAccessTypeToForm(data.roleManagement.personnelCenter));
+        setValue('accessPermissions.settings', 
+          mapAccessTypeToForm(data.roleManagement.systemSettings));
+
+        toast.success("Personnel data loaded");
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error("An error occurred while fetching personnel info");
+
+      console.log(err);
+    }
+  }
+
+  useEffect(() => {
+    if (selectedPersonnel?.userId) {
+      fetchPersonnelInfo(selectedPersonnel.userId);
+    }
+  }, [selectedPersonnel, setValue]);
 
   // Effect to populate form with selected personnel data
   useEffect(() => {
@@ -223,36 +299,112 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
     }
   }, [searchQuery]);
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form data:", data);
-    
-    // Show toast notification for successful save
-    toast.success("Changes saved successfully!", {
-      duration: 3000,
-      position: "top-right",
-      style: {
-        background: "#2196F3",
-        color: "#fff",
-        borderRadius: "10px",
-        padding: "16px"
+  const profileSettingSubmit = async (data: FormData) => {
+    const response = await requestData<{ message: string }>({
+      url: `http://localhost:3000/api/profile-settings/update-employee-info/${selectedPersonnel?.userId}`,
+      method: 'PUT',
+      body: {
+        fName: data.firstName,
+        mName: data.middleName,
+        lName: data.lastName,
+        suffix: data.suffix,
+        gender: data.sex,
+        phone: data.phoneNumber
       }
     });
 
-    // Call the onSave prop if provided
-    if (onSave) {
-      onSave(data);
+    if (response) toast.success(response.message);
+  }
+
+  const accountSettingSubmit = async (data: FormData) => {
+    const response = await requestData<{ message: string }>({
+      url: `http://localhost:3000/api/account-settings/update-account-settings/${selectedPersonnel?.userId}`,
+      method: 'PUT',
+      body: {
+        username: data.username,
+        email: data.email
+      }
+    });
+
+    if (response) toast.success(response.message);
+  }
+
+  const roleManagementSubmit = async (data: FormData) => {
+    let dashboardAccess: string = '';
+    let enrollmentManagementAccess: string = '';
+    let enrollmentReviewAccess: string = '';
+    let personnelCenterAccess: string = '';
+    let systemSettingsAccess: string = '';
+
+    if (data.accessPermissions.dashboard.canMakeChanges) dashboardAccess = 'modify';
+    else dashboardAccess = 'read';
+
+    if (data.accessPermissions.enrollmentManagement.canMakeChanges) enrollmentManagementAccess = 'modify';
+    else enrollmentManagementAccess = 'read';
+
+    if (data.accessPermissions.enrollmentReview.canMakeChanges) enrollmentReviewAccess = 'modify';
+    else enrollmentReviewAccess = 'read';
+
+    if (data.accessPermissions.personnelCenter.canMakeChanges) personnelCenterAccess = 'modify';
+    else personnelCenterAccess = 'read';
+
+    if (data.accessPermissions.settings.canMakeChanges) systemSettingsAccess = 'modify';
+    else systemSettingsAccess = 'read';
+
+    const response = await requestData<{ message: string }>({
+      url: `http://localhost:3000/api/role-management/update-role-management/${selectedPersonnel?.userId}`,
+      method: 'PUT',
+      body: {
+        role: data.role,
+        dashboardAccess: dashboardAccess,
+        enrollmentManagement: enrollmentManagementAccess,
+        enrollmentReview: enrollmentReviewAccess,
+        personnelCenter: personnelCenterAccess,
+        systemSettings: systemSettingsAccess
+      }
+    });
+
+    if (response) toast.success(response.message);
+  }
+
+  const updatePassword = async (password: string) => {
+    const response = await requestData<{ message: string }>({
+      url: `http://localhost:3000/api/account-settings/update-password/${selectedPersonnel?.userId}`,
+      method: 'PUT',
+      body: {
+        password
+      }
+    });
+
+    if (response) toast.success(response.message);
+  }
+
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
+    try {
+      if (activeTab === "profile-settings") {
+        await profileSettingSubmit(data);
+      } else if (activeTab === "account-settings") {
+        await accountSettingSubmit(data);
+      } else if (activeTab === "role-management") {
+        await roleManagementSubmit(data);
+      }
+      console.log("Submitting:", data);
+      toast.success("Saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save");
+      console.error(error);
     }
+    setIsSubmitting(false);
   };
 
   // Function to handle password change
   const handlePasswordChange = () => {
     const passwordValue = document.querySelector('input[name="password"]') as HTMLInputElement;
-    if (passwordValue && passwordValue.value.length >= 8) {
-      toast.success("Password updated successfully", {
-        duration: 3000,
-        position: "top-right"
-      });
-    } else {
+    console.log(passwordValue.value)
+    if (passwordValue && passwordValue.value.length >= 8)
+      updatePassword(passwordValue.value);
+    else {
       toast.error("Password must be at least 8 characters", {
         duration: 3000,
         position: "top-right"
@@ -315,17 +467,6 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
                   name="middleName"
                 />
               </div>
-              
-              <div className="w-80 ml-30">
-                <CustomInput
-                  label="Birthdate"
-                  placeholder="1990-01-01"
-                  type="date"
-                  register={register}
-                  name="birthdate"
-                  errorMessage={errors.birthdate?.message}
-                />
-              </div>
             </div>
             
             {/* Row 2: Last Name, Suffix, Sex at Birth (with gap) */}
@@ -350,7 +491,7 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
               <div className="w-80 ml-30">
                 <SelectInput
                   label="Sex at Birth"
-                  options={["Male", "Female"]}
+                  options={["male", "female"]}
                   register={register}
                   name="sex"
                   errorMessage={errors.sex?.message}
@@ -361,7 +502,7 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
 
           <div className="mb-6">
             <h2 className="text-accent font-medium text-lg mb-3">Contact Information</h2>
-            
+
             {/* Row 1: Phone Number, Email (2 columns) */}
             <div className="flex mb-4">
               <div className="w-67 pr-2">
@@ -373,73 +514,27 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
                   errorMessage={errors.phoneNumber?.message}
                 />
               </div>
-              <div className="w-100 ml-5 pl-2">
-                <CustomInput
-                  label="Email"
-                  placeholder="jackDanielSanMiguel@gmail.com"
-                  type="email"
-                  register={register}
-                  name="email"
-                  errorMessage={errors.email?.message}
-                />
-              </div>
             </div>
           </div>
 
-          <div className="mb-6">
-            <h2 className="text-accent font-medium text-lg mb-3">Address</h2>
-            
-            {/* Row 1: House Number, Street, District, Province (4 columns) */}
-            <div className="flex mb-4">
-              <div className="w-1/3 mr-5 pr-2">
-                <CustomInput
-                  label="House Number"
-                  placeholder="12313"
-                  register={register}
-                  name="address.houseNumber"
-                  errorMessage={errors.address?.houseNumber?.message}
-                />
-              </div>
-              <div className="w-1/2 px-1">
-                <CustomInput
-                  label="Street"
-                  placeholder="Cutie Street"
-                  register={register}
-                  name="address.street"
-                  errorMessage={errors.address?.street?.message}
-                />
-              </div>
-              <div className="w-1/2 mx-5 px-1">
-                <CustomInput
-                  label="District"
-                  placeholder="District 1"
-                  register={register}
-                  name="address.district"
-                  errorMessage={errors.address?.district?.message}
-                />
-              </div>
-              <div className="w-1/3 px-1">
-                <CustomInput
-                  label="Province"
-                  placeholder="District 1"
-                  register={register}
-                  name="address.province"
-                  errorMessage={errors.address?.province?.message}
-                />
-              </div>
-            </div>
-          </div>
+          <br></br>
+          <br></br>
+          <br></br>
+          <br></br>
 
           <div className="flex mt-10">
-            <button
-              type="submit"
-              className="bg-accent py-2 px-6 rounded-[10px] font-semibold text-white transition duration-300 hover:bg-primary hover:text-background"
-            >
-              Save changes
-            </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`bg-accent py-2 px-6 rounded-[10px] font-semibold text-white transition duration-300 hover:bg-primary hover:text-background ${
+              isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isSubmitting ? "Saving..." : "Save changes"}
+          </button>
           </div>
         </form>
-      )}
+      )}  
 
       {/* Form Content for Account Settings */}
       {activeTab === "account-settings" && (
@@ -631,6 +726,7 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
           </div>
 
           {/* Role List Section */}
+          {/* Role List Section */}
           <div>
             <h2 className="text-accent text-lg font-semibold mb-2">Role List</h2>
             <div className="bg-gray-50 p-4 rounded-md">
@@ -638,25 +734,44 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
                 <div className="mr-8">
                   <div className="flex items-center">
                     <input
-                      type="checkbox"
-                      {...register("role.admin")}
+                      type="radio"
+                      id="role-admin"
+                      value="admin"
+                      {...register("role")}
                       className="mr-2 h-4 w-4"
                     />
-                    <label className="text-sm text-text-2">Admin</label>
+                    <label htmlFor="role-admin" className="text-sm text-text-2">
+                      Admin
+                    </label>
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center">
                     <input
-                      type="checkbox"
-                      {...register("role.registrar")}
+                      type="radio"
+                      id="role-registrar"
+                      value="registrar"
+                      {...register("role")}
                       className="mr-2 h-4 w-4"
                     />
-                    <label className="text-sm text-text-2">Registrar</label>
+                    <label htmlFor="role-registrar" className="text-sm text-text-2">
+                      Registrar
+                    </label>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+          <div className="flex mt-10">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`bg-accent py-2 px-6 rounded-[10px] font-semibold text-white transition duration-300 hover:bg-primary hover:text-background ${
+              isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isSubmitting ? "Saving..." : "Save changes"}
+          </button>
           </div>
         </form>
       )}

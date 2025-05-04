@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AccessManagementPanel from "@/app/admin/pages/personnel-center/roles&access/role-access";
 import HistoryLogsPanel from "@/app/admin/pages/personnel-center/history&logs/history-logs";
 import { Search, Plus } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
+import { requestData } from "@/lib/dataRequester";
 
 export const FormResetContext = React.createContext({
   shouldResetForm: false,
@@ -10,91 +11,14 @@ export const FormResetContext = React.createContext({
 });
 
 interface Personnel {
-  id: number;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  suffix?: string;
-  birthdate: string;
-  sex: string;
-  phoneNumber: string;
-  email: string;
-  username: string;
-  address: {
-    houseNumber: string;
-    street: string;
-    district: string;
-    province: string;
-  };
-  role: {
-    admin: boolean;
-    registrar: boolean;
-  };
-  accessPermissions: {
-    dashboard: { view: boolean; canMakeChanges: boolean };
-    enrollmentReview: { view: boolean; canMakeChanges: boolean };
-    enrollmentManagement: { view: boolean; canMakeChanges: boolean };
-    personnelCenter: { view: boolean; canMakeChanges: boolean };
-    settings: { view: boolean; canMakeChanges: boolean };
-  };
+  userId: number;
+  name: string;
+  role: string;
 }
-
-const samplePersonnel: Personnel[] = [
-  {
-    id: 1,
-    firstName: "John",
-    middleName: "Doe",
-    lastName: "Smith",
-    suffix: "Jr",
-    birthdate: "1990-05-15",
-    sex: "Male",
-    phoneNumber: "0912 345 6789",
-    email: "john.smith@example.com",
-    username: "johnsmith",
-    address: {
-      houseNumber: "123",
-      street: "Main St",
-      district: "District 1",
-      province: "Province A"
-    },
-    role: { admin: true, registrar: false },
-    accessPermissions: {
-      dashboard: { view: true, canMakeChanges: true },
-      enrollmentReview: { view: true, canMakeChanges: true },
-      enrollmentManagement: { view: true, canMakeChanges: true },
-      personnelCenter: { view: true, canMakeChanges: true },
-      settings: { view: true, canMakeChanges: true }
-    }
-  },
-  {
-    id: 2,
-    firstName: "Jane",
-    lastName: "Doe",
-    birthdate: "1992-08-21",
-    sex: "Female",
-    phoneNumber: "0923 456 7890",
-    email: "jane.doe@example.com",
-    username: "janedoe",
-    address: {
-      houseNumber: "456",
-      street: "Oak Ave",
-      district: "District 2",
-      province: "Province B"
-    },
-    role: { admin: false, registrar: true },
-    accessPermissions: {
-      dashboard: { view: true, canMakeChanges: false },
-      enrollmentReview: { view: true, canMakeChanges: true },
-      enrollmentManagement: { view: true, canMakeChanges: true },
-      personnelCenter: { view: true, canMakeChanges: false },
-      settings: { view: false, canMakeChanges: false }
-    }
-  }
-];
 
 const PersonnelCenter: React.FC = () => {
   const [shouldResetForm, setShouldResetForm] = useState(false);
-  const [personnel, setPersonnel] = useState(samplePersonnel);
+  const [personnel, setPersonnel] = useState<Personnel[]>([]);
   const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("roles-access");
@@ -139,13 +63,33 @@ const PersonnelCenter: React.FC = () => {
     setActionFilter(e.target.value);
   };
 
-  const filteredPersonnel = personnel.filter(person => {
+  const retrievePersonnels = async () => {
+    try {
+      const response = await requestData<Personnel[]>({
+        url: "http://localhost:3000/api/employee-list/retrieve",
+        method: "GET",
+      });
+
+      if (response) {
+        setPersonnel(response);
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error("An unknown error occurred");
+
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    retrievePersonnels();
+  }, []);
+
+  const filteredPersonnel = personnel.filter((person) => {
     const query = searchQuery.toLowerCase();
     return (
-      person.firstName.toLowerCase().includes(query) ||
-      person.lastName.toLowerCase().includes(query) ||
-      person.email.toLowerCase().includes(query) ||
-      person.username.toLowerCase().includes(query)
+      person.name.toLowerCase().includes(query) ||
+      person.role.toLowerCase().includes(query)
     );
   });
 
@@ -207,17 +151,17 @@ const PersonnelCenter: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPersonnel.map(person => (
+                  {filteredPersonnel.map((person) => (
                     <tr
-                      key={person.id}
+                      key={person.userId}
                       onClick={() => handlePersonnelRowClick(person)}
                       className="hover:bg-blue-100 cursor-pointer"
                     >
-                      <td className="px-4 py-2">{person.id}</td>
-                      <td className="px-4 py-2">{person.firstName} {person.lastName}</td>
+                      <td className="px-4 py-2">{person.userId}</td>
+                      <td className="px-4 py-2">{person.name}</td>
                       <td className="px-4 py-2">
-                        {person.role.admin && <span className="text-gray-800">Admin</span>}
-                        {person.role.registrar && <span className="text-gray-800">Registrar</span>}
+                        {person.role == 'admin' && <span className="text-gray-800">Admin</span>}
+                        {person.role == 'registrar' && <span className="text-gray-800">Registrar</span>}
                       </td>
                     </tr>
                   ))}

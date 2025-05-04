@@ -23,4 +23,16 @@ export class AccountSettingsService {
 
     return result.data as AccountSettings['response'];
   }
+
+  public async updatePassword(
+    payload: object,
+  ): Promise<AccountSettings['response']> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'account-settings-update-password' }, payload),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as AccountSettings['response'];
+  }
 }

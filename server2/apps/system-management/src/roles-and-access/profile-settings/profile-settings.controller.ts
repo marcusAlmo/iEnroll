@@ -10,10 +10,10 @@ export class ProfileSettingsController {
   ) {}
 
   @MessagePattern({ cmd: 'get-employee-info' })
-  public async getEmployeeInfo(payload: { schoolId: number; userId: number }) {
+  public async getEmployeeInfo(payload: { userId: number; schoolId: number }) {
     return await this.profileSettingsService.getEmployeeInfo(
-      payload.schoolId,
       payload.userId,
+      payload.schoolId,
     );
   }
 

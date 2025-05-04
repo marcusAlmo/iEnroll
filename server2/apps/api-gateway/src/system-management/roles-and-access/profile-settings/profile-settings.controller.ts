@@ -17,8 +17,9 @@ export class ProfileSettingsController {
     @Param('id') id: string,
     @User('school_id') schoolId: number,
   ) {
+    schoolId = 388243;
     return this.profileSettingsService.getEmployeeInfo({
-      employeeId: Number(id),
+      userId: Number(id),
       schoolId,
     });
   }

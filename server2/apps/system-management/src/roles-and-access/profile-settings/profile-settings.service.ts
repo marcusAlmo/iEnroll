@@ -15,9 +15,10 @@ export class ProfileSettingsService {
 
   // retrieve employee info
   public async getEmployeeInfo(
-    schoolId: number,
     userId: number,
+    schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log('userId: ', userId);
     const employeeInfo: ProfileSettings['employeeInfo'] | null =
       await this.getEmployeeInfoRaw(schoolId, userId);
 

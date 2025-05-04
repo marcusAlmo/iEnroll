@@ -24,7 +24,7 @@ export class UpdateProfileSettingsDto {
 
   @IsString()
   @IsOptional()
-  @Length(1, 5)
+  @Length(0, 5)
   suffix!: string;
 
   @IsIn(['male', 'female', 'other'])

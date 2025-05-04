@@ -1,10 +1,4 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Length,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class AccountSettings {
   @IsString()
@@ -15,9 +9,11 @@ export class AccountSettings {
   @IsEmail()
   @IsNotEmpty()
   email!: string;
+}
 
+export class UpdatePassword {
   @IsString()
-  @IsOptional()
-  @Length(8, 15)
-  password!: string | null;
+  @IsNotEmpty()
+  @Length(1, 15)
+  password!: string;
 }
