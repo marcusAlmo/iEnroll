@@ -9,6 +9,7 @@ export class SchoolDetailsController {
 
   @Get('retrieve')
   async getSchoolDetails(@User('school_id') schoolId: number) {
+    schoolId = 388243;
     return await this.schoolDetailsService.getSchoolDetails({ schoolId });
   }
 
@@ -17,7 +18,7 @@ export class SchoolDetailsController {
     @User('school_id') schoolId: number,
     @Body() schoolDetails: SchoolDetails,
   ) {
-    schoolId = 0;
+    schoolId = 388243;
     return await this.schoolDetailsService.saveSchoolDetails({
       schoolDetails,
       schoolId,
@@ -31,21 +32,18 @@ export class SchoolDetailsController {
 
   @Get('municipality/:provinceId')
   async getMunicipality(@Param('provinceId') provinceId: string) {
-    console.log('provinceId: ', provinceId);
     const id: number = Number(provinceId);
     return await this.schoolDetailsService.getMunicipality({ provinceId: id });
   }
 
   @Get('district/:municipalityId')
   async getDistrict(@Param('municipalityId') municipalityId: string) {
-    console.log('municipalityId: ', municipalityId);
     const id: number = Number(municipalityId);
     return await this.schoolDetailsService.getDistrict({ municipalityId: id });
   }
 
   @Get('street/:districtId')
   async getStreet(@Param('districtId') districtId: string) {
-    console.log('districtId: ', districtId);
     const id: number = Number(districtId);
     return await this.schoolDetailsService.getStreet({ districtId: id });
   }

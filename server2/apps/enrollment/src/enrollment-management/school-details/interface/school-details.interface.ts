@@ -2,14 +2,28 @@ export interface SchoolDetails {
   scholarDetails: {
     schoolName: string;
     schoolContact: string;
-    schoolId: number | null;
+    streetId: number | null;
     schoolEmail: string;
     schoolWebUrl: string | null;
     schoolAddress: string | null;
-    street: string;
-    district: string;
-    municipality: string;
-    province: string;
+    street: string | null;
+    district: string | null;
+    districtId: number | null;
+    municipality: string | null;
+    municipalityId: number | null;
+    province: string | null;
+    provinceId: number | null;
+    schoolId: number | null;
+  };
+
+  receiveInput: {
+    schoolContact: string;
+    schoolEmail: string;
+    schoolName: string;
+    schoolAddress: string;
+    schoolWebUrl: string;
+    streetId: number;
+    schoolId: number;
   };
 
   province: {
@@ -30,5 +44,13 @@ export interface SchoolDetails {
   street: {
     streetId: number;
     street: string;
+  };
+
+  relatedTables: {
+    user: number[];
+    gradeLevelOffered: number[];
+    paymentOption: number[];
+    schoolSubscription: number[];
+    schoolAcadYear: number[];
   };
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
+import { string, z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from "@/components/ui/form";
 import ImportedCustomInput from '@/components/CustomInput';
@@ -11,13 +11,14 @@ import { requestData } from '@/lib/dataRequester';
 const schoolDetailsSchema = z.object({
   name: z.string().max(100, { message: "School name must not exceed 100 characters." }),
   id: z.string().max(50, { message: "School ID must not exceed 50 characters." }),
-  street: z.string().max(100, { message: "Street must not exceed 100 characters." }),
-  district: z.string().max(100, { message: "District must not exceed 100 characters." }),
-  municipality: z.string().max(100, { message: "Municipality must not exceed 100 characters." }),
-  province: z.string().max(100, { message: "Province must not exceed 100 characters." }),
+  street: z.string().min(1, { message: "Please select a street." }).max(100, { message: "Street must not exceed 100 characters." }),
+  district: z.string().min(1, { message: "Please select a district." }).max(100, { message: "District must not exceed 100 characters." }),
+  municipality: z.string().min(1, { message: "Please select a municipality." }).max(100, { message: "Municipality must not exceed 100 characters." }),
+  province: z.string().min(1, { message: "Please select a province." }).max(100, { message: "Province must not exceed 100 characters." }),
   contactNumber: z.string().max(20, { message: "Contact number must not exceed 20 characters." }),
   email: z.string().email({ message: "Invalid email format." }),
-  website: z.string().url({ message: "Must be a valid URL." }).optional(),
+  website: z.string().url().optional().or(z.literal('')),
+  schoolAddress: z.string().max(100, { message: "School address must not exceed 100 characters." }),
 });
 
 type SchoolFormData = z.infer<typeof schoolDetailsSchema>;
@@ -30,15 +31,17 @@ const CustomInput = ({
   placeholder,
   inputStyle,
   labelStyle,
-  optional = false
+  optional = false,
+  readOnly = false, // Add this prop
 }: {
-  control: any; 
+  control: any;
   name: string;
   label: string;
   placeholder: string;
   inputStyle?: string;
   labelStyle?: string;
   optional?: boolean;
+  readOnly?: boolean; // New prop
 }) => (
   <Controller
     control={control}
@@ -51,8 +54,14 @@ const CustomInput = ({
         <input
           {...field}
           placeholder={placeholder}
-          className={inputStyle || "w-full p-3 rounded-md border border-gray-200 bg-gray-50"}
+          className={
+            inputStyle || 
+            `w-full p-3 rounded-md border border-gray-200 bg-gray-50 ${
+              readOnly ? "bg-gray-100 cursor-not-allowed" : "bg-white"
+            }`
+          }
           type={name === "email" ? "email" : "text"}
+          readOnly={readOnly} // Apply readOnly
         />
         {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
       </div>
@@ -115,6 +124,7 @@ const CustomSelect = ({
   />
 );
 
+// address interface
 interface ProvinceInterface {
   provinceId: number;
   province: string;
@@ -133,6 +143,24 @@ interface DistrictInterface {
 interface StreetInterface {
   streetId: number;
   street: string;
+}
+
+// for the original value
+interface SchoolDetailsInterface {
+  schoolName: string;
+  schoolContact: string;
+  schoolId: number;
+  schoolEmail: string;
+  schoolWebUrl: string;
+  schoolAddress: string;
+  street: string | null;
+  streetId: number | null;
+  district: string | null;
+  districtId: number | null;
+  municipality: string | null;
+  municipalityId: number | null;
+  province: string | null;
+  provinceId: number | null;
 }
 
 export default function SchoolDetails() {
@@ -158,32 +186,30 @@ export default function SchoolDetails() {
       contactNumber: '',
       email: '',
       website: '',
+      schoolAddress: '',
     },
   });
 
   // retrieve provinces
-  const getProvinces = async () => {
-    try{
+  const getProvinces = async (): Promise<ProvinceInterface[] | null> => {
+    try {
       const response = await requestData<ProvinceInterface[]>({
         url: 'http://localhost:3000/api/school-details/province',
         method: 'GET',
       });
-
+  
       if (response) {
         setProvinces(response);
-        //form.setValue('province', initialProvince.province); // Directly set form value
+        return response; // Return the provinces data
       }
+      return null;
     } catch (err) {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error occurred');
-
       console.log(err);
+      return null;
     }
   };
-
-  useEffect(() => {
-    getProvinces();
-  }, []);
 
   // retrieve municipalities
   const getMunicipalities = async () => {
@@ -195,9 +221,6 @@ export default function SchoolDetails() {
 
       if (response) {
         setMunicipalities(response);
-        const initialMunicipality = response[0];
-        setSelectedMunicipalities(initialMunicipality);
-        form.setValue('municipality', initialMunicipality.municipality);
       }
     } catch (err) {
       if (err instanceof Error) toast.error(err.message);
@@ -221,9 +244,6 @@ export default function SchoolDetails() {
 
       if (response) {
         setDistricts(response);
-        const initialDistrict = response[0];
-        setSelectedDistricts(initialDistrict);
-        form.setValue('district', initialDistrict.district);
       }
     } catch (err) {
       if (err instanceof Error) toast.error(err.message);
@@ -247,9 +267,6 @@ export default function SchoolDetails() {
 
       if (response) {
         setStreets(response);
-        const initialStreet = response[0];
-        setSelectedStreets(initialStreet);
-        form.setValue('street', initialStreet.street);
       }
     } catch (err) {
       if (err instanceof Error) toast.error(err.message);
@@ -259,6 +276,7 @@ export default function SchoolDetails() {
     }
   };
 
+  // set the form of the custom select dropdown
   useEffect(() => {
     if (selectedDistricts) getStreets();
   }, [selectedDistricts]);
@@ -287,8 +305,137 @@ export default function SchoolDetails() {
     }
   }, [selectedStreets, form]);
 
-  const onSubmit = (data: SchoolFormData) => {
-    console.log('School Details Submitted:', data);
+  // for retrieving data
+  const retrieveData = async () => {
+    try {
+      const response = await requestData<SchoolDetailsInterface>({
+        url: 'http://localhost:3000/api/school-details/retrieve',
+        method: 'GET',
+      });
+
+      if (response) {
+        // Set basic form values
+        form.setValue('name', response.schoolName);
+        form.setValue('id', response.schoolId.toString() || '');
+        form.setValue('contactNumber', response.schoolContact);
+        form.setValue('email', response.schoolEmail);
+        form.setValue('website', response.schoolWebUrl || '');
+        form.setValue('schoolAddress', response.schoolAddress);
+
+        // Get provinces data directly from the API call
+        const provincesData = await getProvinces();
+
+        if (!provincesData) {
+          throw new Error('Failed to load provinces');
+        }
+
+        // Find the selected province
+        const selectedProv = provincesData.find(p => p.province === response.province);
+
+        if (selectedProv) {
+          setSelectedProvinces(selectedProv);
+          form.setValue('province', selectedProv.province);
+  
+          // Load municipalities
+          const municipalitiesResponse = await requestData<MunicipalityInterface[]>({
+            url: `http://localhost:3000/api/school-details/municipality/${selectedProv.provinceId}`,
+            method: 'GET',
+          });
+  
+          if (municipalitiesResponse) {
+            setMunicipalities(municipalitiesResponse);
+            
+            if (response.municipality && response.municipalityId) {
+              const selectedMuni = municipalitiesResponse.find(m => m.municipality === response.municipality);
+              if (selectedMuni) {
+                setSelectedMunicipalities(selectedMuni);
+                form.setValue('municipality', selectedMuni.municipality);
+  
+                // Load districts
+                const districtsResponse = await requestData<DistrictInterface[]>({
+                  url: `http://localhost:3000/api/school-details/district/${selectedMuni.municipalityId}`,
+                  method: 'GET',
+                });
+  
+                if (districtsResponse) {
+                  setDistricts(districtsResponse);
+                  
+                  if (response.district && response.districtId) {
+                    const selectedDist = districtsResponse.find(d => d.district === response.district);
+                    if (selectedDist) {
+                      setSelectedDistricts(selectedDist);
+                      form.setValue('district', selectedDist.district);
+  
+                      // Load streets
+                      const streetsResponse = await requestData<StreetInterface[]>({
+                        url: `http://localhost:3000/api/school-details/street/${selectedDist.districtId}`,
+                        method: 'GET',
+                      });
+  
+                      if (streetsResponse) {
+                        setStreets(streetsResponse);
+                        
+                        if (response.street && response.streetId) {
+                          const selectedStreet = streetsResponse.find(s => s.street === response.street);
+                          if (selectedStreet) {
+                            setSelectedStreets(selectedStreet);
+                            form.setValue('street', selectedStreet.street);
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch(err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error occurred');
+      console.log(err);
+    }
+  }
+
+  useEffect(() => {
+    retrieveData();
+  }, []);
+
+  const onSubmit = async (data: SchoolFormData) => {
+    console.log('School Details Submitted:', {
+      schoolName: data.name,
+      schoolContact: data.contactNumber,
+      schoolEmail: data.email,
+      schoolWebUrl: data.website,
+      schoolAddress: data.schoolAddress,
+      streetId: selectedStreets?.streetId ? selectedStreets.streetId : null,
+      schoolId: data.id.length > 0 ? Number(data.id) : null,
+    });
+
+    try{
+      const response = await requestData<{ message: string }>({
+        url: 'http://localhost:3000/api/school-details/save',
+        method: 'POST',
+        body: {
+          schoolName: data.name,
+          schoolContact: data.contactNumber,
+          schoolEmail: data.email,
+          schoolWebUrl: data.website,
+          schoolAddress: data.schoolAddress,
+          streetId: selectedStreets?.streetId ? selectedStreets.streetId : null,
+          schoolId: data.id.length > 0 ? Number(data.id) : null,
+        }
+      })
+
+      if(response){
+        toast.success(response.message);
+      }
+    }catch(err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error occurred');
+      console.log(err);
+    }
   };
 
   return (
@@ -314,8 +461,9 @@ export default function SchoolDetails() {
                     name="id"
                     label="School ID"
                     placeholder="312312312"
-                    inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-gray-100 cursor-not-allowed" // Grayed out
                     labelStyle="block text-sm font-semibold"
+                    readOnly={true} // Makes it non-editable
                   />
 
                   <CustomInput
@@ -350,7 +498,6 @@ export default function SchoolDetails() {
 
               {/* Right card */}
               <div className="bg-white shadow-sm rounded-lg p-6">
-                <h2 className="text-lg font-medium text-accent mb-4">Address</h2>
                 <div className="space-y-4">
                   <CustomSelect
                     control={form.control}
@@ -391,10 +538,19 @@ export default function SchoolDetails() {
                     selectStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
                     labelStyle="block text-sm font-semibold"
                   />
+
+                  <CustomInput
+                    control={form.control}
+                    name="schoolAddress"
+                    label="School Address"
+                    placeholder="123 Main St, San Francisco, CA 94102"
+                    inputStyle="w-full p-2 rounded-md border-2 border-text-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-[13px]"
+                    labelStyle="block text-sm font-semibold"
+                  />
                 </div>
               </div>
             </div>
-            
+
         {/* Submit Button */}
           <div className="col-span-2 mt-4 flex justify-center">
             <button
