@@ -1,6 +1,6 @@
 import { Dialog, Transition, Combobox } from "@headlessui/react";
-import { Fragment, useState } from "react";
-import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
+import { Fragment, useCallback, useMemo, useState } from "react";
+import { useEnrollmentReview } from "@/app/admin/context/useEnrollmentReview";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowsRotate,
@@ -70,7 +70,11 @@ export default function ReassignSectionModal() {
 
       if (selectedSection?.sectionId) {
         queryClient.invalidateQueries({
-          queryKey: ["enrolledStudents", selectedSection.sectionId],
+          queryKey: [
+            "enrolledStudents",
+            selectedSection.sectionId,
+            selectedSection?._unassigned,
+          ],
         });
       }
 
@@ -88,8 +92,11 @@ export default function ReassignSectionModal() {
   });
 
   // Check if the student can be reassigned (only "Accepted" students)
-  const canReassign =
-    selectedStudent?.applicationStatus === Enums.attachment_status.accepted;
+  const canReassign = useMemo(
+    () =>
+      selectedStudent?.applicationStatus === Enums.attachment_status.accepted,
+    [selectedStudent?.applicationStatus],
+  );
 
   /**
    * Closes the modal and resets the form state
@@ -105,7 +112,7 @@ export default function ReassignSectionModal() {
    * Currently logs the action and closes the modal
    * Please replace with the actual API call
    */
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (selectedNewSection && selectedStudent) {
       console.log(
         `Reassigning student ${selectedStudent.studentName} to section ${selectedNewSection.sectionName}`,
@@ -116,20 +123,23 @@ export default function ReassignSectionModal() {
         sectionId: selectedNewSection.sectionId,
       });
     }
-  };
+  }, [mutateReassign, selectedNewSection, selectedStudent]);
 
   /**
    * Filters sections based on the search query
    * Returns all sections if query is empty, otherwise filters by section name
    */
-  const filteredSections =
-    query === ""
-      ? sections?.filter((s) => !s._unassigned)
-      : sections
-          ?.filter((s) => !s._unassigned)
-          ?.filter((section) =>
-            section.sectionName.toLowerCase().includes(query.toLowerCase()),
-          );
+  const filteredSections = useMemo(
+    () =>
+      query === ""
+        ? sections?.filter((s) => !s._unassigned)
+        : sections
+            ?.filter((s) => !s._unassigned)
+            ?.filter((section) =>
+              section.sectionName.toLowerCase().includes(query.toLowerCase()),
+            ),
+    [query, sections],
+  );
 
   return (
     <Transition appear show={isSectionModalOpen} as={Fragment}>

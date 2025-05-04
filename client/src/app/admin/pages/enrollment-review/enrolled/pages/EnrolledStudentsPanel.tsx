@@ -1,5 +1,5 @@
 import React from "react";
-import { useEnrolledStudents } from "../../../../context/enrolledStudentsContext";
+import { useEnrolledStudents } from "@/app/admin/context/useEnrolledStudents";
 import PrintButton from "./PrintButton";
 
 /**
@@ -58,8 +58,7 @@ const EnrolledStudentsPanel: React.FC = () => {
           </h3>
         </div>
         <div className="text-text-2 flex items-center gap-2 text-xs">
-          <PrintButton />
-           :
+          <PrintButton />:
           <div className="bg-accent/40 text-primary rounded-[10px] px-10 py-[8px] text-sm">
             {getGradeLevelName()} {selectedSection && `- ${getSectionName()}`}
           </div>

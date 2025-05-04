@@ -5,11 +5,11 @@ export type requestResultType = {
 }
 
 export const requestData = async <T>(
-    { url, method, body }: 
-    { 
-        url: string, 
-        method: string, 
-        body?: object 
+    { url, method, body }:
+    {
+        url: string,
+        method: string,
+        body?: object
     }
 )=> {
     const requestOption: RequestInit = {

@@ -1,5 +1,5 @@
 import React from "react";
-import { useEnrolledStudents } from "../../../../context/enrolledStudentsContext";
+import { useEnrolledStudents } from "@/app/admin/context/useEnrolledStudents";
 
 /**
  * EnrolledGradeLevelsPanel Component

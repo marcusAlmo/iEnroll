@@ -1,5 +1,5 @@
-import React from "react";
-import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
+import React, { useMemo } from "react";
+import { useEnrollmentReview } from "@/app/admin/context/useEnrollmentReview";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSquareCheck } from "@fortawesome/free-solid-svg-icons";
 import Enums from "@/services/common/types/enums";
@@ -26,7 +26,10 @@ export const StudentsPanel: React.FC = () => {
     isStudentPending,
   } = useEnrollmentReview();
 
-  const isUnassignedSection = selectedSection?._unassigned;
+  const isUnassignedSection = useMemo(
+    () => selectedSection?._unassigned,
+    [selectedSection?._unassigned],
+  );
 
   const handleSectionButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();

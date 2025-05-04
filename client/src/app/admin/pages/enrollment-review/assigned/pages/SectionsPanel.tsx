@@ -1,5 +1,5 @@
 import React from "react";
-import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
+import { useEnrollmentReview } from "@/app/admin/context/useEnrollmentReview";
 
 /**
  * SectionsPanel Component
@@ -44,7 +44,9 @@ export const SectionsPanel: React.FC = () => {
                 <li
                   key={section.sectionId}
                   className={`hover:bg-accent/50 w-full cursor-pointer rounded-[20px] px-3 py-1 font-semibold transition-all duration-300 ease-in-out hover:scale-105 ${
-                    selectedSection?.sectionId === section.sectionId ? "bg-accent" : ""
+                    selectedSection?.sectionId === section.sectionId
+                      ? "bg-accent"
+                      : ""
                   }`}
                   onClick={() => setSelectedSection(section)}
                 >

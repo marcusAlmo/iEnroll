@@ -35,4 +35,40 @@ export class SchoolDetailsService {
 
     return result.data as { message: string };
   }
+
+  public async getProvince(): Promise<SchoolDetails['province'][]> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-province' }, {}),
+    );
+    await this.exceptionCheckerService.checker(result);
+    return result.data as SchoolDetails['province'][];
+  }
+
+  public async getMunicipality(
+    payload: object,
+  ): Promise<SchoolDetails['municipality'][]> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-municipality' }, payload),
+    );
+    await this.exceptionCheckerService.checker(result);
+    return result.data as SchoolDetails['municipality'][];
+  }
+
+  public async getDistrict(
+    payload: object,
+  ): Promise<SchoolDetails['district'][]> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-district' }, payload),
+    );
+    await this.exceptionCheckerService.checker(result);
+    return result.data as SchoolDetails['district'][];
+  }
+
+  public async getStreet(payload: object): Promise<SchoolDetails['street'][]> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-street' }, payload),
+    );
+    await this.exceptionCheckerService.checker(result);
+    return result.data as SchoolDetails['street'][];
+  }
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
+import { useEnrollmentReview } from "@/app/admin/context/useEnrollmentReview";
 
 /**
  * RequirementsPanel Component
@@ -57,11 +57,11 @@ export const RequirementsPanel: React.FC = () => {
                   </td>
                   <td className="w-1/4 border-b py-1">
                     <span className="cursor-pointer items-center justify-center rounded text-start align-middle font-semibold transition-all duration-300 ease-in-out">
-                      {requirement.requirementStatus === 'accepted' ? (
+                      {requirement.requirementStatus === "accepted" ? (
                         <p className="bg-success/20 my-2 mr-2 rounded-full border border-green-700 py-1 text-center text-xs text-green-700">
                           Approved
                         </p>
-                      ) : requirement.requirementStatus === 'invalid' ? (
+                      ) : requirement.requirementStatus === "invalid" ? (
                         <p className="bg-danger/20 my-2 mr-2 rounded-full border border-red-700 py-1 text-center text-xs text-red-700">
                           Denied
                         </p>

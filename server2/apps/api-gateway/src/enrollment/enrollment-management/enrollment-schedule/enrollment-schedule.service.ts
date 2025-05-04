@@ -13,50 +13,63 @@ export class EnrollmentScheduleService {
   ) {}
 
   public async getAllGrades(
-    schoolId: number,
-  ): Promise<EnrollmentSchedule['processedGradeLevel']> {
+    payload: object,
+  ): Promise<EnrollmentSchedule['gradeLevelFormat']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'get-all-schedules' }, { schoolId }),
+      this.client.send({ cmd: 'get-all-schedules' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as EnrollmentSchedule['processedGradeLevel'];
+    return result.data as EnrollmentSchedule['gradeLevelFormat'];
   }
 
   public async storeData(
     payload: object,
-  ): Promise<MicroserviceUtility['returnValue']> {
+  ): Promise<EnrollmentSchedule['processReturn']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'store-data' }, { payload }),
+      this.client.send({ cmd: 'store-data' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as MicroserviceUtility['returnValue'];
+    return result.data as EnrollmentSchedule['processReturn'];
   }
 
   public async pauseSchedule(
     payload: object,
-  ): Promise<MicroserviceUtility['returnValue']> {
+  ): Promise<EnrollmentSchedule['processReturn']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'pause-schedule' }, { payload }),
+      this.client.send({ cmd: 'pause-schedule' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as MicroserviceUtility['returnValue'];
+    return result.data as EnrollmentSchedule['processReturn'];
   }
 
   public async deleteSchedule(
     payload: object,
-  ): Promise<MicroserviceUtility['returnValue']> {
+  ): Promise<EnrollmentSchedule['processReturn']> {
+    console.log(payload);
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'delete-schedule' }, { payload }),
+      this.client.send({ cmd: 'delete-schedule' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as MicroserviceUtility['returnValue'];
+    return result.data as EnrollmentSchedule['processReturn'];
+  }
+
+  public async updateAllowSelection(
+    payload: object,
+  ): Promise<EnrollmentSchedule['processReturn']> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'update-allow-selection' }, payload),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as EnrollmentSchedule['processReturn'];
   }
 }

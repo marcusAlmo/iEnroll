@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useEnrolledStudents } from "../../../../context/enrolledStudentsContext";
+import { useEnrolledStudents } from "@/app/admin/context/useEnrolledStudents";
 import { useQuery } from "@tanstack/react-query";
 import {
   getAllStudentsEnrolled,

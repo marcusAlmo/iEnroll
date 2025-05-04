@@ -72,7 +72,6 @@ export class DateTimeUtilityService {
     return dateInGMT8.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
     });
   }
 
@@ -96,6 +95,17 @@ export class DateTimeUtilityService {
     return `${monthString} ${year}`;
   }
 
+  static getDateTOString(date: Date): string {
+    const formattedDate = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+
+    return formattedDate;
+  }
+
   // returns the date in string format
   static getDateString(): string {
     const year = this.getCurrentYear();
@@ -113,5 +123,22 @@ export class DateTimeUtilityService {
     const day = String(timestamp.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+  }
+
+  static stringToDate(date: string, time: string) {
+    const dateTimeString = `${date}T${time}:00`;
+
+    const dateObject = new Date(dateTimeString);
+
+    return dateObject;
+  }
+
+  static getTime12HourFormatUTC(date: Date): string {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC',
+    });
   }
 }

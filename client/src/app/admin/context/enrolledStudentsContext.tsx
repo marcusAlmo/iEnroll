@@ -4,7 +4,8 @@ import {
   getAllStudentsEnrolledBySection,
 } from "@/services/desktop-web-app/enrollment-review/enrolled";
 import { useQuery } from "@tanstack/react-query";
-import React, { createContext, useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { EnrolledStudentsContext } from "./EnrolledStudentsContext.1";
 // import enrolledStudentsData from "../pages/enrollment-review/test/enrolledStudentsData.json";
 
 /**
@@ -43,7 +44,7 @@ interface EnrolledStudent {
  * Props for the EnrolledStudentsContext
  * Defines all state variables and setter functions available in the context
  */
-interface EnrolledStudentsContextProps {
+export interface EnrolledStudentsContextProps {
   // Grade level state
   gradeLevels: GradeLevel[] | undefined; // Available grade levels
   isGradeLevelPending: boolean; // Loading state for grade levels
@@ -68,11 +69,6 @@ interface EnrolledStudentsContextProps {
   searchTerm: string; // Search term for filtering students
   setSearchTerm: (term: string) => void; // Function to update search term
 }
-
-// Create the context with undefined default value
-const EnrolledStudentsContext = createContext<
-  EnrolledStudentsContextProps | undefined
->(undefined);
 
 /**
  * Provider component for the EnrolledStudents context
@@ -213,22 +209,3 @@ export const EnrolledStudentsProvider: React.FC<{
     </EnrolledStudentsContext.Provider>
   );
 };
-
-/**
- * Custom hook to use the EnrolledStudents context
- *
- * This hook provides a convenient way to access the context in components
- * and includes error handling to ensure it's used correctly.
- *
- * @returns The EnrolledStudents context value
- * @throws Error if used outside of EnrolledStudentsProvider
- */
-export function useEnrolledStudents() {
-  const context = React.useContext(EnrolledStudentsContext);
-  if (!context) {
-    throw new Error(
-      "useEnrolledStudents must be used within an EnrolledStudentsProvider",
-    );
-  }
-  return context;
-}
