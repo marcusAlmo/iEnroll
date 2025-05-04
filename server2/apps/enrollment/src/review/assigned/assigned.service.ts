@@ -64,6 +64,11 @@ export class AssignedService {
     const result = await this.prisma.student_enrollment.findMany({
       where: {
         grade_section_id: sectionId,
+        // enrollment_application: {
+        //   status: {
+        //     in: ['accepted', 'pending'],
+        //   },
+        // },
       },
       select: {
         enrollment_application: {
@@ -109,7 +114,13 @@ export class AssignedService {
   }
   async getAllStudentsUnassigned(gradeLevelId: number) {
     const result = await this.prisma.enrollment_application.findMany({
-      where: { grade_level_offered_id: gradeLevelId, student_enrollment: null },
+      where: {
+        grade_level_offered_id: gradeLevelId,
+        student_enrollment: null,
+        // status: {
+        //   in: ['accepted', 'pending'],
+        // },
+      },
       select: {
         status: true,
         student: {
@@ -156,6 +167,7 @@ export class AssignedService {
         status: true,
         attachment_type: true,
         text_content: true,
+        remarks: true,
         enrollment_requirement: {
           select: {
             name: true,
@@ -180,6 +192,8 @@ export class AssignedService {
         requirementType: data.attachment_type,
         requirementStatus: data.status,
 
+        remarks: data.remarks,
+
         // requirementType = image or document
         fileUrl: data.file?.uuid
           ? this.fileCommonService.formatFileUrl(data.file.uuid)
@@ -198,6 +212,7 @@ export class AssignedService {
     applicationId: number,
     requirementId: number,
     reviewerId: number,
+    remarks?: string,
   ) {
     let status: $Enums.attachment_status;
 
@@ -224,6 +239,7 @@ export class AssignedService {
         data: {
           status,
           reviewer_id: reviewerId,
+          remarks,
         },
       });
 
@@ -239,6 +255,165 @@ export class AssignedService {
         });
       }
       throw error;
+    }
+  }
+
+  async enrollStudent(
+    studentId: number,
+    sectionId: number,
+    approverId: number,
+    enrollmentRemarks?: string,
+  ) {
+    const [enrollmentApplication, sectionExists, approverExists] =
+      await this.prisma.$transaction([
+        this.prisma.enrollment_application.findFirst({
+          where: {
+            student: {
+              enroller_id: studentId,
+            },
+          },
+          select: {
+            application_id: true,
+            status: true,
+            student_enrollment: {
+              select: {
+                enrollment_id: true,
+              },
+            },
+          },
+        }),
+        this.prisma.grade_section.findUnique({
+          where: { grade_section_id: sectionId },
+          select: { grade_section_id: true },
+        }),
+        this.prisma.user.findFirst({
+          where: {
+            user_id: approverId,
+          },
+          select: {
+            user_id: true,
+          },
+        }),
+      ]);
+
+    if (!enrollmentApplication) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_APPLICATION_NOT_FOUND',
+      });
+    }
+
+    if (!sectionExists) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_SECTION_NOT_FOUND',
+      });
+    }
+
+    if (!approverExists) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_APPROVER_NOT_FOUND',
+      });
+    }
+
+    if (enrollmentApplication.status !== $Enums.application_status.accepted) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_CANNOT_ENROLL_IF_NOT_ACCEPTED',
+      });
+    }
+
+    if (enrollmentApplication.student_enrollment) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_CANNOT_RE_ENROLL',
+      });
+    }
+
+    try {
+      await this.prisma.student_enrollment.create({
+        data: {
+          enrollment_id: enrollmentApplication.application_id,
+          grade_section_id: sectionId,
+          approver_id: approverId,
+          enrollment_remarks: enrollmentRemarks,
+        },
+      });
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new RpcException({
+        statusCode: 500,
+        message: 'ERR_FAILED_TO_CREATE_ENROLLMENT',
+      });
+    }
+  }
+
+  async reassignStudentIntoDifferentSection(
+    studentId: number,
+    sectionId: number,
+  ) {
+    const [studentEnrollment, sectionExists] = await this.prisma.$transaction([
+      this.prisma.student_enrollment.findFirst({
+        where: {
+          enrollment_application: {
+            student: { enroller_id: studentId },
+          },
+        },
+        select: {
+          grade_section_id: true,
+          enrollment_id: true,
+        },
+      }),
+      this.prisma.grade_section.findUnique({
+        where: { grade_section_id: sectionId },
+        select: { grade_section_id: true },
+      }),
+    ]);
+
+    if (!studentEnrollment) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_APPLICATION_NOT_FOUND',
+      });
+    }
+
+    if (!sectionExists) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_SECTION_NOT_FOUND',
+      });
+    }
+
+    if (sectionId === studentEnrollment.grade_section_id) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_CANNOT_REASSIGN_WITH_SAME_SECTION',
+      });
+    }
+
+    try {
+      await this.prisma.student_enrollment.update({
+        where: {
+          enrollment_id: studentEnrollment.enrollment_id,
+        },
+        data: {
+          grade_section_id: sectionId,
+        },
+      });
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new RpcException({
+        statusCode: 500,
+        message: 'ERR_FAILED_TO_UPDATE_SECTION',
+      });
     }
   }
 }

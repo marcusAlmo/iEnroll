@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormResetContext } from "@/app/admin/pages/personnel-center/PersonnelCenter";
-import { toast } from "react-hot-toast"; 
+import { toast } from "react-hot-toast";
 
 // Zod schema for validation
 const schema = z.object({

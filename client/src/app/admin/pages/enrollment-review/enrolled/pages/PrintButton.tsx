@@ -44,6 +44,8 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = "" }) => {
     students: sectionStudents,
     isSectionsPending,
     searchTerm,
+    refetchStudents,
+    isStudentsRefetching,
   } = useEnrolledStudents();
 
   const toEnrolledStudents = (students: EnrolledStudent[]) => students;
@@ -150,13 +152,13 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = "" }) => {
   }, [selectedGradeLevel, gradeLevels]);
 
   // Get the section name for the selected section
-  const getSectionName = () => {
+  const getSectionName = useCallback(() => {
     if (!selectedSection) return "All Sections";
     const section = sections?.find(
       (section) => section.sectionId === selectedSection,
     );
     return section ? section.sectionName : "All Sections";
-  };
+  }, [sections, selectedSection]);
 
   // Filter students based on search term
   // const filteredStudents = students.filter(student =>
@@ -276,11 +278,11 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = "" }) => {
     }
   }, [mode, allStudents, printStudents, isAllStudentsPending]);
 
-  const handlePrintByGradeLevel = () => {
+  const handlePrintByGradeLevel = useCallback(() => {
     if (!selectedGradeLevel) return;
 
     setMode(2);
-  };
+  }, [selectedGradeLevel]);
 
   useEffect(() => {
     if (mode === 2 && !isGradeLevelPending && gradeLevelStudents) {
@@ -295,15 +297,40 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = "" }) => {
     isGradeLevelPending,
   ]);
 
-  // Handle printing students by section
-  const handlePrintBySection = () => {
-    if (!selectedSection || !sectionStudents || isSectionsPending) return;
+  useEffect(() => {
+    const refetch = async () => {
+      if (selectedSection) {
+        await refetchStudents();
+      }
+    };
+    if (mode === 3) {
+      refetch();
+    }
+  }, [mode, refetchStudents, selectedSection]);
 
-    printStudents(
-      sectionStudents,
-      `Students in ${getGradeLevelName()} - ${getSectionName()}`,
-    );
-  };
+  const handlePrintBySection = useCallback(() => {
+    if (!selectedSection) return;
+
+    setMode(3);
+  }, [selectedSection]);
+
+  useEffect(() => {
+    if (mode === 3 && !isStudentsRefetching && sectionStudents) {
+      printStudents(
+        sectionStudents,
+        `Students in ${getGradeLevelName()} - ${getSectionName()}`,
+      );
+      setMode(undefined);
+    }
+  }, [
+    mode,
+    sectionStudents,
+    printStudents,
+    getGradeLevelName,
+    getSectionName,
+    isSectionsPending,
+    isStudentsRefetching,
+  ]);
 
   return (
     <div className="relative" ref={dropdownRef}>

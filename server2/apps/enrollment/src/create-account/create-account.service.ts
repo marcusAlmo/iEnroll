@@ -191,8 +191,7 @@ export class CreateAccountService {
     } else if (
       createUserDto.street &&
       createUserDto.district &&
-      createUserDto.municipalityId &&
-      createUserDto.provinceId
+      createUserDto.municipalityId
     ) {
       const district = await this.createDistrict(
         tx,
@@ -212,12 +211,7 @@ export class CreateAccountService {
         municipalityId: createUserDto.municipalityId,
         provinceId: createUserDto.provinceId,
       });
-    } else if (
-      createUserDto.street &&
-      createUserDto.districtId &&
-      createUserDto.municipalityId &&
-      createUserDto.provinceId
-    ) {
+    } else if (createUserDto.street && createUserDto.districtId) {
       const street = await this.createStreet(
         tx,
         createUserDto.street,
@@ -231,12 +225,7 @@ export class CreateAccountService {
         municipalityId: createUserDto.municipalityId,
         provinceId: createUserDto.provinceId,
       });
-    } else if (
-      createUserDto.streetId &&
-      createUserDto.districtId &&
-      createUserDto.municipalityId &&
-      createUserDto.provinceId
-    ) {
+    } else if (createUserDto.streetId) {
       return await this.createAddress(tx, {
         streetId: createUserDto.streetId,
         street: createUserDto.street,
@@ -320,7 +309,7 @@ export class CreateAccountService {
   }
 
   async getAllSchools() {
-    return this.prisma.school.findMany({
+    const result = await this.prisma.school.findMany({
       select: {
         school_id: true,
         name: true,
@@ -335,6 +324,13 @@ export class CreateAccountService {
         is_active: true,
       },
     });
+
+    return result.map((school) => ({
+      schoolId: school.school_id,
+      school: school.name,
+      address: school.address.address_line_1,
+      // contactNumber: school.contact_number,
+    }));
   }
 
   async getAllAddresses() {
@@ -378,6 +374,71 @@ export class CreateAccountService {
           })),
         })),
       })),
+    }));
+  }
+
+  async getAllProvinces() {
+    const result = await this.prisma.province.findMany({
+      select: {
+        province_id: true,
+        province: true,
+      },
+    });
+
+    return result.map((province) => ({
+      provinceId: province.province_id,
+      province: province.province,
+    }));
+  }
+
+  async getAllMunicipalitiesByProvinceId(provinceId: number) {
+    const result = await this.prisma.municipality.findMany({
+      select: {
+        municipality_id: true,
+        municipality: true,
+      },
+      where: {
+        province_id: provinceId,
+      },
+    });
+
+    return result.map((municipality) => ({
+      municipalityId: municipality.municipality_id,
+      municipality: municipality.municipality,
+    }));
+  }
+
+  async getAllDistrictsByMunicipalityId(municipalityId: number) {
+    const result = await this.prisma.district.findMany({
+      select: {
+        district_id: true,
+        district: true,
+      },
+      where: {
+        municipality_id: municipalityId,
+      },
+    });
+
+    return result.map((district) => ({
+      districtId: district.district_id,
+      district: district.district,
+    }));
+  }
+
+  async getAllStreetsByDistrictId(districtId: number) {
+    const result = await this.prisma.street.findMany({
+      select: {
+        street_id: true,
+        street: true,
+      },
+      where: {
+        district_id: districtId,
+      },
+    });
+
+    return result.map((street) => ({
+      streetId: street.street_id,
+      street: street.street,
     }));
   }
 

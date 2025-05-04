@@ -1,7 +1,7 @@
 import { requestData } from '@/lib/dataRequester';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
-
+import { toast } from 'react-toastify';
 
 type EnrollmentCollection = {
   name: string;
@@ -19,6 +19,7 @@ const DonutChart = () => {
 
   // data container
   const [data, setData] = useState<PieChartData['gradeEnrollmentCollections']>([]);
+  const hasFetched = useRef(false);
 
   // fetch data from the server
   const fetchData = async () => {
@@ -29,18 +30,18 @@ const DonutChart = () => {
       });
 
       if(response) {
-        console.log('response: ', response);
         setData(response.gradeEnrollmentCollections);
       }
     } catch (err) {
-      if(err instanceof Error) {
-        console.log(err.message);
-      }
+      if(err instanceof Error) toast.error(err.message);
+      else console.error(err);
     }
   }
 
   // execute upon render
   useEffect(() => {
+    if (hasFetched.current) return; // prevent double fetch
+    hasFetched.current = true;
     fetchData();
   }, []);
 
