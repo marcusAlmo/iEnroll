@@ -10,6 +10,8 @@ import {
   RequirementResponse,
   SectionResponse,
   StudentResponse,
+  UpdateEnrollmentBody,
+  UpdateEnrollmentResponse,
 } from "../types";
 import {
   getGradeLevels,
@@ -20,6 +22,7 @@ import {
   approveOrDenyMockRequirement,
   enrollMockStudent,
   reassignMockStudentIntoDifferentSection,
+  updateMockEnrollmentStatus,
 } from "./test";
 
 export const getAllGradeLevels = async () => {
@@ -89,4 +92,13 @@ export const reassignStudentIntoDifferentSection = async (
       payload,
     );
   else return reassignMockStudentIntoDifferentSection(payload);
+};
+
+export const updateEnrollmentStatus = async (payload: UpdateEnrollmentBody) => {
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
+    return instance.patch<UpdateEnrollmentResponse>(
+      `/api/enrollment/review/assigned/enrollment/status`,
+      payload,
+    );
+  else return { data: updateMockEnrollmentStatus(payload) };
 };

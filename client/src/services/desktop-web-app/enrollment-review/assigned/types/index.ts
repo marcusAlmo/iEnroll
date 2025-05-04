@@ -68,3 +68,18 @@ export interface EnrollResponse {
 export interface ReassignResponse {
   success: boolean;
 }
+
+export enum EnrollmentStatus {
+  ACCEPTED = "accepted",
+  DENIED = "denied",
+  INVALID = "invalid",
+}
+
+export interface UpdateEnrollmentBody {
+  status: EnrollmentStatus;
+  studentId: number;
+}
+
+export interface UpdateEnrollmentResponse {
+  success: boolean;
+}

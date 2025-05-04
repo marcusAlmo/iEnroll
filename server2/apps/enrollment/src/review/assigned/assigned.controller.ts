@@ -123,4 +123,20 @@ export class AssignedController {
       payload.sectionId,
     );
   }
+
+  @MessagePattern({
+    cmd: 'enrollment_review_assigned:update_enrollment_status',
+  })
+  async updateEnrollmentStatus(
+    @Payload()
+    payload: {
+      status: 'accepted' | 'denied' | 'invalid';
+      studentId: number;
+    },
+  ) {
+    return await this.assignedService.updateEnrollmentStatus(
+      payload.status,
+      payload.studentId,
+    );
+  }
 }

@@ -43,3 +43,11 @@ export type ReassignSectionPayload = Parameters<
 export type ReassignSectionReturn = Awaited<
   ReturnType<AssignedController['reassignStudentIntoDifferentSection']>
 >;
+
+export type UpdateEnrollmentPayload = Parameters<
+  AssignedController['updateEnrollmentStatus']
+>[0];
+
+export type UpdateEnrollmentReturn = Awaited<
+  ReturnType<AssignedController['updateEnrollmentStatus']>
+>;

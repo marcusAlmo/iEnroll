@@ -2,6 +2,7 @@ import Enums from "@/services/common/types/enums";
 import {
   ApproveOrDenyBody,
   EnrollBody,
+  EnrollmentStatus,
   EnrollResponse,
   GradeLevelResponse,
   ReassignBody,
@@ -10,6 +11,8 @@ import {
   RequirementResponse,
   SectionResponse,
   StudentResponse,
+  UpdateEnrollmentBody,
+  UpdateEnrollmentResponse,
 } from "../../types";
 import { data } from "./sample-data";
 
@@ -241,3 +244,105 @@ export const reassignMockStudentIntoDifferentSection = (
 
   return { success: true };
 };
+
+export const updateMockEnrollmentStatus = (
+  payload: UpdateEnrollmentBody,
+): UpdateEnrollmentResponse => {
+  const { studentId, status } = payload;
+
+  // Find the student within sections or unassigned
+  let studentFound = false;
+
+  for (const grade of data) {
+    // Check within sections
+    for (const section of grade.sections) {
+      const student = section.students.find((s) => s.studentId === studentId);
+      if (student) {
+        processStatusChange(student, status);
+        studentFound = true;
+        return {
+          success: true,
+        };
+      }
+    }
+
+    // Check within unassigned
+    const student = grade.unassigned.find((s) => s.studentId === studentId);
+    if (student) {
+      processStatusChange(student, status);
+      studentFound = true;
+      return {
+        success: true,
+      };
+    }
+  }
+
+  if (!studentFound) {
+    throw new Error("ERR_APPLICATION_NOT_FOUND");
+  }
+
+  throw new Error("Something is wrong.");
+};
+
+function processStatusChange(
+  student: {
+    enrollmentStatus: string;
+    requirements: { requirementStatus: string }[];
+  },
+  status: EnrollmentStatus,
+) {
+  if (!student.requirements || student.requirements.length === 0) {
+    throw new Error("ERR_NO_REQUIREMENTS_FOUND");
+  }
+
+  switch (status) {
+    case EnrollmentStatus.ACCEPTED: {
+      const hasAcceptedRequirements = student.requirements.every(
+        (req) => req.requirementStatus === Enums.attachment_status.accepted,
+      );
+      if (!hasAcceptedRequirements) {
+        throw new Error("ERR_REQUIREMENTS_NOT_COMPLETED");
+      }
+      student.enrollmentStatus = Enums.application_status.accepted;
+      break;
+    }
+
+    case EnrollmentStatus.DENIED: {
+      const hasAllInvalidRequirements = student.requirements.every(
+        (req) => req.requirementStatus === Enums.attachment_status.invalid,
+      );
+      if (!hasAllInvalidRequirements) {
+        throw new Error("ERR_DENIED_REQUIRES_ALL_INVALID");
+      }
+      student.enrollmentStatus = Enums.application_status.denied;
+      break;
+    }
+
+    case EnrollmentStatus.INVALID: {
+      let hasInvalid = false;
+      let hasNonInvalid = false;
+
+      for (const requirement of student.requirements) {
+        if (
+          requirement.requirementStatus === Enums.application_status.invalid
+        ) {
+          hasInvalid = true;
+        } else {
+          hasNonInvalid = true;
+        }
+
+        if (hasInvalid && hasNonInvalid) break;
+      }
+
+      if (!hasInvalid || !hasNonInvalid) {
+        throw new Error("ERR_INVALID_REQUIRES_PARTIAL_INVALID_ONLY");
+      }
+
+      student.enrollmentStatus = Enums.application_status.invalid;
+      break;
+    }
+
+    default:
+      throw new Error("ERR_INVALID_STATUS");
+  }
+}
