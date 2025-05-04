@@ -1,7 +1,11 @@
 import Enums from "@/services/common/types/enums";
 import {
   ApproveOrDenyBody,
+  EnrollBody,
+  EnrollResponse,
   GradeLevelResponse,
+  ReassignBody,
+  ReassignResponse,
   Requirement,
   RequirementResponse,
   SectionResponse,
@@ -164,4 +168,76 @@ export const approveOrDenyMockRequirement = (
   requirement.remarks = remarks ?? null;
 
   return requirement;
+};
+
+export const enrollMockStudent = (payload: EnrollBody): EnrollResponse => {
+  const gradeIdx = data.findIndex((grade) =>
+    grade.unassigned.some((student) => student.studentId === payload.studentId),
+  );
+
+  if (gradeIdx === -1) throw new Error("Student not found in unassigned list.");
+
+  const grade = data[gradeIdx];
+
+  const studentIdx = grade.unassigned.findIndex(
+    (student) => student.studentId === payload.studentId,
+  );
+  const [student] = grade.unassigned.splice(studentIdx, 1); // This modifies `data[gradeIdx].unassigned`
+
+  student.enrollmentStatus = Enums.application_status.accepted;
+
+  const section = grade.sections.find(
+    (sec) => sec.sectionId === payload.sectionId,
+  );
+
+  if (!section) {
+    grade.unassigned.splice(studentIdx, 0, student);
+    throw new Error("Target section not found in the same grade.");
+  }
+
+  section.students.push(student);
+
+  return { success: true };
+};
+
+export const reassignMockStudentIntoDifferentSection = (
+  payload: ReassignBody,
+): ReassignResponse => {
+  let studentFound = false;
+
+  data.forEach((grade) => {
+    grade.sections.forEach((section) => {
+      const studentIdx = section.students.findIndex(
+        (student) => student.studentId === payload.studentId,
+      );
+
+      if (studentIdx !== -1) {
+        // Check if the student is already in the target section
+        // if (section.sectionId === payload.sectionId) {
+        //   throw new Error("Student is already assigned to the target section.");
+        // }
+
+        const [student] = section.students.splice(studentIdx, 1);
+
+        const targetSection = grade.sections.find(
+          (s) => s.sectionId === payload.sectionId,
+        );
+
+        if (!targetSection) {
+          // Restore the student if the target section isn't found
+          section.students.splice(studentIdx, 0, student);
+          throw new Error("Target section not found in the same grade.");
+        }
+
+        targetSection.students.push(student);
+        studentFound = true;
+      }
+    });
+  });
+
+  if (!studentFound) {
+    throw new Error("Student not found in any section.");
+  }
+
+  return { success: true };
 };

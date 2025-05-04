@@ -9,6 +9,7 @@ import {
 import { AssignedService } from './assigned.service';
 import { ApproveOrDenyDto } from './dtos/requirement.dto';
 import { User } from '@lib/decorators/user.decorator';
+import { EnrollDto, ReassignDto } from './dtos/enrollment.dto';
 
 @Controller('assigned')
 export class AssignedController {
@@ -55,6 +56,24 @@ export class AssignedController {
     return await this.assignedService.approveOrDenyAttachment({
       ...approveOrDenyDto,
       reviewerId,
+    });
+  }
+
+  @Post('enroll')
+  async enrollStudent(
+    @Body() enrollDto: EnrollDto,
+    @User('user_id') approverId: number,
+  ) {
+    return await this.assignedService.enrollStudent({
+      ...enrollDto,
+      approverId,
+    });
+  }
+
+  @Post('section/reassign')
+  async reassignStudentIntoDifferentSection(@Body() reassignDto: ReassignDto) {
+    return await this.assignedService.reassignStudentIntoDifferentSection({
+      ...reassignDto,
     });
   }
 }
