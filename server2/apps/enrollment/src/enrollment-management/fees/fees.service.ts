@@ -93,7 +93,6 @@ export class FeesService {
       return this.microserviceUtilityService.returnSuccess({ message: result });
       // eslint-disable-next-line
     } catch (err) {
-      console.log(err);
       return this.microserviceUtilityService.internalServerErrorReturn(
         'An error has occured while applying changes',
       );
@@ -170,11 +169,6 @@ export class FeesService {
         student: {
           user_student_enroller_idTouser: {
             school_id: schoolId,
-            user_role_user_role_user_idTouser: {
-              some: {
-                is_active: true,
-              },
-            },
           },
         },
       },
@@ -299,6 +293,7 @@ export class FeesService {
   ): Promise<void> {
     const allData = gradeSectionProgramIds.flatMap((id) =>
       fees.map((f) => ({
+        fee_type_id: f.feeTypeId,
         name: f.feeName,
         amount: new Decimal(f.amount),
         description: f.description,

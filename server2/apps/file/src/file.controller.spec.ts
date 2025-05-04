@@ -4,6 +4,7 @@ import { FileService } from './file.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { OcrService } from '@lib/ocr/ocr.service';
 import { BlurryDetectorService } from '@lib/blurry-detector/blurry-detector.service';
+import { FileCommonService } from '@lib/file-common/file-common.service';
 
 describe('FileController', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -17,6 +18,7 @@ describe('FileController', () => {
         PrismaService,
         OcrService,
         BlurryDetectorService,
+        FileCommonService,
       ],
     }).compile();
 

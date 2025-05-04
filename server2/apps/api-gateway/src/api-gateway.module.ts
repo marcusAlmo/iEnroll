@@ -22,7 +22,7 @@ import { FileModule } from './file/file.module';
 import { ImageModule } from './image/image.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { HealthModule } from './health/health.module';
-
+import { SystemManagementModule } from './system-management/system-management.module';
 @Module({
   imports: [
     // ServeStaticModule.forRoot({
@@ -39,6 +39,7 @@ import { HealthModule } from './health/health.module';
       rabbitMQConstants.FILE,
       rabbitMQConstants.IMAGE,
     ]),
+    SystemManagementModule,
     GoogleStrategyModule,
     EnrollmentModule,
     FileModule,

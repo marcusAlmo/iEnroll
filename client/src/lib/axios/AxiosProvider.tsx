@@ -19,6 +19,8 @@ export const AxiosProvider = ({ token, logout, children }: Props) => {
   const [isChecking, setIsChecking] = useState(false);
 
   const checkServerStatus = useCallback(async (manual = false) => {
+    if (!CHECK_STATUS) return;
+
     if (checking.current) return;
     checking.current = true;
     if (manual) setIsChecking(true);

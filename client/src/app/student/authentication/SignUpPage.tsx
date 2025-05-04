@@ -7,11 +7,39 @@ import { z } from "zod";
 import CustomInput from "@/components/CustomInput";
 import { Form } from "@/components/ui/form";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
 import CustomDropdown from "@/components/CustomDropdown";
 import { sexAssignedAtBirth } from "./dropdownOptions";
+import { CustomCombobox } from "@/components/CustomComboBox";
+
+// Sample data
+// import districts from "@/test/data/districts.json";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  getAllDistrictsByMunicipalityId,
+  getAllMunicipalitiesByProvinceId,
+  getAllProvinces,
+  getAllStreetsByDistrictId,
+} from "@/services/mobile-web-app/create-account/address/src";
+import {
+  createAccount,
+  getAllSchools,
+} from "@/services/mobile-web-app/create-account/create";
+import { AxiosError } from "axios";
+
+type InputOptions = {
+  id: number;
+  label: string;
+  value: string;
+};
+
+type DropdownItem = {
+  id: string | number;
+  label: string;
+  sublabel?: string;
+};
 
 const SignUpPage = () => {
   const { mobile } = useScreenSize();
@@ -28,17 +56,137 @@ const SignUpPage = () => {
       firstName: "",
       middleName: "",
       lastName: "",
-      dateOfBirth: "",
+      dateOfBirth: undefined,
       sexAssignedAtBirth: "",
       street: "",
       district: "",
       municipality: "",
+      province: "",
     },
   });
 
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] =
     useState<boolean>(false);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
+    null,
+  );
+  const [selectedMunicipalityId, setSelectedMunicipalityId] = useState<
+    number | null
+  >(null);
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(
+    null,
+  );
+  const [selectedStreetId, setSelectedStreetId] = useState<number | null>(null);
+  const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
+
+  const { data: provinces } = useQuery({
+    queryKey: ["createAccountProvinces"],
+    queryFn: getAllProvinces,
+    select: (data): InputOptions[] => {
+      const raw = data.data;
+      return raw.map((province) => ({
+        id: province.provinceId,
+        label: province.province,
+        value: province.province,
+      }));
+    },
+  });
+
+  const { data: municipalities } = useQuery({
+    queryKey: ["createAccountMunicipalities", selectedProvinceId],
+    queryFn: () => getAllMunicipalitiesByProvinceId(selectedProvinceId!),
+    select: (data): InputOptions[] => {
+      const raw = data.data;
+      return raw.map((municipality) => ({
+        id: municipality.municipalityId,
+        label: municipality.municipality,
+        value: municipality.municipality,
+      }));
+    },
+    enabled: !!selectedProvinceId,
+  });
+
+  const { data: districts } = useQuery({
+    queryKey: ["createAccountDistricts", selectedMunicipalityId],
+    queryFn: () => getAllDistrictsByMunicipalityId(selectedMunicipalityId!),
+    select: (data): InputOptions[] => {
+      const raw = data.data;
+      return raw.map((district) => ({
+        id: district.districtId,
+        label: district.district,
+        value: district.district,
+      }));
+    },
+    enabled: !!selectedMunicipalityId,
+  });
+
+  const { data: streets } = useQuery({
+    queryKey: ["createAccountStreets", selectedDistrictId],
+    queryFn: () => getAllStreetsByDistrictId(selectedDistrictId!),
+    select: (data): InputOptions[] => {
+      const raw = data.data;
+      return raw.map((street) => ({
+        id: street.streetId,
+        label: street.street,
+        value: street.street,
+      }));
+    },
+    enabled: !!selectedDistrictId,
+  });
+
+  const { data: schools } = useQuery({
+    queryKey: ["createAccountSchools"],
+    queryFn: getAllSchools,
+    select: (data): DropdownItem[] => {
+      const raw = data.data;
+      return raw.map((school) => ({
+        id: school.schoolId,
+        label: school.school,
+        value: school.school,
+        sublabel: school.address,
+      }));
+    },
+  });
+
+  const { mutate } = useMutation({
+    mutationKey: ["studentCreateAccount"],
+    mutationFn: createAccount,
+    onSuccess: (data) => {
+      if (data.data.mock) {
+        alert("Notice: You are currently using mock data. To enable real data, set VITE_ENABLE_AXIOS to true in the .env file. Mock account created successfully!");
+      }
+      // TODO: Handle success response with fancy UI
+      else alert("Account created successfully! Redirecting to login...");
+      setTimeout(() => {
+        window.location.href = "/log-in";
+      }, 2000);
+    },
+    onError: (error) => {
+      if (error instanceof AxiosError) {
+        const status = error.response?.data.statusCode;
+        const message = error.response?.data.message;
+
+        if (status === 409 && message === "ERR_USERNAME_EXISTS") {
+          form.setError("username", {
+            type: "manual",
+            message: "Username already exists.",
+          });
+        } else {
+          // Optionally set a form-level error or log it
+          form.setError("root", {
+            type: "manual",
+            message: "An unexpected error occurred.",
+          });
+        }
+      } else {
+        form.setError("root", {
+          type: "manual",
+          message: String(error),
+        });
+      }
+    },
+  });
 
   const handleToggleVisibility = (field: string) => {
     if (field === "password") {
@@ -48,8 +196,87 @@ const SignUpPage = () => {
     }
   };
 
+  const getGender = (value: string) => {
+    if (value.trim().toLowerCase() === "male") return "M";
+    else if (value.trim().toLowerCase() === "female") return "F";
+    else return "O";
+  };
+
   const onSubmit = (values: z.infer<typeof signUpSchema>) => {
     console.log(values);
+
+    /**
+     * Constructs the payload object for the sign-up process.
+     *
+     * @property {string} username - The username provided by the user.
+     * @property {string} email - The email address provided by the user.
+     * @property {string} contactNumber - The contact number provided by the user.
+     * @property {string} password - The password provided by the user.
+     * @property {string} firstName - The first name of the user.
+     * @property {string | undefined} middleName - The middle name of the user,
+     *   set to `undefined` if the trimmed value is an empty string.
+     * @property {string} lastName - The last name of the user.
+     * @property {string | undefined} suffix - The suffix of the user's name,
+     *   set to `undefined` if the trimmed value is an empty string.
+     * @property {string} dateOfBirth - The user's date of birth.
+     * @property {"M" | "F" | "O"} gender - The user's gender, derived from the
+     *   `sexAssignedAtBirth` value using the `getGender` function.
+     * @property {string | undefined} street - The street address provided by the user,
+     *   set to `undefined` if a `selectedStreetId` is present.
+     * @property {string | undefined} district - The district address provided by the user,
+     *   set to `undefined` if a `selectedDistrictId` is present.
+     * @property {string | undefined} municipality - The municipality address provided by the user,
+     *   set to `undefined` if a `selectedMunicipalityId` is present.
+     * @property {string | undefined} province - The province address provided by the user,
+     *   set to `undefined` if a `selectedProvinceId` is present.
+     * @property {string | undefined} streetId - The ID of the selected street,
+     *   or `undefined` if not selected.
+     * @property {string | undefined} districtId - The ID of the selected district,
+     *   set to `undefined` if a `selectedStreetId` is present, or derived from `selectedDistrictId`.
+     * @property {string | undefined} municipalityId - The ID of the selected municipality,
+     *   set to `undefined` if a `selectedDistrictId` is present, or derived from `selectedMunicipalityId`.
+     * @property {string | undefined} provinceId - The ID of the selected province,
+     *   set to `undefined` if a `selectedMunicipalityId` is present, or derived from `selectedProvinceId`.
+     * @property {string} schoolId - The ID of the selected school, which is required.
+     *
+     * The logic ensures that if a specific ID (e.g., `selectedStreetId`) is provided,
+     * the corresponding textual address field (e.g., `street`) is set to `undefined`
+     * to avoid redundancy. Similarly, hierarchical dependencies between IDs and
+     * textual fields are handled to maintain data consistency.
+     */
+    const payload = {
+      username: values.username,
+      email: values.email,
+      contactNumber: values.contactNumber,
+      password: values.password,
+      firstName: values.firstName,
+      middleName:
+        values.middleName?.trim() === "" ? undefined : values.middleName,
+      lastName: values.lastName,
+      suffix: values.suffix?.trim() === "" ? undefined : values.suffix,
+      dateOfBirth: values.dateOfBirth,
+      gender: getGender(values.sexAssignedAtBirth) as "M" | "F" | "O",
+      street: selectedStreetId ? undefined : values.street,
+      district: selectedDistrictId ? undefined : values.district,
+      municipality: selectedMunicipalityId ? undefined : values.municipality,
+      province: selectedProvinceId ? undefined : values.province,
+      streetId: selectedStreetId ?? undefined,
+      districtId: selectedStreetId
+        ? undefined
+        : (selectedDistrictId ?? undefined),
+      municipalityId: selectedDistrictId
+        ? undefined
+        : (selectedMunicipalityId ?? undefined),
+      provinceId: selectedMunicipalityId
+        ? undefined
+        : (selectedProvinceId ?? undefined),
+      schoolId: selectedSchoolId!,
+    };
+
+    // For debugging
+    // alert(JSON.stringify(payload, null, 2));
+
+    mutate(payload);
   };
 
   // Redirect to warning page if screen size is not mobile
@@ -165,6 +392,15 @@ const SignUpPage = () => {
 
             <CustomInput
               control={form.control}
+              name="suffix"
+              label="Suffix (optional)"
+              placeholder="ex. Jr."
+              inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
+              labelStyle="text-sm text-text-2"
+            />
+
+            <CustomInput
+              control={form.control}
               name="dateOfBirth"
               label="Date of Birth"
               placeholder="Select your date of birth"
@@ -187,31 +423,70 @@ const SignUpPage = () => {
             <div className="text-primary mt-10 text-base font-semibold">
               Address
             </div>
-            <CustomInput
+            <CustomCombobox
+              control={form.control}
+              name="province"
+              label="Province"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={provinces ?? []}
+              placeholder="Enter province..."
+              onChangeValue={(value) => {
+                setSelectedProvinceId(value?.id ?? null);
+              }}
+            />
+
+            <CustomCombobox
+              control={form.control}
+              name="municipality"
+              label="City / Municipality"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={municipalities ?? []}
+              placeholder="Enter city or municipality..."
+              onChangeValue={(value) => {
+                setSelectedMunicipalityId(value?.id ?? null);
+              }}
+            />
+
+            <CustomCombobox
+              control={form.control}
+              name="district"
+              label="Barangay / District"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={districts ?? []}
+              placeholder="Enter barangay or district..."
+              onChangeValue={(value) => {
+                setSelectedDistrictId(value?.id ?? null);
+              }}
+            />
+
+            <CustomCombobox
               control={form.control}
               name="street"
               label="Street"
-              placeholder="ex. Cauayan Street"
-              inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
-              labelStyle="text-sm text-text-2"
+              labelClassName="text-sm font-semibold text-text-2"
+              values={streets ?? []}
+              placeholder="Enter street..."
+              onChangeValue={(value) => {
+                setSelectedStreetId(value?.id ?? null);
+              }}
             />
 
-            <CustomInput
-              control={form.control}
-              name="district"
-              label="District"
-              placeholder="ex. Second District"
-              inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
-              labelStyle="text-sm text-text-2"
-            />
+            <div className="text-primary mt-10 text-base font-semibold">
+              School
+            </div>
 
-            <CustomInput
+            <CustomDropdown
               control={form.control}
-              name="municipality"
-              label="City/Municipality"
-              placeholder="ex. Legazpi City"
-              inputStyle="rounded-[10px] bg-container-2 text-sm py-3 px-4 text-text placeholder:text-text-2"
-              labelStyle="text-sm text-text-2"
+              name="school"
+              label="School"
+              labelClassName="text-sm font-semibold text-text-2"
+              buttonClassName="w-full mr-14 mr-4 rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
+              menuClassName="w-full rounded-[10px] bg-white"
+              values={schools ?? []}
+              placeholder="Enter school..."
+              onChangeValue={(value) => {
+                setSelectedSchoolId((value?.id as number) ?? null);
+              }}
             />
 
             <Button

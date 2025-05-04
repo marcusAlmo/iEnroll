@@ -31,15 +31,14 @@ export interface EnrollmentSchedule {
   }[];
 
   receivedData: {
-    gradeLevelCode: string[];
+    gradeLevel: string;
     schedDate: {
-      isPaused: boolean;
       DateString: string;
-      startTime: string;
-      endTime: string;
+      timeRanges: {
+        startTime: string;
+        endTime: string;
+      }[];
     }[];
-    canChooseSection: boolean;
-    slotCapacity: number;
   };
 
   processStringDateReturn: {
@@ -62,7 +61,73 @@ export interface EnrollmentSchedule {
     application_slot: number;
     start_datetime: Date;
     end_datetime: Date;
-    is_paused: boolean;
-    can_choose_section: boolean;
   }[];
+
+  storeDataReturn: {
+    success: boolean;
+    message: string;
+  };
+
+  gradeLevelFormat: {
+    schoolCapacity: {
+      totalCapacity: number;
+      remainingSlots: number;
+    };
+    gradeLevels: EnrollmentSchedule['gradeLevel'][];
+  };
+
+  gradeLevel: {
+    gradeLevel: string;
+    allowSectionSelection: boolean;
+    sections: EnrollmentSchedule['section'][];
+    schedules: EnrollmentSchedule['schedule'][];
+  };
+
+  section: {
+    sectionName: string;
+    sectionCapacity: number;
+    maximumApplication: number;
+    currentEnrolled: number;
+  };
+
+  gradeLevelCollection: {
+    gradeLevel: string;
+    allowSectionSelection: boolean;
+  };
+
+  sectionRaw: {
+    sectionName: string;
+    sectionCapacity: number;
+    maximumApplication: number;
+    currentEnrolled: number;
+    gradeLevel: string;
+  };
+
+  schedule: {
+    id: number;
+    date: string; // in YYYY-MM-DD format
+    timeRanges: EnrollmentSchedule['timeRange'][];
+    applications: number;
+    status: string;
+    gradeLevel: string;
+  };
+
+  timeRange: {
+    startTime: string;
+    endTime: string;
+  };
+
+  scheduleRaw: {
+    id: number;
+    date: string; // in YYYY-MM-DD format
+    timeRanges: EnrollmentSchedule['timeRange'];
+    applications: number;
+    status: string;
+    gradeLevel: string;
+  };
+
+  scheduleReturn: {
+    id: number;
+    pastValue: boolean;
+  };
 }

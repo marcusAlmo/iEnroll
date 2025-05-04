@@ -1,0 +1,23 @@
+[
+  { "id": 1, "label": "Bagacay", "value": "Bagacay" },
+  { "id": 2, "label": "Bagahanglad", "value": "Bagahanglad" },
+  { "id": 3, "label": "Bartolabac", "value": "Bartolabac" },
+  { "id": 4, "label": "Burgos", "value": "Burgos" },
+  { "id": 5, "label": "Calipat-an", "value": "Calipat-an" },
+  { "id": 6, "label": "Danao", "value": "Danao" },
+  { "id": 7, "label": "District I", "value": "District I" },
+  { "id": 8, "label": "District II", "value": "District II" },
+  { "id": 9, "label": "District III", "value": "District III" },
+  { "id": 10, "label": "District IV", "value": "District IV" },
+  { "id": 11, "label": "Dorong-an Daplian", "value": "Dorong-an Daplian" },
+  { "id": 12, "label": "Interior", "value": "Interior" },
+  { "id": 13, "label": "Jagna-an", "value": "Jagna-an" },
+  { "id": 14, "label": "Luna", "value": "Luna" },
+  { "id": 15, "label": "Mabini", "value": "Mabini" },
+  { "id": 16, "label": "Roosevelt", "value": "Roosevelt" },
+  { "id": 17, "label": "San Isidro", "value": "San Isidro" },
+  { "id": 18, "label": "Santa Rosa", "value": "Santa Rosa" },
+  { "id": 19, "label": "Washington", "value": "Washington" },
+  { "id": 20, "label": "Daplian", "value": "Daplian" },
+  { "id": 21, "label": "Anton Canton", "value": "Anton Canton" }
+]

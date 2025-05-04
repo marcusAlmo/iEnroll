@@ -1,3 +1,4 @@
+import { $Enums } from '@prisma/client';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { MicroserviceUtilityService } from '@lib/microservice-utility/microservice-utility.service';
@@ -119,10 +120,8 @@ export class PlanCapacityService {
     const count = await this.prisma.user.count({
       where: {
         school_id: schoolId,
-        user_role_user_role_assigned_byTouser: {
-          some: {
-            role_code: 'adm',
-          },
+        access_list: {
+          role: $Enums.role_type.admin,
         },
       },
     });

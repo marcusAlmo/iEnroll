@@ -1,11 +1,11 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate } from 'react-router';
+import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router";
 import SubNavCopy from "../../../components/SubNavCopy";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
-import { useEnrollmentReview } from "../../../context/enrollmentReviewContext";
-import { sampleDeniedStudents } from './sampleData';
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { useQuery } from "@tanstack/react-query";
+import { getDeniedEnrollmentsBySchool } from "@/services/desktop-web-app/enrollment-review/denied/src";
+// import { sampleDeniedStudents as denied } from './sampleData';
 
 /**
  * Interface representing a denied student with their application details
@@ -15,48 +15,28 @@ interface DeniedStudent {
   studentId: number;
   studentName: string;
   firstName: string;
-  middleName: string;
+  middleName: string | null;
   lastName: string;
+  suffix: string | null;
   applicationStatus: string;
   denialDate: string;
   reviewedBy: string;
   requirements: {
     requirementName: string;
     requirementStatus: boolean;
-    userInput?: string;
+    userInput?: string | null;
     imageUrl?: string | null;
     requirementType: string;
-    denialReason?: string;
-  }[];
-}
-
-/**
- * Interface representing a student with their application details
- * @interface Student
- */
-interface Student {
-  studentId: number;
-  studentName: string;
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  applicationStatus: string;
-  requirements: {
-    requirementName: string;
-    requirementStatus: boolean;
-    userInput?: string;
-    imageUrl?: string | null;
-    requirementType: string;
-    denialReason?: string;
+    denialReason?: string | null;
   }[];
 }
 
 /**
  * DeniedIndex Component
- * 
+ *
  * Displays a list of students whose enrollment applications have been denied.
  * Provides functionality to view detailed information about each denied application.
- * 
+ *
  * @component
  * @returns {JSX.Element} The rendered DeniedIndex component
  */
@@ -66,48 +46,96 @@ const DeniedIndex: React.FC = () => {
 
   // State to track the currently active navigation item
   const [activeItem, setActiveItem] = useState("Denied");
-  
+
   // State to track which student's dropdown is open
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
-  
-  // State to store denied students
-  const [deniedStudents, setDeniedStudents] = useState<DeniedStudent[]>(sampleDeniedStudents);
 
-  // Get context values
-  const { 
-    sections,
-    students,
-  } = useEnrollmentReview();
+  const toDeniedStudentType = (student: DeniedStudent[]) => student;
+
+  const { data: deniedStudents, isPending } = useQuery({
+    queryKey: ["deniedStudents"],
+    queryFn: getDeniedEnrollmentsBySchool,
+    select: (data) => {
+      const raw = data.data;
+
+      return toDeniedStudentType(
+        raw.map((student) => ({
+          studentId: student.applicationId,
+          studentName: [
+            student.student.firstName,
+            student.student.middleName,
+            student.student.lastName,
+            student.student.suffix,
+          ]
+            .filter(Boolean)
+            .join(" "),
+          firstName: student.student.firstName,
+          middleName: student.student.middleName,
+          lastName: student.student.lastName,
+          suffix: student.student.suffix,
+          applicationStatus: "Denied",
+          denialDate: student.dateDenied?.toString() || "",
+          reviewedBy:
+            [
+              student.reviewer?.firstName,
+              student.reviewer?.middleName,
+              student.reviewer?.lastName,
+              student.reviewer?.suffix,
+            ]
+              .filter(Boolean)
+              .join(" ") || "N/A",
+          requirements: student.reasons.map((req) => ({
+            requirementName: req.requirementName,
+            // TODO: Make this possible on next iteration
+            requirementStatus: req.reason === null ? true : false,
+            userInput: req.reason || null,
+            imageUrl: null,
+            requirementType: "document",
+            denialReason: req.reason || null,
+          })),
+        })),
+      );
+    },
+  });
+
+  // // State to store denied students
+  // const [deniedStudents, setDeniedStudents] = useState<DeniedStudent[]>(denied);
+
+  // // Get context values
+  // const {
+  //   sections,
+  //   students,
+  // } = useEnrollmentReview();
 
   /**
    * Fetches denied students when component mounts
    * Filters students with "Denied" status from all sections
    */
-  useEffect(() => {
-    // Please insert the API call here. Thanks
-    const fetchDeniedStudents = () => {
-      // Get all students from all sections
-      const allStudents: DeniedStudent[] = [];
-      
-      if (sections.length > 0) {
-        sections.forEach(() => {
-          const deniedStudentsList = students.filter((student: Student) => 
-            student.applicationStatus === "Denied"
-          );
-          
-          if (deniedStudentsList.length > 0) {
-            allStudents.push(...deniedStudentsList as DeniedStudent[]);
-          }
-        });
-      }
-      
-      // If no denied students found in context, use sample data
-      // Please remove after API call is implemented
-      setDeniedStudents(allStudents.length > 0 ? allStudents : sampleDeniedStudents);
-    };
-    
-    fetchDeniedStudents();
-  }, [sections, students]);
+  // useEffect(() => {
+  //   // Please insert the API call here. Thanks
+  //   const fetchDeniedStudents = () => {
+  //     // Get all students from all sections
+  //     const allStudents: DeniedStudent[] = [];
+
+  //     if (sections.length > 0) {
+  //       sections.forEach(() => {
+  //         const deniedStudentsList = students.filter((student: Student) =>
+  //           student.applicationStatus === "Denied"
+  //         );
+
+  //         if (deniedStudentsList.length > 0) {
+  //           allStudents.push(...deniedStudentsList as DeniedStudent[]);
+  //         }
+  //       });
+  //     }
+
+  //     // If no denied students found in context, use sample data
+  //     // Please remove after API call is implemented
+  //     setDeniedStudents(allStudents.length > 0 ? allStudents : denied);
+  //   };
+
+  //   fetchDeniedStudents();
+  // }, [sections, students]);
 
   /**
    * Navigation items for the sub-navigation bar
@@ -137,12 +165,12 @@ const DeniedIndex: React.FC = () => {
         },
       },
     ],
-    [navigate] // Dependency array ensures SubNavItem updates if `navigate` changes
+    [navigate], // Dependency array ensures SubNavItem updates if `navigate` changes
   );
 
   /**
    * Toggles the dropdown visibility for a specific student
-   * 
+   *
    * @param {number} studentId - The ID of the student whose dropdown should be toggled
    */
   const toggleDropdown = (studentId: number) => {
@@ -151,32 +179,45 @@ const DeniedIndex: React.FC = () => {
 
   /**
    * Formats a date string to a more readable format
-   * 
+   *
    * @param {string} dateString - The date string to format
    * @returns {string} The formatted date string
    */
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   return (
     <div className="flex flex-col px-7 py-7">
-      <div className="flex justify-between mb-5">
-        <div className="rounded-[10px] max-h-18 border border-text-2 bg-background p-2">
+      <div className="mb-5 flex justify-between">
+        <div className="border-text-2 bg-background max-h-18 rounded-[10px] border p-2">
           <SubNavCopy items={SubNavItem} activeItem={activeItem} />
         </div>
       </div>
 
+      {/* Loading State */}
+      {isPending && (
+        <div className="flex h-full items-center justify-center">
+          <div className="loader"></div>
+        </div>
+      )}
+
+      {/* No Denied Students State */}
+      {!deniedStudents && !isPending && (
+        <div className="text-text-2 py-8 text-center">
+          No denied applications found.
+        </div>
+      )}
+
       {/* Denied Students List */}
-      <div className="bg-background rounded-[10px] border border-text-2 p-4 shadow-md">
-        
-        {deniedStudents.length === 0 ? (
-          <div className="text-center py-8 text-text-2">
+      <div className="bg-background border-text-2 rounded-[10px] border p-4 shadow-md">
+        {deniedStudents && deniedStudents.length === 0 ? (
+          <div className="text-text-2 py-8 text-center">
             No denied applications found.
           </div>
         ) : (
@@ -191,62 +232,76 @@ const DeniedIndex: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {deniedStudents.map((student) => (
-                  <React.Fragment key={student.studentId}>
-                    <tr className="border-b hover:bg-accent/10 text-sm">
-                      <td className="p-3">
-                        <span className="font-semibold">
-                          {student.lastName.toUpperCase()}
-                        </span>, {student.firstName} {student.middleName}
-                      </td>
-                      <td className="p-3">{formatDate(student.denialDate)}</td>
-                      <td className="p-3">{student.reviewedBy}</td>
-                      <td className="p-3">
-                        <button 
-                          onClick={() => toggleDropdown(student.studentId)}
-                          className="flex items-center text-accent hover:text-primary cursor-pointer button-transition"
-                        >
-                          {openDropdownId === student.studentId ? (
-                            <>
-                              <span className="mr-1">Hide Details</span>
-                              <FontAwesomeIcon icon={faChevronUp} />
-                            </>
-                          ) : (
-                            <>
-                              <span className="mr-1">View Details</span>
-                              <FontAwesomeIcon icon={faChevronDown} />
-                            </>
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                    
-                    {/* Dropdown content */}
-                    {openDropdownId === student.studentId && (
-                      <tr>
-                        <td colSpan={4} className="p-4 bg-accent/5">
-                          
-                          <h3 className="font-semibold mb-2">Denied Requirements:</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {student.requirements
-                              .filter(req => req.requirementStatus === false)
-                              .map((req, index) => (
-                                <div key={index} className="border border-text-2 rounded-md p-3">
-                                  <h4 className="font-medium">{req.requirementName}</h4>
-                                  {req.denialReason && (
-                                    <p className="text-sm text-danger mt-1">
-                                      <span className="font-medium">Reason: </span>
-                                      {req.denialReason}
-                                    </p>
-                                  )}
-                                </div>
-                              ))}
-                          </div>
+                {deniedStudents &&
+                  deniedStudents.map((student) => (
+                    <React.Fragment key={student.studentId}>
+                      <tr className="hover:bg-accent/10 border-b text-sm">
+                        <td className="p-3">
+                          <span className="font-semibold">
+                            {student.lastName.toUpperCase()}
+                          </span>
+                          , {student.firstName} {student.middleName}
+                        </td>
+                        <td className="p-3">
+                          {formatDate(student.denialDate)}
+                        </td>
+                        <td className="p-3">{student.reviewedBy}</td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => toggleDropdown(student.studentId)}
+                            className="text-accent hover:text-primary button-transition flex cursor-pointer items-center"
+                          >
+                            {openDropdownId === student.studentId ? (
+                              <>
+                                <span className="mr-1">Hide Details</span>
+                                <FontAwesomeIcon icon={faChevronUp} />
+                              </>
+                            ) : (
+                              <>
+                                <span className="mr-1">View Details</span>
+                                <FontAwesomeIcon icon={faChevronDown} />
+                              </>
+                            )}
+                          </button>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                ))}
+
+                      {/* Dropdown content */}
+                      {openDropdownId === student.studentId && (
+                        <tr>
+                          <td colSpan={4} className="bg-accent/5 p-4">
+                            <h3 className="mb-2 font-semibold">
+                              Denied Requirements:
+                            </h3>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                              {student.requirements
+                                .filter(
+                                  (req) => req.requirementStatus === false,
+                                )
+                                .map((req, index) => (
+                                  <div
+                                    key={index}
+                                    className="border-text-2 rounded-md border p-3"
+                                  >
+                                    <h4 className="font-medium">
+                                      {req.requirementName}
+                                    </h4>
+                                    {req.denialReason && (
+                                      <p className="text-danger mt-1 text-sm">
+                                        <span className="font-medium">
+                                          Reason:{" "}
+                                        </span>
+                                        {req.denialReason}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -254,6 +309,6 @@ const DeniedIndex: React.FC = () => {
       </div>
     </div>
   );
-}
+};
 
-export default DeniedIndex
+export default DeniedIndex;

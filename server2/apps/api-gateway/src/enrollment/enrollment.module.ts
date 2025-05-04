@@ -7,6 +7,7 @@ import { RouterModule } from '@nestjs/core';
 import { mapModulesToBasePath } from '@lib/utils/router.utils';
 import { EnrollmentManagementModule } from './enrollment-management/enrollment-management.module';
 import { AnnouncementsModule } from './enrollment-management/announcements/announcements.module';
+import { ReviewModule } from './review/review.module';
 
 const BASE_PATH = 'enrollment';
 
@@ -26,6 +27,7 @@ const BASE_PATH = 'enrollment';
       ]),
     ),
     EnrollmentManagementModule,
+    ReviewModule,
   ],
 })
 export class EnrollmentModule {}

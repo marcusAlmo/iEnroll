@@ -1,0 +1,23 @@
+[
+  {
+    "requirementId": 1,
+    "name": "Birth Certificate",
+    "requirementType": "image",
+    "acceptedDataTypes": "image",
+    "isRequired": true
+  },
+  {
+    "requirementId": 2,
+    "name": "Certificate of Good Moral Character",
+    "requirementType": "image",
+    "acceptedDataTypes": "image",
+    "isRequired": true
+  },
+  {
+    "requirementId": 3,
+    "name": "Form 138",
+    "requirementType": "image",
+    "acceptedDataTypes": "image",
+    "isRequired": true
+  }
+]
