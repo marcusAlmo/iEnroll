@@ -1,39 +1,34 @@
 import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsNumber,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 
-class ScheduleDate {
-  @IsBoolean()
-  isPaused!: boolean;
-
+class TimeRange {
   @IsString()
-  dateString!: string;
-
-  @IsString()
+  @IsNotEmpty()
   startTime!: string;
 
   @IsString()
+  @IsNotEmpty()
   endTime!: string;
 }
 
-export class EnrollmentScheduleDTO {
+class ScheduleDate {
+  @IsString()
+  @IsNotEmpty()
+  DateString!: string;
+
   @IsArray()
-  @IsString({ each: true })
-  gradeLevelCode!: string[];
+  @ValidateNested({ each: true })
+  @Type(() => TimeRange)
+  timeRanges!: TimeRange[];
+}
+
+export class EnrollmentScheduleDTO {
+  @IsString()
+  @IsNotEmpty()
+  gradeLevel!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ScheduleDate)
   schedDate!: ScheduleDate[];
-
-  @IsBoolean()
-  canChooseSection!: boolean;
-
-  @IsNumber()
-  slotCapacity!: number;
 }

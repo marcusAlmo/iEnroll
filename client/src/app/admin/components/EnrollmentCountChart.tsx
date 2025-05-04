@@ -1,5 +1,6 @@
 import { requestData } from "@/lib/dataRequester";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 
 /**
@@ -31,6 +32,7 @@ const EnrollmentCountChart = () => {
 
   const [data, setData] = useState<EnrollmentTrendResponse['record']>([]);
   const [years, setyears] = useState<string[]>([]);
+  const hasFetched = useRef(false);
 
   const fetchData = async () => {
     try{
@@ -39,18 +41,19 @@ const EnrollmentCountChart = () => {
         method: 'GET'
       });
 
-      if(response){
-        console.log('response: ', response);
+      if(response){;
         setyears(response.years.map(String));
         setData(response.record);
       }
     }catch(err){
-      if(err instanceof Error)
-        console.log(err.message);
+      if(err instanceof Error) toast.error(err.message);
+      else console.error(err);
     }
   }
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     fetchData();
   }, []);
 
