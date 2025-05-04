@@ -200,7 +200,11 @@ export const EnrollmentReviewProvider: React.FC<{
   }, [isSectionsPending, sections]);
 
   const { data: students, isPending: isStudentPending } = useQuery({
-    queryKey: ["enrolledStudents", selectedSection?.sectionId],
+    queryKey: [
+      "enrolledStudents",
+      selectedSection?.sectionId,
+      selectedSection?._unassigned,
+    ],
     queryFn: () =>
       selectedSection?._unassigned
         ? getAllStudentsUnassignedByGradeLevel(selectedSection!.sectionId)

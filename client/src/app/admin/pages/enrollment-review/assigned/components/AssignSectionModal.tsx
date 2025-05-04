@@ -75,7 +75,11 @@ export default function AssignSectionModal() {
 
       if (selectedSection?.sectionId) {
         queryClient.invalidateQueries({
-          queryKey: ["enrolledStudents", selectedSection.sectionId],
+          queryKey: [
+            "enrolledStudents",
+            selectedSection.sectionId,
+            selectedSection?._unassigned,
+          ],
         });
       }
 
