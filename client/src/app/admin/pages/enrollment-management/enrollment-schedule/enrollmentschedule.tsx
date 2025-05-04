@@ -135,6 +135,8 @@ export default function EnrollmentSchedule() {
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([{ startTime: '', endTime: '' }])
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null)
   const [timeErrors, setTimeErrors] = useState<{[key: number]: string}>({})
+  const [maxApplications, setMaxApplications] = useState<number>(0)
+  const [maxApplicationsError, setMaxApplicationsError] = useState<string>('')
   const [data, setData] = useState<EnrollmentScheduleDataType>({
     schoolCapacity: {
       totalCapacity: 0,
@@ -340,7 +342,7 @@ export default function EnrollmentSchedule() {
    * @type {Schedule | null}
    */
   const editingSchedule = useMemo(() => {
-    return editingScheduleId ? schedules.find(s => s.id === editingScheduleId) : null
+    return editingScheduleId ? schedules.find(s => s.id === Number(editingScheduleId)) : null
   }, [editingScheduleId, schedules])
 
   /**
