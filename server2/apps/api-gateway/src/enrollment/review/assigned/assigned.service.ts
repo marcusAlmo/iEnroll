@@ -12,6 +12,8 @@ import {
   SectionsReturn,
   StudentsAssignedReturn,
   StudentsUnassignedReturn,
+  UpdateEnrollmentPayload,
+  UpdateEnrollmentReturn,
 } from './assigned.types';
 import { lastValueFrom } from 'rxjs';
 
@@ -147,6 +149,26 @@ export class AssignedService {
         injectPayload({
           studentId: payload.studentId,
           sectionId: payload.sectionId,
+        }),
+      ),
+    );
+    return result;
+  }
+
+  async updateEnrollmentStatus(payload: {
+    status: 'accepted' | 'denied' | 'invalid';
+    studentId: number;
+  }) {
+    const injectPayload = (payload: UpdateEnrollmentPayload) => payload;
+
+    const result: UpdateEnrollmentReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'enrollment_review_assigned:update_enrollment_status',
+        },
+        injectPayload({
+          status: payload.status,
+          studentId: payload.studentId,
         }),
       ),
     );

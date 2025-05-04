@@ -258,6 +258,129 @@ export class AssignedService {
     }
   }
 
+  async updateEnrollmentStatus(
+    status: 'accepted' | 'denied' | 'invalid',
+    studentId: number,
+  ) {
+    const enrollmentApplication =
+      await this.prisma.enrollment_application.findFirst({
+        where: {
+          student: {
+            enroller_id: studentId,
+          },
+        },
+        select: {
+          application_id: true,
+          application_attachment: {
+            select: {
+              status: true,
+            },
+          },
+        },
+      });
+
+    if (!enrollmentApplication) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_APPLICATION_NOT_FOUND',
+      });
+    }
+
+    if (!enrollmentApplication.application_attachment.length) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_NO_REQUIREMENTS_FOUND',
+      });
+    }
+
+    let parsedStatus: $Enums.application_status;
+
+    switch (status) {
+      case 'accepted': {
+        parsedStatus = $Enums.application_status.accepted;
+        const allAccepted = enrollmentApplication.application_attachment.every(
+          (attachment) =>
+            attachment.status === $Enums.application_status.accepted,
+        );
+
+        if (!allAccepted) {
+          throw new RpcException({
+            statusCode: 400,
+            message: 'ERR_ACCEPTED_REQUIRES_ALL_ACCEPTED',
+          });
+        }
+
+        break;
+      }
+
+      case 'invalid': {
+        parsedStatus = $Enums.application_status.invalid;
+
+        let hasInvalid = false;
+        let hasNonInvalid = false;
+
+        for (const attachment of enrollmentApplication.application_attachment) {
+          if (attachment.status === $Enums.application_status.invalid) {
+            hasInvalid = true;
+          } else {
+            hasNonInvalid = true;
+          }
+
+          if (hasInvalid && hasNonInvalid) break;
+        }
+
+        if (!hasInvalid || !hasNonInvalid) {
+          throw new RpcException({
+            statusCode: 400,
+            message: 'ERR_INVALID_REQUIRES_PARTIAL_INVALID_ONLY',
+          });
+        }
+
+        break;
+      }
+
+      case 'denied': {
+        parsedStatus = $Enums.application_status.denied;
+        const allInvalid = enrollmentApplication.application_attachment.every(
+          (attachment) =>
+            attachment.status === $Enums.application_status.invalid,
+        );
+
+        if (!allInvalid) {
+          throw new RpcException({
+            statusCode: 400,
+            message: 'ERR_DENIED_REQUIRES_ALL_INVALID',
+          });
+        }
+
+        break;
+      }
+      default:
+        parsedStatus = $Enums.application_status.pending;
+    }
+
+    try {
+      await this.prisma.enrollment_application.update({
+        where: {
+          application_id: enrollmentApplication.application_id,
+        },
+        data: {
+          status: parsedStatus,
+        },
+      });
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new RpcException({
+        statusCode: 500,
+        message: 'ERR_FAILED_TO_UPDATE_ENROLLMENT_STATUS',
+      });
+    }
+  }
+
   async enrollStudent(
     studentId: number,
     sectionId: number,

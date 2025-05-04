@@ -4,12 +4,17 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { AssignedService } from './assigned.service';
 import { ApproveOrDenyDto } from './dtos/requirement.dto';
 import { User } from '@lib/decorators/user.decorator';
-import { EnrollDto, ReassignDto } from './dtos/enrollment.dto';
+import {
+  EnrollDto,
+  ReassignDto,
+  UpdateEnrollmentDto,
+} from './dtos/enrollment.dto';
 
 @Controller('assigned')
 export class AssignedController {
@@ -74,6 +79,15 @@ export class AssignedController {
   async reassignStudentIntoDifferentSection(@Body() reassignDto: ReassignDto) {
     return await this.assignedService.reassignStudentIntoDifferentSection({
       ...reassignDto,
+    });
+  }
+
+  @Patch('enrollment/status')
+  async updateEnrollmentStatus(
+    @Body() updateEnrollmentDto: UpdateEnrollmentDto,
+  ) {
+    return await this.assignedService.updateEnrollmentStatus({
+      ...updateEnrollmentDto,
     });
   }
 }

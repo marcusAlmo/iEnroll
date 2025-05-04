@@ -8,13 +8,15 @@ import {
   getAllSectionsByGradeLevel,
   getAllStudentsAssignedBySection,
   getAllStudentsUnassignedByGradeLevel,
+  updateEnrollmentStatus,
 } from "@/services/desktop-web-app/enrollment-review/assigned";
-import {
+import Enums, {
   application_status,
   attachment_status,
   attachment_type,
 } from "@/services/common/types/enums";
 import { EnrollmentReviewContext } from "./EnrollmentReviewContext.1";
+import { EnrollmentStatus } from "@/services/desktop-web-app/enrollment-review/assigned/types";
 
 // Constants
 export const UNASSIGNED_SECTION_ID = 999;
@@ -262,6 +264,78 @@ export const EnrollmentReviewProvider: React.FC<{
     }
   }, [isRequirementsPending, requirements]);
 
+  const { mutate: mutateUpdateEnrollmentStatus } = useMutation({
+    mutationKey: ["assignedUpdateEnrollmentStatus", selectedStudent?.studentId],
+    mutationFn: updateEnrollmentStatus,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSuccess: (_data) => {
+      console.log("Update enroll success.");
+      queryClient.invalidateQueries({
+        queryKey: [
+          "enrolledStudents",
+          selectedSection?.sectionId,
+          selectedSection?._unassigned,
+        ],
+      });
+    },
+    onError: (error) => {
+      console.log("UPDATE_ENROLLMENT_ERROR", error);
+    },
+  });
+
+  useEffect(() => {
+    if (selectedStudent && !isRequirementsPending && requirements?.length) {
+      let accepted = 0;
+      let pending = 0;
+
+      for (const requirement of requirements) {
+        if (
+          requirement.requirementStatus === Enums.attachment_status.accepted
+        ) {
+          accepted++;
+        } else if (
+          requirement.requirementStatus === Enums.attachment_status.pending
+        ) {
+          pending++;
+        }
+      }
+
+      const total = requirements.length;
+
+      // All pending: no action
+      if (pending === total) return;
+
+      // All accepted
+      if (accepted === total) {
+        mutateUpdateEnrollmentStatus({
+          status: EnrollmentStatus.ACCEPTED,
+          studentId: selectedStudent.studentId,
+        });
+        return;
+      }
+
+      // All denied (no accepted, no pending)
+      if (accepted === 0 && pending === 0) {
+        mutateUpdateEnrollmentStatus({
+          status: EnrollmentStatus.DENIED,
+          studentId: selectedStudent.studentId,
+        });
+        return;
+      }
+
+      // Else: some accepted, some rejected (mixed)
+      mutateUpdateEnrollmentStatus({
+        status: EnrollmentStatus.INVALID,
+        studentId: selectedStudent.studentId,
+      });
+    }
+  }, [
+    isRequirementsPending,
+    mutateUpdateEnrollmentStatus,
+    requirements,
+    selectedStudent,
+  ]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDenied, setIsDenied] = useState(false);
@@ -275,7 +349,7 @@ export const EnrollmentReviewProvider: React.FC<{
     mutationKey: [
       "assignedApproveOrDenyDocument",
       selectedRequirement?.applicationId,
-      selectedRequirement?.applicationId,
+      selectedRequirement?.requirementId,
     ],
     mutationFn: approveOrDenyRequirement,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

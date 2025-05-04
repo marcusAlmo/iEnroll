@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class EnrollDto {
@@ -23,4 +23,19 @@ export class ReassignDto {
   @Type(() => Number)
   @IsInt()
   sectionId!: number;
+}
+
+export enum EnrollmentStatus {
+  ACCEPTED = 'accepted',
+  DENIED = 'denied',
+  INVALID = 'invalid',
+}
+
+export class UpdateEnrollmentDto {
+  @IsEnum(EnrollmentStatus)
+  status!: EnrollmentStatus;
+
+  @Type(() => Number)
+  @IsInt()
+  studentId!: number;
 }
