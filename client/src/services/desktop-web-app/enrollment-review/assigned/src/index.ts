@@ -1,7 +1,11 @@
 import { instance } from "@/lib/axios";
 import {
   ApproveOrDenyBody,
+  EnrollBody,
+  EnrollResponse,
   GradeLevelResponse,
+  ReassignBody,
+  ReassignResponse,
   Requirement,
   RequirementResponse,
   SectionResponse,
@@ -14,6 +18,8 @@ import {
   getAssignedStudentsBySectionId,
   getUnasssignedStudentsByGradeId,
   approveOrDenyMockRequirement,
+  enrollMockStudent,
+  reassignMockStudentIntoDifferentSection,
 } from "./test";
 
 export const getAllGradeLevels = async () => {
@@ -63,4 +69,24 @@ export const approveOrDenyRequirement = async (payload: ApproveOrDenyBody) => {
       payload,
     );
   else return { data: approveOrDenyMockRequirement(payload) };
+};
+
+export const enrollStudent = async (payload: EnrollBody) => {
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
+    return instance.post<EnrollResponse>(
+      `/api/enrollment/review/assigned/enroll`,
+      payload,
+    );
+  else return enrollMockStudent(payload);
+};
+
+export const reassignStudentIntoDifferentSection = async (
+  payload: ReassignBody,
+) => {
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
+    return instance.post<ReassignResponse>(
+      `/api/enrollment/review/assigned/section/reassign`,
+      payload,
+    );
+  else return reassignMockStudentIntoDifferentSection(payload);
 };

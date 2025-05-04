@@ -8,6 +8,8 @@ import {
   faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
 import Enums from "@/services/common/types/enums";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { reassignStudentIntoDifferentSection } from "@/services/desktop-web-app/enrollment-review/assigned";
 
 /**
  * Interface representing a section in the enrollment system
@@ -37,6 +39,8 @@ interface Section {
  * @returns {JSX.Element} The rendered modal component
  */
 export default function ReassignSectionModal() {
+  const queryClient = useQueryClient();
+
   // Extract required state and functions from the enrollment review context
   const {
     isSectionModalOpen, // Controls modal visibility
@@ -44,6 +48,7 @@ export default function ReassignSectionModal() {
     selectedStudent, // Currently selected student to be reassigned
     sections, // List of available sections for the selected grade
     selectedSection, // ID of the currently selected section
+    selectedGradeLevel,
   } = useEnrollmentReview();
 
   // State for the selected section in the combobox
@@ -53,6 +58,34 @@ export default function ReassignSectionModal() {
 
   // State for the search query in the combobox
   const [query, setQuery] = useState("");
+
+  const { mutate: mutateReassign } = useMutation({
+    mutationKey: ["assignedReassignSection"],
+    mutationFn: reassignStudentIntoDifferentSection,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSuccess: (_data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["enrolledSections", selectedGradeLevel],
+      });
+
+      if (selectedSection?.sectionId) {
+        queryClient.invalidateQueries({
+          queryKey: ["enrolledStudents", selectedSection.sectionId],
+        });
+      }
+
+      if (selectedStudent?.studentId) {
+        queryClient.invalidateQueries({
+          queryKey: ["enrolledRequirements", selectedStudent.studentId],
+        });
+      }
+
+      closeModal();
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
 
   // Check if the student can be reassigned (only "Accepted" students)
   const canReassign =
@@ -77,8 +110,11 @@ export default function ReassignSectionModal() {
       console.log(
         `Reassigning student ${selectedStudent.studentName} to section ${selectedNewSection.sectionName}`,
       );
-      alert("Not yet working! Might finish later.")
-      closeModal();
+      // alert("Not yet working! Might finish later.")
+      mutateReassign({
+        studentId: selectedStudent.studentId,
+        sectionId: selectedNewSection.sectionId,
+      });
     }
   };
 
@@ -88,10 +124,12 @@ export default function ReassignSectionModal() {
    */
   const filteredSections =
     query === ""
-      ? sections
-      : sections?.filter((section) =>
-          section.sectionName.toLowerCase().includes(query.toLowerCase()),
-        );
+      ? sections?.filter((s) => !s._unassigned)
+      : sections
+          ?.filter((s) => !s._unassigned)
+          ?.filter((section) =>
+            section.sectionName.toLowerCase().includes(query.toLowerCase()),
+          );
 
   return (
     <Transition appear show={isSectionModalOpen} as={Fragment}>

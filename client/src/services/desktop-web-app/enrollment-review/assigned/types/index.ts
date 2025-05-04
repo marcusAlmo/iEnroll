@@ -49,3 +49,22 @@ export interface ApproveOrDenyBody {
   requirementId: number;
   remarks?: string;
 }
+
+export interface EnrollBody {
+  studentId: number;
+  sectionId: number;
+  enrollmentRemarks?: string;
+}
+
+export interface ReassignBody {
+  studentId: number;
+  sectionId: number;
+}
+
+export interface EnrollResponse {
+  success: boolean;
+}
+
+export interface ReassignResponse {
+  success: boolean;
+}

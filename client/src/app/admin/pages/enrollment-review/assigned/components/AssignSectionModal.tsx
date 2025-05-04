@@ -1,5 +1,5 @@
 import { Dialog, Transition, Combobox } from "@headlessui/react";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useEnrollmentReview } from "../../../../context/enrollmentReviewContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -8,6 +8,8 @@ import {
   faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
 import Enums from "@/services/common/types/enums";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { enrollStudent } from "@/services/desktop-web-app/enrollment-review/assigned";
 
 /**
  * Interface representing a section in the enrollment system
@@ -37,11 +39,14 @@ interface Section {
  */
 export default function AssignSectionModal() {
   // Extract required state and functions from the enrollment review context
+  const queryClient = useQueryClient();
   const {
     isSectionModalOpen, // Controls modal visibility
     setIsSectionModalOpen, // Function to toggle modal visibility
     selectedStudent, // Currently selected student to be assigned
-    sections, // List of available sections for the selected grade
+    sections, // List of available sections for the selected grade\s
+    selectedGradeLevel,
+    selectedSection,
   } = useEnrollmentReview();
 
   // State for the selected section in the combobox
@@ -53,13 +58,42 @@ export default function AssignSectionModal() {
   const [query, setQuery] = useState("");
 
   // Check if the student can be assigned (only "Accepted" students)
-  const canAssign =
-    selectedStudent?.applicationStatus === Enums.application_status.accepted;
+  const canAssign = useMemo(
+    () =>
+      selectedStudent?.applicationStatus === Enums.application_status.accepted,
+    [selectedStudent?.applicationStatus],
+  );
+
+  const { mutate: mutateEnroll } = useMutation({
+    mutationKey: ["assignedAssignSection"],
+    mutationFn: enrollStudent,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSuccess: (_data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["enrolledSections", selectedGradeLevel],
+      });
+
+      if (selectedSection?.sectionId) {
+        queryClient.invalidateQueries({
+          queryKey: ["enrolledStudents", selectedSection.sectionId],
+        });
+      }
+
+      if (selectedStudent?.studentId) {
+        queryClient.invalidateQueries({
+          queryKey: ["enrolledRequirements", selectedStudent.studentId],
+        });
+      }
+
+      closeModal();
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
 
   // Filter out the "Unassigned" section from the available sections
-  const availableSections = sections?.filter(
-    (section) => section.sectionName !== "Unassigned",
-  );
+  const availableSections = sections?.filter((section) => !section._unassigned);
 
   /**
    * Closes the modal and resets the form state
@@ -80,10 +114,18 @@ export default function AssignSectionModal() {
       console.log(
         `Assigning student ${selectedStudent.studentName} to section ${selectedNewSection.sectionName}`,
       );
-      alert("Not yet working! Might finish later.");
-      closeModal();
+      // alert("Not yet working! Might finish later.");
+      // closeModal();
+      mutateEnroll({
+        studentId: selectedStudent.studentId,
+        sectionId: selectedNewSection.sectionId,
+      });
     }
   };
+
+  // useEffect(() => {
+  //   console.log("ASSIGN",!selectedNewSection || !canAssign)
+  // }, [canAssign, selectedNewSection])
 
   /**
    * Filters sections based on the search query
@@ -273,9 +315,13 @@ export default function AssignSectionModal() {
                 <div className="mt-10 flex w-full justify-center gap-x-4">
                   <button
                     type="button"
-                    className="bg-danger hover:bg-danger/60 button-transition w-1/2 cursor-pointer rounded-[10px] px-4 py-2 text-sm font-medium text-white"
                     onClick={handleConfirm}
                     disabled={!selectedNewSection || !canAssign}
+                    className={`button-transition w-1/2 rounded-[10px] px-4 py-2 text-sm font-medium ${
+                      !selectedNewSection || !canAssign
+                        ? "bg-danger/40 cursor-not-allowed text-white/70"
+                        : "bg-danger hover:bg-danger/60 cursor-pointer text-white"
+                    } `}
                   >
                     Confirm
                   </button>

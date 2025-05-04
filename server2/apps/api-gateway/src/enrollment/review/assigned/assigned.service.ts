@@ -3,7 +3,11 @@ import { ClientProxy } from '@nestjs/microservices';
 import {
   ApproveOrDenyAttachmentPayload,
   ApproveOrDenyAttachmentReturn,
+  EnrollStudentPayload,
+  EnrollStudentReturn,
   GradeLevelsReturn,
+  ReassignSectionPayload,
+  ReassignSectionReturn,
   RequirementsReturn,
   SectionsReturn,
   StudentsAssignedReturn,
@@ -101,6 +105,48 @@ export class AssignedService {
           action: payload.action,
           reviewerId: payload.reviewerId,
           remarks: payload.remarks,
+        }),
+      ),
+    );
+    return result;
+  }
+  async enrollStudent(payload: {
+    studentId: number;
+    sectionId: number;
+    approverId: number;
+    enrollmentRemarks?: string;
+  }) {
+    const injectPayload = (payload: EnrollStudentPayload) => payload;
+
+    const result: EnrollStudentReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'enrollment_review_assigned:enroll_student',
+        },
+        injectPayload({
+          studentId: payload.studentId,
+          sectionId: payload.sectionId,
+          approverId: payload.approverId,
+          enrollmentRemarks: payload.enrollmentRemarks,
+        }),
+      ),
+    );
+    return result;
+  }
+  async reassignStudentIntoDifferentSection(payload: {
+    studentId: number;
+    sectionId: number;
+  }) {
+    const injectPayload = (payload: ReassignSectionPayload) => payload;
+
+    const result: ReassignSectionReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'enrollment_review_assigned:reassign_student_into_diff_section',
+        },
+        injectPayload({
+          studentId: payload.studentId,
+          sectionId: payload.sectionId,
         }),
       ),
     );
