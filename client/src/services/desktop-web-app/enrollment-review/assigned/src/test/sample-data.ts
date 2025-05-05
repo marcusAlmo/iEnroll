@@ -286,6 +286,18 @@ export const data: Gra[] = [
             userInput: null,
             remarks: null,
           },
+          {
+            applicationId: 7,
+            requirementId: 3,
+            requirementName: "PDF File",
+            requirementType: Enums.attachment_type.document,
+            requirementStatus: Enums.attachment_status.accepted,
+            fileUrl:
+              "https://conasems-ava-prod.s3.sa-east-1.amazonaws.com/aulas/ava/dummy-1641923583.pdf",
+            fileName: "pdfile.pdf",
+            userInput: null,
+            remarks: null,
+          },
         ],
       },
     ],
