@@ -1,11 +1,11 @@
+import React, { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   getAllGradeLevels,
   getAllSectionsByGradeLevel,
   getAllStudentsEnrolledBySection,
 } from "@/services/desktop-web-app/enrollment-review/enrolled";
-import { useQuery } from "@tanstack/react-query";
-import React, { createContext, useState, useEffect, useMemo } from "react";
-// import enrolledStudentsData from "../pages/enrollment-review/test/enrolledStudentsData.json";
+import { EnrolledStudentsContext } from "./EnrolledStudentsContext.1";
 
 /**
  * Represents a school grade level
@@ -43,34 +43,31 @@ interface EnrolledStudent {
  * Props for the EnrolledStudentsContext
  * Defines all state variables and setter functions available in the context
  */
-interface EnrolledStudentsContextProps {
+export interface EnrolledStudentsContextProps {
   // Grade level state
-  gradeLevels: GradeLevel[] | undefined; // Available grade levels
-  isGradeLevelPending: boolean; // Loading state for grade levels
-  selectedGradeLevel: number | null; // Currently selected grade level ID
-  setSelectedGradeLevel: (gradeId: number | null) => void; // Function to update selected grade level
+  gradeLevels: GradeLevel[] | undefined;
+  isGradeLevelPending: boolean;
+  selectedGradeLevel: number | null;
+  setSelectedGradeLevel: (gradeId: number | null) => void;
 
   // Section state
-  sections: Section[] | undefined; // Available sections for the selected grade
-  isSectionsPending: boolean; // Loading state for sections
-  selectedSection: number | null; // Currently selected section ID
-  setSelectedSection: (sectionId: number | null) => void; // Function to update selected section
+  sections: Section[] | undefined;
+  isSectionsPending: boolean;
+  selectedSection: number | null;
+  setSelectedSection: (sectionId: number | null) => void;
 
   // Student state
-  students: EnrolledStudent[] | undefined; // Available students for the selected section
-  isStudentsPending: boolean; // Loading state for students
-  selectedStudent: EnrolledStudent | null; // Currently selected student
-  setSelectedStudent: (student: EnrolledStudent | null) => void; // Function to update selected student
+  students: EnrolledStudent[] | undefined;
+  isStudentsPending: boolean;
+  selectedStudent: EnrolledStudent | null;
+  setSelectedStudent: (student: EnrolledStudent | null) => void;
+  refetchStudents: () => Promise<unknown>;
+  isStudentsRefetching: boolean;
 
   // Search state
-  searchTerm: string; // Search term for filtering students
-  setSearchTerm: (term: string) => void; // Function to update search term
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
 }
-
-// Create the context with undefined default value
-const EnrolledStudentsContext = createContext<
-  EnrolledStudentsContextProps | undefined
->(undefined);
 
 /**
  * Provider component for the EnrolledStudents context
@@ -83,8 +80,7 @@ const EnrolledStudentsContext = createContext<
 export const EnrolledStudentsProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  // State Management
-
+  // Grade Level State
   const { data: gradeLevels, isPending: isGradeLevelPending } = useQuery({
     queryKey: ["enrolledGradeLevels"],
     queryFn: getAllGradeLevels,
@@ -101,6 +97,7 @@ export const EnrolledStudentsProvider: React.FC<{
     }
   }, [isGradeLevelPending, gradeLevels]);
 
+  // Section State
   const { data: sections, isPending: isSectionsPending } = useQuery({
     queryKey: ["enrolledSections", selectedGradeLevel],
     queryFn: () => getAllSectionsByGradeLevel(selectedGradeLevel!),
@@ -116,55 +113,52 @@ export const EnrolledStudentsProvider: React.FC<{
     }
   }, [isSectionsPending, sections]);
 
-  const toEnrolledStudents = (students: EnrolledStudent[]) => students;
-
+  // Student State
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: students, isPending: isStudentsPending } = useQuery({
+  const {
+    data: students,
+    isPending: isStudentsPending,
+    refetch: refetchStudents,
+    isRefetching: isStudentsRefetching,
+  } = useQuery({
     queryKey: ["enrolledStudents", selectedSection, searchTerm],
     queryFn: () =>
       getAllStudentsEnrolledBySection(
         selectedSection!,
         searchTerm.trim() === "" ? undefined : searchTerm,
       ),
-    select: (data) => {
-      const raw = data.data;
-      return toEnrolledStudents(
-        raw.map((student) => ({
-          studentId: student.studentId,
-          studentName: [
-            student.firstName,
-            student.middleName,
-            student.lastName,
-            student.suffix,
-          ]
-            .filter(Boolean)
-            .join(" "),
-          firstName: student.firstName,
-          middleName: student.middleName,
-          lastName: student.lastName,
-          suffix: student.suffix,
-          applicationStatus: "Enrolled",
-          enrollmentDate: student.enrollmentDate.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          }),
-          gradeLevel: student.gradeLevel,
-          section: student.sectionName,
-        })),
-      );
-    },
+    select: (data) =>
+      data.data.map((student) => ({
+        studentId: student.studentId,
+        studentName: [
+          student.firstName,
+          student.middleName,
+          student.lastName,
+          student.suffix,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        firstName: student.firstName,
+        middleName: student.middleName,
+        lastName: student.lastName,
+        suffix: student.suffix,
+        applicationStatus: "Enrolled",
+        enrollmentDate: student.enrollmentDate.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        gradeLevel: student.gradeLevel,
+        section: student.sectionName,
+      })),
     enabled: selectedSection !== null,
   });
 
   const [selectedStudent, setSelectedStudent] =
     useState<EnrolledStudent | null>(null);
 
-  /**
-   * Memoized context value to prevent unnecessary re-renders
-   * Only recalculates when any of the dependency values change
-   */
+  // Memoized Context Value
   const value = useMemo(
     () => ({
       gradeLevels,
@@ -181,6 +175,8 @@ export const EnrolledStudentsProvider: React.FC<{
       isGradeLevelPending,
       isSectionsPending,
       isStudentsPending,
+      refetchStudents,
+      isStudentsRefetching,
     }),
     [
       gradeLevels,
@@ -193,6 +189,8 @@ export const EnrolledStudentsProvider: React.FC<{
       isGradeLevelPending,
       isSectionsPending,
       isStudentsPending,
+      refetchStudents,
+      isStudentsRefetching,
     ],
   );
 
@@ -202,22 +200,3 @@ export const EnrolledStudentsProvider: React.FC<{
     </EnrolledStudentsContext.Provider>
   );
 };
-
-/**
- * Custom hook to use the EnrolledStudents context
- *
- * This hook provides a convenient way to access the context in components
- * and includes error handling to ensure it's used correctly.
- *
- * @returns The EnrolledStudents context value
- * @throws Error if used outside of EnrolledStudentsProvider
- */
-export function useEnrolledStudents() {
-  const context = React.useContext(EnrolledStudentsContext);
-  if (!context) {
-    throw new Error(
-      "useEnrolledStudents must be used within an EnrolledStudentsProvider",
-    );
-  }
-  return context;
-}

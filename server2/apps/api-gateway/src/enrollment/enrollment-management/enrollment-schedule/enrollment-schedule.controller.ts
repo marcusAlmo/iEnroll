@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { EnrollmentScheduleService } from './enrollment-schedule.service';
-import { Get, Post, Body, Param } from '@nestjs/common';
+import { Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
 import { User } from '@lib/decorators/user.decorator';
 import { EnrollmentScheduleDTO } from './dto/enrollment-schedule.dto';
 
@@ -13,7 +13,7 @@ export class EnrollmentScheduleController {
   @Get('get-all-schedules')
   async getAllGrades(@User('school_id') schoolId: number) {
     schoolId = 0;
-    return await this.enrollmentScheduleService.getAllGrades(schoolId);
+    return await this.enrollmentScheduleService.getAllGrades({ schoolId });
   }
 
   @Post('store-data')
@@ -22,23 +22,42 @@ export class EnrollmentScheduleController {
     @Body() payload: EnrollmentScheduleDTO,
   ) {
     schoolId = 0;
+    console.log('payload: ', payload);
     return await this.enrollmentScheduleService.storeData({
-      payload,
+      data: payload,
       schoolId,
     });
   }
 
-  @Post('pause-schedule/:scheduleId')
-  async pauseSchedule(@Param('scheduleId') scheduleId: string) {
+  @Put('pause-schedule')
+  async pauseSchedule(
+    @Query('scheduleId') scheduleId: string,
+    @Query('status') status: string,
+  ) {
+    const numberId = Number(scheduleId);
+    const booleanStatus = status === 'true';
     return await this.enrollmentScheduleService.pauseSchedule({
-      scheduleId,
+      scheduleId: numberId,
+      status: booleanStatus,
     });
   }
 
-  @Post('delete-schedule/:scheduleId')
+  @Delete('delete-schedule/:scheduleId')
   async deleteSchedule(@Param('scheduleId') scheduleId: string) {
+    const numberId = Number(scheduleId);
     return await this.enrollmentScheduleService.deleteSchedule({
-      scheduleId,
+      scheduleId: numberId,
+    });
+  }
+
+  @Put('update-allow-selection')
+  async updateAllowSelection(
+    @Query('gradeLevel') gradeLevel: string,
+    @User('school_id') schoolId: number,
+  ) {
+    return await this.enrollmentScheduleService.updateAllowSelection({
+      gradeLevel,
+      schoolId,
     });
   }
 }

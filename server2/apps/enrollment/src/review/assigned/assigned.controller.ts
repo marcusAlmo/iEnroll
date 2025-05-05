@@ -76,6 +76,7 @@ export class AssignedController {
       applicationId: number;
       requirementId: number;
       reviewerId: number;
+      remarks?: string;
     },
   ) {
     return await this.assignedService.approveOrDenyAttachment(
@@ -83,6 +84,59 @@ export class AssignedController {
       payload.applicationId,
       payload.requirementId,
       payload.reviewerId,
+      payload.remarks,
+    );
+  }
+
+  @MessagePattern({
+    cmd: 'enrollment_review_assigned:enroll_student',
+  })
+  async enrollStudent(
+    @Payload()
+    payload: {
+      studentId: number;
+      sectionId: number;
+      approverId: number;
+      enrollmentRemarks?: string;
+    },
+  ) {
+    return await this.assignedService.enrollStudent(
+      payload.studentId,
+      payload.sectionId,
+      payload.approverId,
+      payload.enrollmentRemarks,
+    );
+  }
+
+  @MessagePattern({
+    cmd: 'enrollment_review_assigned:reassign_student_into_diff_section',
+  })
+  async reassignStudentIntoDifferentSection(
+    @Payload()
+    payload: {
+      studentId: number;
+      sectionId: number;
+    },
+  ) {
+    return await this.assignedService.reassignStudentIntoDifferentSection(
+      payload.studentId,
+      payload.sectionId,
+    );
+  }
+
+  @MessagePattern({
+    cmd: 'enrollment_review_assigned:update_enrollment_status',
+  })
+  async updateEnrollmentStatus(
+    @Payload()
+    payload: {
+      status: 'accepted' | 'denied' | 'invalid';
+      studentId: number;
+    },
+  ) {
+    return await this.assignedService.updateEnrollmentStatus(
+      payload.status,
+      payload.studentId,
     );
   }
 }

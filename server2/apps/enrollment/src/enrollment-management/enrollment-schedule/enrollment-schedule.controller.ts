@@ -11,31 +11,51 @@ export class EnrollmentScheduleController {
   ) {}
 
   @MessagePattern({ cmd: 'get-all-schedules' })
-  async getAllGrades(
-    schoolId: number,
-  ): Promise<MicroserviceUtility['returnValue']> {
-    return this.enrollmentScheduleService.getAllGrades(schoolId);
+  async getAllGrades(payload: {
+    schoolId: number;
+  }): Promise<MicroserviceUtility['returnValue']> {
+    console.log('schoolIdL: ', payload.schoolId);
+    return this.enrollmentScheduleService.getAllGrades(payload.schoolId);
   }
 
   @MessagePattern({ cmd: 'store-data' })
-  async storeData(
-    data: EnrollmentSchedule['receivedData'],
-    schoolId: number,
-  ): Promise<MicroserviceUtility['returnValue']> {
-    return this.enrollmentScheduleService.storeData(data, schoolId);
+  async storeData(payload: {
+    data: EnrollmentSchedule['receivedData'];
+    schoolId: number;
+  }): Promise<MicroserviceUtility['returnValue']> {
+    return this.enrollmentScheduleService.storeData(
+      payload.data,
+      payload.schoolId,
+    );
   }
 
   @MessagePattern({ cmd: 'pause-schedule' })
-  async pauseSchedule(
-    scheduleId: number,
-  ): Promise<MicroserviceUtility['returnValue']> {
-    return this.enrollmentScheduleService.pauseSchedule(scheduleId);
+  async pauseSchedule(payload: {
+    scheduleId: number;
+    status: boolean;
+  }): Promise<MicroserviceUtility['returnValue']> {
+    return this.enrollmentScheduleService.pauseSchedule(
+      payload.scheduleId,
+      payload.status,
+    );
   }
 
   @MessagePattern({ cmd: 'delete-schedule' })
-  async deleteSchedule(
-    scheduleId: number,
-  ): Promise<MicroserviceUtility['returnValue']> {
-    return this.enrollmentScheduleService.deleteSchedule(scheduleId);
+  async deleteSchedule(payload: {
+    scheduleId: number;
+  }): Promise<MicroserviceUtility['returnValue']> {
+    console.log('scheduleId: ', payload.scheduleId);
+    return this.enrollmentScheduleService.deleteSchedule(payload.scheduleId);
+  }
+
+  @MessagePattern({ cmd: 'update-allow-selection' })
+  async updateAllowSelection(payload: {
+    gradeLevel: string;
+    schoolId: number;
+  }) {
+    return this.enrollmentScheduleService.updateAllowSectionSelection(
+      payload.gradeLevel,
+      payload.schoolId,
+    );
   }
 }

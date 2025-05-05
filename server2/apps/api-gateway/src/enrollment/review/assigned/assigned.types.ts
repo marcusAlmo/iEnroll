@@ -27,3 +27,27 @@ export type ApproveOrDenyAttachmentPayload = Parameters<
 export type ApproveOrDenyAttachmentReturn = Awaited<
   ReturnType<AssignedController['approveOrDenyAttachment']>
 >;
+
+export type EnrollStudentPayload = Parameters<
+  AssignedController['enrollStudent']
+>[0];
+
+export type EnrollStudentReturn = Awaited<
+  ReturnType<AssignedController['enrollStudent']>
+>;
+
+export type ReassignSectionPayload = Parameters<
+  AssignedController['reassignStudentIntoDifferentSection']
+>[0];
+
+export type ReassignSectionReturn = Awaited<
+  ReturnType<AssignedController['reassignStudentIntoDifferentSection']>
+>;
+
+export type UpdateEnrollmentPayload = Parameters<
+  AssignedController['updateEnrollmentStatus']
+>[0];
+
+export type UpdateEnrollmentReturn = Awaited<
+  ReturnType<AssignedController['updateEnrollmentStatus']>
+>;

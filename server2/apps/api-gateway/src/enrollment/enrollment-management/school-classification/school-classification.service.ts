@@ -12,18 +12,6 @@ export class SchoolClassificationService {
     private readonly exceptionCheckerService: ExceptionCheckerService,
   ) {}
 
-  public async getSchoolClassification(
-    payload: object,
-  ): Promise<SchoolClassification['getSchoolClassification']> {
-    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'get-school-classification' }, payload),
-    );
-
-    await this.exceptionCheckerService.checker(result);
-
-    return result.data as SchoolClassification['getSchoolClassification'];
-  }
-
   public async saveSchoolClassification(
     payload: object,
   ): Promise<SchoolClassification['successMessage']> {
@@ -34,5 +22,17 @@ export class SchoolClassificationService {
     await this.exceptionCheckerService.checker(result);
 
     return result.data as SchoolClassification['successMessage'];
+  }
+
+  public async getAllGradesLavels(
+    payload: object,
+  ): Promise<SchoolClassification['finalOutput']> {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-all-grade-levels' }, payload),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as SchoolClassification['finalOutput'];
   }
 }

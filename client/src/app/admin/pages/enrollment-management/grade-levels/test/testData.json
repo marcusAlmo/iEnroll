@@ -1,0 +1,50 @@
+{
+  "gradeLevels": [
+    {
+      "gradeLevel": "Grade 1",
+      "sections": [
+        {
+          "sectionName": "Section A",
+          "sectionAdviser": "John Doe",
+          "sectionCapacity": 30,
+          "maximumApplication": 35,
+          "isCustomProgram": true,
+          "customProgramDetails": {
+            "program": "Science Oriented",
+            "description": "A specialized program focusing on STEM."
+          },
+          "programId": "G1-SA"
+        },
+        {
+          "sectionName": "Section B",
+          "sectionAdviser": "Jane Smith",
+          "sectionCapacity": 25,
+          "maximumApplication": 30,
+          "isCustomProgram": false,
+          "programId": "G1-SB"
+        }
+      ]
+    },
+    {
+      "gradeLevel": "Grade 2",
+      "sections": [
+        {
+          "sectionName": "Section C",
+          "sectionAdviser": "Alice Johnson",
+          "sectionCapacity": 28,
+          "maximumApplication": 32,
+          "isCustomProgram": false,
+          "programId": "G2-SC"
+        },
+        {
+          "sectionName": "Section D",
+          "sectionAdviser": "Bob Brown",
+          "sectionCapacity": 26,
+          "maximumApplication": 30,
+          "isCustomProgram": false,
+          "programId": "G2-SD"
+        }
+      ]
+    }
+  ]
+}

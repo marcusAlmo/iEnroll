@@ -3,11 +3,17 @@ import { ClientProxy } from '@nestjs/microservices';
 import {
   ApproveOrDenyAttachmentPayload,
   ApproveOrDenyAttachmentReturn,
+  EnrollStudentPayload,
+  EnrollStudentReturn,
   GradeLevelsReturn,
+  ReassignSectionPayload,
+  ReassignSectionReturn,
   RequirementsReturn,
   SectionsReturn,
   StudentsAssignedReturn,
   StudentsUnassignedReturn,
+  UpdateEnrollmentPayload,
+  UpdateEnrollmentReturn,
 } from './assigned.types';
 import { lastValueFrom } from 'rxjs';
 
@@ -86,6 +92,7 @@ export class AssignedService {
     requirementId: number;
     action: 'approve' | 'deny';
     reviewerId: number;
+    remarks?: string;
   }) {
     const injectPayload = (payload: ApproveOrDenyAttachmentPayload) => payload;
 
@@ -99,6 +106,69 @@ export class AssignedService {
           requirementId: payload.requirementId,
           action: payload.action,
           reviewerId: payload.reviewerId,
+          remarks: payload.remarks,
+        }),
+      ),
+    );
+    return result;
+  }
+  async enrollStudent(payload: {
+    studentId: number;
+    sectionId: number;
+    approverId: number;
+    enrollmentRemarks?: string;
+  }) {
+    const injectPayload = (payload: EnrollStudentPayload) => payload;
+
+    const result: EnrollStudentReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'enrollment_review_assigned:enroll_student',
+        },
+        injectPayload({
+          studentId: payload.studentId,
+          sectionId: payload.sectionId,
+          approverId: payload.approverId,
+          enrollmentRemarks: payload.enrollmentRemarks,
+        }),
+      ),
+    );
+    return result;
+  }
+  async reassignStudentIntoDifferentSection(payload: {
+    studentId: number;
+    sectionId: number;
+  }) {
+    const injectPayload = (payload: ReassignSectionPayload) => payload;
+
+    const result: ReassignSectionReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'enrollment_review_assigned:reassign_student_into_diff_section',
+        },
+        injectPayload({
+          studentId: payload.studentId,
+          sectionId: payload.sectionId,
+        }),
+      ),
+    );
+    return result;
+  }
+
+  async updateEnrollmentStatus(payload: {
+    status: 'accepted' | 'denied' | 'invalid';
+    studentId: number;
+  }) {
+    const injectPayload = (payload: UpdateEnrollmentPayload) => payload;
+
+    const result: UpdateEnrollmentReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'enrollment_review_assigned:update_enrollment_status',
+        },
+        injectPayload({
+          status: payload.status,
+          studentId: payload.studentId,
         }),
       ),
     );

@@ -1,5 +1,6 @@
 import { requestData } from '@/lib/dataRequester';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { toast } from 'react-toastify';
 
 
 interface PlanCapacityData {
@@ -22,6 +23,7 @@ const PlanCapacity: React.FC = () => {
     studentEnrollmentCapacity: { total: 0, max: 0 },
     remainingDays: { total: 0, max: 0 }
   });
+  const hasFetched = useRef(false);
 
   const fetchData = async () => {
     try{
@@ -31,15 +33,17 @@ const PlanCapacity: React.FC = () => {
         });
 
         if(response){
-            console.log(response);
             setData(response)
         }
     }catch(err){
-        if(err instanceof Error) console.log(err.message);
+        if(err instanceof Error) toast.error(err.message);
+        else console.error(err);
     }
   }
 
   useEffect(() => {
+    if (hasFetched.current) return; // prevent double fetch
+    hasFetched.current = true;
     fetchData();
   }, []);
 

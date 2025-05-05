@@ -1,4 +1,4 @@
-import { IsEnum, IsInt } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ApproveOrDenyDto {
@@ -12,4 +12,8 @@ export class ApproveOrDenyDto {
   @Type(() => Number)
   @IsInt()
   requirementId!: number;
+
+  @IsOptional()
+  @IsString()
+  remarks?: string;
 }
