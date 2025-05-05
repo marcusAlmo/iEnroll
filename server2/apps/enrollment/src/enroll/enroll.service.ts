@@ -8,6 +8,12 @@ export class EnrollService {
   constructor(private readonly prisma: PrismaService) {}
 
   // TODO: Add slots for each schedule
+  // break down this into
+  // all academic levels by school
+  // all gradelevel by academic level
+  // all schedules by grade level
+  // all gradesectiontype by grade level
+  // all sections by grade level
   async getSchoolLevelAndScheduleSelection(schoolId: number) {
     const now = new Date();
 
@@ -152,6 +158,64 @@ export class EnrollService {
 
     return Object.values(grouped);
   }
+
+  async getAcademicLevelsBySchool(schoolId: number) {
+    const result = await this.prisma.grade_level_offered.findMany({
+      where: {
+        is_active: true,
+        school_id: schoolId,
+        grade_level: {
+          academic_level: {
+            is_supported: true,
+          },
+        },
+      },
+      select: {
+        grade_level: {
+          select: {
+            academic_level: {
+              select: {
+                academic_level: true,
+                academic_level_code: true,
+              },
+            },
+          },
+        },
+      },
+      distinct: ['grade_level_code', 'grade_level_offered_id'],
+      // distinct: ['grade_level.academic_level.academic_level_code'],
+    });
+
+    return result.map(
+      ({
+        grade_level: {
+          academic_level: { academic_level, academic_level_code },
+        },
+      }) => ({
+        academicLeveLCode: academic_level_code,
+        academicLevelId: academic_level,
+      }),
+    );
+  }
+
+  async getGradeLevelsByAcademicLevel(academicLevelCode: string) {
+    const result = await this.prisma.grade_level.findMany({
+      where: {
+        academic_level_code: academicLevelCode,
+      },
+      select: {
+        grade_level_code: true,
+        grade_level: true,
+      },
+    });
+
+    return result.map((data) => ({
+      gradeLevelCode: data.grade_level_code,
+      gradeLevel: data.grade_level,
+    }));
+  }
+
+  async g
 
   async getAllGradeSectionTypeRequirements(gradeSectionProgramId: number) {
     const result = await this.prisma.enrollment_requirement.findMany({
