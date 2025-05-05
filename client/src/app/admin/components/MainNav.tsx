@@ -11,7 +11,7 @@ const MainNav: React.FC = () => {
         <img className="w-4 h-5 mt-1" src={Smiley} alt="Smiley"/>
         <span className="text-primary">ll</span>
       </div>
-      <Link className="bg-accent text-white px-4 py-1 rounded-lg shadow-lg hover:bg-blue-500 transition" to={"/admin-credentials"}>
+      <Link className="button-transition rounded-[5px] bg-accent px-4 py-1 text-white hover:scale-105 hover:bg-primary" to={"/admin-credentials"}>
         Log In
       </Link>
     </nav>
