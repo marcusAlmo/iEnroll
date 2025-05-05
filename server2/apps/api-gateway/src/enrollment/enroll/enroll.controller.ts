@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   ParseIntPipe,
   Post,
   Query,
@@ -31,6 +32,51 @@ export class EnrollController {
   ) {
     return await this.enrollService.getSchoolLevelAndScheduleSelection({
       id: schoolId,
+    });
+  }
+
+  @Get('selection/academic-levels')
+  async getAcademicLevelsBySchool(
+    @Query('school_id', ParseIntPipe) schoolId: number,
+  ) {
+    return await this.enrollService.getAcademicLevelsBySchool({
+      schoolId,
+    });
+  }
+
+  @Get('selection/grade-levels/:academicLevelCode')
+  async getGradeLevelsByAcademicLevel(
+    @Param('academicLevelCode') academicLevelCode: string,
+  ) {
+    return await this.enrollService.getGradeLevelsByAcademicLevel({
+      academicLevelCode,
+    });
+  }
+
+  @Get('selection/schedules/:gradeLevelCode')
+  async getSchedulesByGradeLevel(
+    @Param('gradeLevelCode') gradeLevelCode: string,
+  ) {
+    return await this.enrollService.getSchedulesByGradeLevel({
+      gradeLevelCode,
+    });
+  }
+
+  @Get('selection/section-types/:gradeLevelCode')
+  async getGradeSectionTypesByGradeLevel(
+    @Param('gradeLevelCode') gradeLevelCode: string,
+  ) {
+    return await this.enrollService.getGradeSectionTypesByGradeLevel({
+      gradeLevelCode,
+    });
+  }
+
+  @Get('selection/sections/:gradeLevelCode')
+  async getSectionsByGradeLevel(
+    @Param('gradeLevelCode') gradeLevelCode: string,
+  ) {
+    return await this.enrollService.getSectionsByGradeLevel({
+      gradeLevelCode,
     });
   }
 

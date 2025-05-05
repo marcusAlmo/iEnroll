@@ -1,6 +1,6 @@
-import { SchoolLevelAndScheduleReturn } from "../../types";
+import { SchoolLevelAndScheduleResponse } from "../../types";
 
-export const academicLevels: SchoolLevelAndScheduleReturn = [
+export const academicLevels: SchoolLevelAndScheduleResponse = [
   {
     name: "Primary Education",
     code: "PE",
