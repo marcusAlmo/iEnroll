@@ -293,7 +293,7 @@ export const data: Gra[] = [
             requirementType: Enums.attachment_type.document,
             requirementStatus: Enums.attachment_status.accepted,
             fileUrl:
-              "https://conasems-ava-prod.s3.sa-east-1.amazonaws.com/aulas/ava/dummy-1641923583.pdf",
+              "https://docs.google.com/document/d/1GuKs45h35Ab0GirO4SZ9Lb4cRWKNWWC9gHdPiIMa7_Q/edit?usp=sharing",
             fileName: "pdfile.pdf",
             userInput: null,
             remarks: null,
