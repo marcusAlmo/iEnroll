@@ -143,11 +143,11 @@ interface RolesAccessProps {
   selectedPersonnel?: Personnel | null;
   onSave: () => void;
   searchQuery?: string;
-  isAddingNewPersonnel?: boolean;
-  setIsAddingNewPersonnel?: (value: boolean) => void;
+  isAddingNewPersonnel: boolean;
+  setIsAddingNewPersonnel: (value: boolean) => void;
 }
 
-const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, searchQuery }) => {
+const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, searchQuery, isAddingNewPersonnel, setIsAddingNewPersonnel }) => {
   const [activeTab, setActiveTab] = useState("profile-settings");
   const { shouldResetForm, setShouldResetForm } = useContext(FormResetContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -304,6 +304,14 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
     }
   }, [searchQuery]);
 
+  // detects when user clicked the add new employee
+  useEffect(() => {
+    if (isAddingNewPersonnel) {
+      reset();
+    }
+  }, [isAddingNewPersonnel, reset]);
+
+
   const profileSettingSubmit = async (data: FormData) => {
     const response = await requestData<{ message: string }>({
       url: `http://localhost:3000/api/profile-settings/update-employee-info/${selectedPersonnel?.userId}`,
@@ -384,15 +392,45 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
     if (response) toast.success(response.message);
   }
 
+  const createNewAccount = async (data: FormData) => {
+    // Handle new personnel creation
+    const response = await requestData<{ message: string }>({
+      url: "http://localhost:3000/api/profile-settings/create-employee",
+      method: "POST",
+      body: {
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        fName: data.firstName,
+        mName: data.middleName,
+        lName: data.lastName,
+        suffix: data.suffix,
+        gender: data.sex,
+        phone: data.phoneNumber,
+      }
+    });
+
+    if (response) {
+      toast.success("New personnel created successfully");
+      reset();
+      setIsAddingNewPersonnel(false);
+    }
+  }
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      if (activeTab === "profile-settings") {
-        await profileSettingSubmit(data);
-      } else if (activeTab === "account-settings") {
-        await accountSettingSubmit(data);
-      } else if (activeTab === "role-management") {
-        await roleManagementSubmit(data);
+      if (isAddingNewPersonnel) {
+        await createNewAccount(data);
+      } else {
+        // Existing update logic
+        if (activeTab === "profile-settings") {
+          await profileSettingSubmit(data);
+        } else if (activeTab === "account-settings") {
+          await accountSettingSubmit(data);
+        } else if (activeTab === "role-management") {
+          await roleManagementSubmit(data);
+        }
       }
       onSave();
     } catch (error) {
@@ -450,6 +488,42 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
       {activeTab === "profile-settings" && (
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-6 mt-4">
+            {isAddingNewPersonnel && (
+              <div className="mb-6">
+                <h2 className="text-accent font-medium text-lg mb-3">Account Information</h2>
+                <div className="flex mb-4">
+                  <div className="w-80 pr-2">
+                    <CustomInput
+                      label="Username"
+                      placeholder="Enter username"
+                      register={register}
+                      name="username"
+                      errorMessage={errors.username?.message}
+                    />
+                  </div>
+                  <div className="w-80 ml-5 px-2">
+                    <CustomInput
+                      label="Email"
+                      placeholder="Enter email"
+                      type="email"
+                      register={register}
+                      name="email"
+                      errorMessage={errors.email?.message}
+                    />
+                  </div>
+                </div>
+                <div className="w-80 pr-2">
+                  <CustomInput
+                    label="Password"
+                    placeholder="Enter password"
+                    type="password"
+                    register={register}
+                    name="password"
+                    errorMessage={errors.password?.message}
+                  />
+                </div>
+              </div>
+            )}
             <h2 className="text-accent font-medium text-lg mb-3">Personal Information</h2>
             
             {/* Row 1: First Name, Middle Name, Birthdate (with gap) */}
@@ -521,10 +595,14 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
             </div>
           </div>
 
-          <br></br>
-          <br></br>
-          <br></br>
-          <br></br>
+          {!isAddingNewPersonnel && (
+            <>
+            <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
+            </>
+          )}
 
           <div className="flex mt-10">
           <button
@@ -766,6 +844,7 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
               </div>
             </div>
           </div>
+          <br></br>
           <div className="flex mt-10">
           <button
             type="submit"

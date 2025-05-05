@@ -30,12 +30,12 @@ export class ProfileSettingsController {
 
   @MessagePattern({ cmd: 'create-employee' })
   public async createEmployee(payload: {
-    schoolId: number;
     data: ProfileSettings['createProfileSettings'];
+    schoolId: number;
   }) {
-    return await this.profileSettingsService.creteEmployee(
-      payload.schoolId,
+    return await this.profileSettingsService.createEmployee(
       payload.data,
+      payload.schoolId,
     );
   }
 }

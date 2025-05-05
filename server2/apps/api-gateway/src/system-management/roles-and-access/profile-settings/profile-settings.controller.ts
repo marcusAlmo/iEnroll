@@ -36,9 +36,14 @@ export class ProfileSettingsController {
   }
 
   @Post('create-employee')
-  async createEmployee(@Body() payload: CreateEmployeeDto) {
+  async createEmployee(
+    @Body() payload: CreateEmployeeDto,
+    @User('school_id') schoolId: number,
+  ) {
+    schoolId = 388243;
     return this.profileSettingsService.createEmployee({
       data: payload,
+      schoolId,
     });
   }
 }

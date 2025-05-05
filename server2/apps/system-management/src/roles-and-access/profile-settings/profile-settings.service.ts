@@ -1,3 +1,4 @@
+import { $Enums } from '@prisma/client';
 import { MicroserviceUtilityService } from '@lib/microservice-utility/microservice-utility.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
@@ -43,9 +44,9 @@ export class ProfileSettingsService {
   }
 
   // create employee
-  public async creteEmployee(
-    schooolId: number,
+  public async createEmployee(
     data: ProfileSettings['createProfileSettings'],
+    schooolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
     const hashedPassword = await this.authService.hashPassword(data.password);
 
@@ -59,6 +60,7 @@ export class ProfileSettingsService {
         contact_number: data.phone,
         school_id: schooolId,
         username: data.username,
+        email_address: data.email,
         password_hash: hashedPassword,
       },
     });
@@ -66,6 +68,23 @@ export class ProfileSettingsService {
     if (!result)
       return this.microserviceUtilityService.internalServerErrorReturn(
         'Failed creating employee',
+      );
+
+    const accessListResult = await this.prisma.access_list.create({
+      data: {
+        user_id: result.user_id,
+        role: $Enums.role_type.registrar,
+        dashboard_access: $Enums.access_type_access_list.read,
+        enrollment_management_access: $Enums.access_type_access_list.read,
+        enrollment_review_access: $Enums.access_type_access_list.read,
+        personnel_center_access: $Enums.access_type_access_list.read,
+        system_settings_access: $Enums.access_type_access_list.read,
+      },
+    });
+
+    if (!accessListResult)
+      return this.microserviceUtilityService.internalServerErrorReturn(
+        'Failed creating access list',
       );
 
     return this.microserviceUtilityService.returnSuccess({
