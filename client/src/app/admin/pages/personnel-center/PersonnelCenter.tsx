@@ -24,10 +24,13 @@ const PersonnelCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState("roles-access");
   const [userFilter, setUserFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
+  const [isAddingNewPersonnel, setIsAddingNewPersonnel] = useState(false);
 
+  // Update the handleAddNewPersonnel function
   const handleAddNewPersonnel = () => {
     setSelectedPersonnel(null);
     setShouldResetForm(true);
+    setIsAddingNewPersonnel(true);  // Add this line
     if (activeTab !== "roles-access") setActiveTab("roles-access");
     toast.success("New personnel form opened", { duration: 2000, position: "top-right" });
   };
@@ -37,17 +40,8 @@ const PersonnelCenter: React.FC = () => {
     toast.success("Personnel selected", { duration: 2000, position: "top-right" });
   };
 
-  const handleSavePersonnel = (data: any) => {
-    if (!data.firstName || !data.lastName || !data.email) {
-      toast.error("Please fill all required fields", { duration: 2000, position: "top-right" });
-      return;
-    }
-    if (selectedPersonnel) {
-      setPersonnel(prev => prev.map(p => (p.id === selectedPersonnel.id ? { ...p, ...data } : p)));
-    } else {
-      const newId = Math.max(...personnel.map(p => p.id), 0) + 1;
-      setPersonnel(prev => [...prev, { id: newId, ...data }]);
-    }
+  const handleSavePersonnel = async () => {
+    await retrievePersonnels();
     toast.success("Personnel saved successfully", { duration: 2000, position: "top-right" });
   };
 
@@ -65,6 +59,7 @@ const PersonnelCenter: React.FC = () => {
 
   const retrievePersonnels = async () => {
     try {
+      console.log('retrieving personels')
       const response = await requestData<Personnel[]>({
         url: "http://localhost:3000/api/employee-list/retrieve",
         method: "GET",
@@ -178,11 +173,13 @@ const PersonnelCenter: React.FC = () => {
           {/* Right panel */}
           <div className="flex-1 p-5 overflow-auto">
             <FormResetContext.Provider value={{ shouldResetForm, setShouldResetForm }}>
-              <AccessManagementPanel
-                selectedPersonnel={selectedPersonnel}
-                onSave={handleSavePersonnel}
-                searchQuery={searchQuery}
-              />
+            <AccessManagementPanel
+              selectedPersonnel={selectedPersonnel}
+              onSave={handleSavePersonnel}
+              searchQuery={searchQuery}
+              isAddingNewPersonnel={isAddingNewPersonnel}
+              setIsAddingNewPersonnel={setIsAddingNewPersonnel}
+            />
             </FormResetContext.Provider>
           </div>
         </div>

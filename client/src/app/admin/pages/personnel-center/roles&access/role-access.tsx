@@ -141,8 +141,10 @@ const SelectInput = ({
 
 interface RolesAccessProps {
   selectedPersonnel?: Personnel | null;
-  onSave?: (data: FormData) => void;
+  onSave: () => void;
   searchQuery?: string;
+  isAddingNewPersonnel?: boolean;
+  setIsAddingNewPersonnel?: (value: boolean) => void;
 }
 
 const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, searchQuery }) => {
@@ -268,18 +270,21 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
               if (typeof nestedValue === 'object') {
                 // For deeply nested objects like accessPermissions.dashboard
                 Object.entries(nestedValue).forEach(([deepKey, deepValue]) => {
+                  // eslint-disable-next-line
                   setValue(`${key}.${nestedKey}.${deepKey}` as any, deepValue);
                 });
               } else {
+                // eslint-disable-next-line
                 setValue(`${key}.${nestedKey}` as any, nestedValue);
               }
             });
           }
         } else {
+          // eslint-disable-next-line
           setValue(key as any, value);
         }
       });
-      
+
       toast.success("Personnel data loaded", {
         duration: 2000,
         position: "top-right"
@@ -389,8 +394,7 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
       } else if (activeTab === "role-management") {
         await roleManagementSubmit(data);
       }
-      console.log("Submitting:", data);
-      toast.success("Saved successfully!");
+      onSave();
     } catch (error) {
       toast.error("Failed to save");
       console.error(error);
