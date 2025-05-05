@@ -14,9 +14,9 @@ import { useEnrollmentReview } from "@/app/admin/context/useEnrollmentReview";
 import Enums from "@/services/common/types/enums";
 import { useQuery } from "@tanstack/react-query";
 import { getFile } from "@/services/common/file";
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -31,7 +31,7 @@ export const RequirementsCarouselModal: React.FC = () => {
     isModalOpen,
     setIsModalOpen,
   } = useEnrollmentReview();
-  
+
   // Local state
   const [showDenialReason, setShowDenialReason] = useState(false);
   const [denialReason, setDenialReason] = useState("");
@@ -54,76 +54,91 @@ export const RequirementsCarouselModal: React.FC = () => {
 
   // Page navigation
   const changePage = (offset: number) => {
-    setPageNumber(prevPageNumber => Math.min(Math.max((prevPageNumber || 1) + offset, 1), numPages || 1));
+    setPageNumber((prevPageNumber) =>
+      Math.min(Math.max((prevPageNumber || 1) + offset, 1), numPages || 1),
+    );
   };
 
   const previousPage = () => changePage(-1);
   const nextPage = () => changePage(1);
 
   // File fetching
-  const { data: fileBlob, isPending: isFilePending, error: fileError } = useQuery({
+  const {
+    data: fileBlob,
+    isPending: isFilePending,
+    error: fileError,
+  } = useQuery({
     queryKey: [
       "assignedRequirementsBlob",
       selectedRequirement?.applicationId,
       selectedRequirement?.requirementId,
     ],
     queryFn: () => {
-      if (!selectedRequirement?.imageUrl) {
-        throw new Error("No file URL provided");
-      }
-      console.log("Fetching file from:", selectedRequirement.imageUrl);
-      return getFile(selectedRequirement.imageUrl);
+      return getFile(selectedRequirement!.imageUrl!);
     },
     select: (data) => data.data,
     enabled: Boolean(selectedRequirement?.imageUrl),
-    retry: 1,
+    // retry: 1,
   });
 
   // Create and manage file blob URL
+
+  const previousUrl = useRef<string | null>(null);
+
   useEffect(() => {
-    // Clear any previous errors
+    // Clear previous error and revoke any previous object URL
     setLoadError(null);
-    
-    // Clear any previous URL
-    if (fileUrl) {
-      URL.revokeObjectURL(fileUrl);
-      setFileUrl(null);
+
+    if (previousUrl.current) {
+      URL.revokeObjectURL(previousUrl.current);
+      previousUrl.current = null;
     }
 
+    // Handle loading error
     if (fileError) {
       console.error("Error loading file:", fileError);
       setLoadError("Failed to load file. Please try again later.");
       return;
     }
 
+    // Handle blob conversion if ready
     if (!isFilePending && fileBlob) {
       console.log("File blob received:", fileBlob);
       try {
-        const url = URL.createObjectURL(new Blob([fileBlob], { 
-          
-          type: selectedRequirement?.requirementType === Enums.requirement_type.document ? 
-                'application/pdf' : 'image/jpeg' 
-        }));
+        const mimeType =
+          selectedRequirement?.requirementType ===
+          Enums.requirement_type.document
+            ? "application/pdf"
+            : selectedRequirement?.requirementType ===
+                Enums.requirement_type.image
+              ? "image/jpeg"
+              : "application/octet-stream"; // Fallback MIME type
+
+        const url = URL.createObjectURL(
+          new Blob([fileBlob], { type: mimeType }),
+        );
         setFileUrl(url);
+        previousUrl.current = url;
       } catch (error) {
         console.error("Error creating object URL:", error);
         setLoadError("Error processing file. Please try again later.");
       }
     }
 
-    // Cleanup function
+    // Cleanup on unmount or dependency change
     return () => {
-      if (fileUrl) {
-        URL.revokeObjectURL(fileUrl);
+      if (previousUrl.current) {
+        URL.revokeObjectURL(previousUrl.current);
+        previousUrl.current = null;
       }
     };
   }, [fileBlob, isFilePending, fileError, selectedRequirement]);
 
   const handleDownload = useCallback(() => {
     if (fileUrl && selectedRequirement) {
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = fileUrl;
-      link.download = selectedRequirement.fileName || 'download';
+      link.download = selectedRequirement.fileName || "download";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -178,8 +193,9 @@ export const RequirementsCarouselModal: React.FC = () => {
     return null;
 
   // Check file type
-  const isPdfFile = selectedRequirement?.fileName?.toLowerCase().endsWith('.pdf') || 
-                    selectedRequirement?.imageUrl?.toLowerCase().endsWith('.pdf');
+  const isPdfFile =
+    selectedRequirement?.fileName?.toLowerCase().endsWith(".pdf") ||
+    selectedRequirement?.imageUrl?.toLowerCase().endsWith(".pdf");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
@@ -203,7 +219,8 @@ export const RequirementsCarouselModal: React.FC = () => {
         />
 
         <div className="flex w-full flex-row items-center justify-center p-10">
-          {selectedRequirement.requirementType === Enums.requirement_type.image ? (
+          {selectedRequirement.requirementType ===
+          Enums.requirement_type.image ? (
             <div className="relative overflow-hidden" ref={imageContainerRef}>
               <div className="absolute top-5 right-0 z-10 flex flex-col gap-2">
                 <button
@@ -248,24 +265,29 @@ export const RequirementsCarouselModal: React.FC = () => {
                 ) : loadError || fileError ? (
                   <div className="flex h-full flex-col items-center justify-center bg-white p-4 text-center">
                     <p className="text-red-500">Failed to load image</p>
-                    <p className="text-sm text-gray-500">The image could not be loaded. Please try again later.</p>
+                    <p className="text-sm text-gray-500">
+                      The image could not be loaded. Please try again later.
+                    </p>
                   </div>
-                ) : fileUrl && (
-                  <img
-                    src={fileUrl}
-                    alt={selectedRequirement.requirementName}
-                    className="h-full w-full object-contain transition-transform duration-300"
-                    style={{
-                      transform: `scale(${zoomLevel}) translate(${position.x / zoomLevel}px, ${position.y / zoomLevel}px)`,
-                      transformOrigin: "center center",
-                    }}
-                    draggable="false"
-                    onError={() => setLoadError("Failed to load image")}
-                  />
+                ) : (
+                  fileUrl && (
+                    <img
+                      src={fileUrl}
+                      alt={selectedRequirement.requirementName}
+                      className="h-full w-full object-contain transition-transform duration-300"
+                      style={{
+                        transform: `scale(${zoomLevel}) translate(${position.x / zoomLevel}px, ${position.y / zoomLevel}px)`,
+                        transformOrigin: "center center",
+                      }}
+                      draggable="false"
+                      onError={() => setLoadError("Failed to load image")}
+                    />
+                  )
                 )}
               </div>
             </div>
-          ) : selectedRequirement.requirementType === Enums.requirement_type.document ? (
+          ) : selectedRequirement.requirementType ===
+            Enums.requirement_type.document ? (
             <div className="relative overflow-hidden">
               <div className="absolute top-5 right-0 z-10 flex flex-col gap-2">
                 <button
@@ -281,7 +303,11 @@ export const RequirementsCarouselModal: React.FC = () => {
                 {loadError || fileError ? (
                   <div className="flex h-full flex-col items-center justify-center p-4 text-center">
                     <p className="text-red-500">Failed to load document</p>
-                    <p className="text-sm text-gray-500">{loadError || fileError?.message || "The document could not be loaded. Please try again later."}</p>
+                    <p className="text-sm text-gray-500">
+                      {loadError ||
+                        fileError?.message ||
+                        "The document could not be loaded. Please try again later."}
+                    </p>
                   </div>
                 ) : isFilePending ? (
                   <div className="flex h-full items-center justify-center">
@@ -304,12 +330,14 @@ export const RequirementsCarouselModal: React.FC = () => {
                       error={
                         <div className="flex h-full flex-col items-center justify-center p-4 text-center">
                           <p className="text-red-500">Failed to load PDF</p>
-                          <p className="text-sm text-gray-500">The PDF could not be loaded.</p>
+                          <p className="text-sm text-gray-500">
+                            The PDF could not be loaded.
+                          </p>
                         </div>
                       }
                     >
-                      <Page 
-                        pageNumber={pageNumber} 
+                      <Page
+                        pageNumber={pageNumber}
                         width={550}
                         renderTextLayer={true}
                         renderAnnotationLayer={true}
@@ -333,10 +361,13 @@ export const RequirementsCarouselModal: React.FC = () => {
                           onClick={previousPage}
                           className="text-accent hover:text-primary disabled:text-gray-400"
                         >
-                          <FontAwesomeIcon icon={faCircleArrowLeft} className="text-2xl" />
+                          <FontAwesomeIcon
+                            icon={faCircleArrowLeft}
+                            className="text-2xl"
+                          />
                         </button>
                         <span>
-                          Page {pageNumber} of {numPages || '--'}
+                          Page {pageNumber} of {numPages || "--"}
                         </span>
                         <button
                           type="button"
@@ -344,7 +375,10 @@ export const RequirementsCarouselModal: React.FC = () => {
                           onClick={nextPage}
                           className="text-accent hover:text-primary disabled:text-gray-400"
                         >
-                          <FontAwesomeIcon icon={faCircleArrowRight} className="text-2xl" />
+                          <FontAwesomeIcon
+                            icon={faCircleArrowRight}
+                            className="text-2xl"
+                          />
                         </button>
                       </div>
                     )}
@@ -353,9 +387,9 @@ export const RequirementsCarouselModal: React.FC = () => {
                   <div className="flex h-full flex-col items-center justify-center">
                     <p className="mb-4">Document preview not available</p>
                     {fileUrl && (
-                      <a 
-                        href={fileUrl} 
-                        target="_blank" 
+                      <a
+                        href={fileUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline"
                       >
