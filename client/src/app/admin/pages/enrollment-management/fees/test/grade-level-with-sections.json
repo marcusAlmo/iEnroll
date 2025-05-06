@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1,
+    "gradeLevel": 1,
+    "sections": [
+      { "id": 1, "name": "Section A" },
+      { "id": 2, "name": "Section B" },
+      { "id": 3, "name": "Section C" }
+    ]
+  },
+  {
+    "id": 2,
+    "gradeLevel": 2,
+    "sections": [
+      { "id": 4, "name": "Section D" },
+      { "id": 5, "name": "Section E" },
+      { "id": 6, "name": "Section F" }
+    ]
+  },
+  {
+    "id": 3,
+    "gradeLevel": 3,
+    "sections": [
+      { "id": 7, "name": "Section G" },
+      { "id": 8, "name": "Section H" },
+      { "id": 9, "name": "Section I" }
+    ]
+  },
+  {
+    "id": 4,
+    "gradeLevel": 4,
+    "sections": [
+      { "id": 10, "name": "Section J" },
+      { "id": 11, "name": "Section K" },
+      { "id": 12, "name": "Section L" }
+    ]
+  },
+  {
+    "id": 5,
+    "gradeLevel": 5,
+    "sections": [
+      { "id": 13, "name": "Section M" },
+      { "id": 14, "name": "Section N" },
+      { "id": 15, "name": "Section O" }
+    ]
+  },
+  {
+    "id": 6,
+    "gradeLevel": 6,
+    "sections": [
+      { "id": 16, "name": "Section P" },
+      { "id": 17, "name": "Section Q" },
+      { "id": 18, "name": "Section R" }
+    ]
+  },
+  {
+    "id": 7,
+    "gradeLevel": 7,
+    "sections": [
+      { "id": 19, "name": "Section S" },
+      { "id": 20, "name": "Section T" },
+      { "id": 21, "name": "Section U" }
+    ]
+  },
+  {
+    "id": 8,
+    "gradeLevel": 8,
+    "sections": [
+      { "id": 22, "name": "Section V" },
+      { "id": 23, "name": "Section W" },
+      { "id": 24, "name": "Section X" }
+    ]
+  },
+  {
+    "id": 9,
+    "gradeLevel": 9,
+    "sections": [
+      { "id": 25, "name": "Section Y" },
+      { "id": 26, "name": "Section Z" },
+      { "id": 27, "name": "Section AA" }
+    ]
+  },
+  {
+    "id": 10,
+    "gradeLevel": 10,
+    "sections": [
+      { "id": 28, "name": "Section AB" },
+      { "id": 29, "name": "Section AC" },
+      { "id": 30, "name": "Section AD" }
+    ]
+  },
+  {
+    "id": 11,
+    "gradeLevel": 11,
+    "sections": [
+      { "id": 31, "name": "Section AE" },
+      { "id": 32, "name": "Section AF" },
+      { "id": 33, "name": "Section AG" }
+    ]
+  },
+  {
+    "id": 12,
+    "gradeLevel": 12,
+    "sections": [
+      { "id": 34, "name": "Section AH" },
+      { "id": 35, "name": "Section AI" },
+      { "id": 36, "name": "Section AJ" }
+    ]
+  }
+]
