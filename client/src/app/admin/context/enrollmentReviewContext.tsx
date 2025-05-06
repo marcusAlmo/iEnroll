@@ -43,6 +43,7 @@ interface Requirement {
   requirementName: string; // Name of the requirement (e.g., "Birth Certificate")
   requirementStatus: attachment_status;
   imageUrl?: string; // URL to the uploaded document/image for this requirement
+  fileUrl?: string | null; // URL to the uploaded document/image for this requirement
   fileName: string | null;
   userInput?: string; // Optional user input field for additional information
   requirementType: attachment_type; // Type of requirement (e.g., "Document", "Input", "Image")

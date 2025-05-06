@@ -286,6 +286,18 @@ export const data: Gra[] = [
             userInput: null,
             remarks: null,
           },
+          {
+            applicationId: 7,
+            requirementId: 3,
+            requirementName: "PDF File",
+            requirementType: Enums.attachment_type.document,
+            requirementStatus: Enums.attachment_status.accepted,
+            fileUrl:
+              "https://drive.google.com/file/d/16itUJcP8VvHskMDcahJNC097YcYDgK55/view?usp=sharing",
+            fileName: "pdfile.pdf",
+            userInput: null,
+            remarks: null,
+          },
         ],
       },
     ],

@@ -51,7 +51,7 @@ interface PricingListProps {
                     Explore the platform with limited features. Perfect for getting started and experiencing the basics.
                 </div>
             
-                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg mt-16 w-full cursor-pointer"
+                <button className="button-transition mt-16 w-full cursor-pointer rounded-lg border-2 border-accent py-2 text-base text-accent hover:scale-105 hover:bg-accent hover:text-background"
                     onClick={scrollToContact}
                 >
                     Claim Free Trial
@@ -102,7 +102,7 @@ interface PricingListProps {
                         </h1>
                     </div>
 
-                    <button className=" text-background bg-accent text-base w-full py-2 rounded-lg mt-11 cursor-pointer"
+                    <button className="button-transition mt-11 w-full cursor-pointer rounded-lg bg-accent py-2 text-base text-background hover:scale-105 hover:bg-accent/90"
                         onClick={scrollToContact}
                     >
                         Choose Plan
@@ -151,7 +151,7 @@ interface PricingListProps {
                     </h1>
                 </div>
 
-                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg mt-11 w-full cursor-pointer"
+                <button className="button-transition mt-11 w-full cursor-pointer rounded-lg border-2 border-accent py-2 text-base text-accent hover:scale-105 hover:bg-accent hover:text-background"
                     onClick={scrollToContact}
                 >
                     Choose Plan
@@ -196,7 +196,7 @@ interface PricingListProps {
                     </h1>
                 </div>
                
-                <button className=" text-accent border-2 border-accent text-base py-2 rounded-lg w-full mt-12 cursor-pointer"
+                <button className="button-transition mt-11 w-full cursor-pointer rounded-lg border-2 border-accent py-2 text-base text-accent hover:scale-105 hover:bg-accent hover:text-background"
                     onClick={scrollToContact}
                 >
                     Choose Plan
