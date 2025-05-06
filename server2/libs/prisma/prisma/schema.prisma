@@ -219,6 +219,7 @@ model school {
   school_payment_option school_payment_option[]
   school_subscription   school_subscription[]
   user                  user[]
+  system_log            system_log[]
 
   @@index([address_id], map: "idx_school_address_id")
   @@schema("enrollment")
@@ -594,6 +595,8 @@ model system_log {
   system_action String    @db.VarChar(100)
   details       Json?
   log_datetime  DateTime? @default(now()) @db.Timestamp(6)
+  school_id     Int?
+  school        school?   @relation(fields: [school_id], references: [school_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_school_history_logs")
 
   @@index([initiator], map: "idx_system_log_initiator")
   @@index([log_datetime], map: "idx_system_log_log_datetime")
