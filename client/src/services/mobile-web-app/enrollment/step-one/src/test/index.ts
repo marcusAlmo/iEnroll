@@ -55,9 +55,11 @@ export const getMockSectionsByGradeLevel = (
     const grade = level.gradeLevels.find((g) => g.code === gradeLevelCode);
     if (!grade) continue;
 
-    const programs = grade.gradeSectionType.map((program) => ({
+    const programs = grade.gradeSectionType.map((program, index) => ({
       programId: program.id.toString(),
       programName: program.type,
+      // just mock, tinamad na ako maglagay haha
+      gradeSectionProgramId: index + 1,
       sections: program.sections.map((section) => ({
         gradeSectionId: section.id,
         sectionName: section.name,

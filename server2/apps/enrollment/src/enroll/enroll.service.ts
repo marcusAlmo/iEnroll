@@ -282,6 +282,7 @@ export class EnrollService {
       select: {
         grade_section_program: {
           select: {
+            grade_section_program_id: true,
             academic_program: {
               select: {
                 program_id: true,
@@ -299,6 +300,8 @@ export class EnrollService {
     const mapped = result.map((data) => ({
       programId: data.grade_section_program.academic_program.program_id,
       programName: data.grade_section_program.academic_program.program,
+      gradeSectionProgramId:
+        data.grade_section_program.grade_section_program_id,
       gradeSectionId: data.grade_section_id,
       sectionName: data.section_name,
       maxSlot: data.max_application_slot,
@@ -323,6 +326,7 @@ export class EnrollService {
       ([programId, sections]) => ({
         programId,
         programName: sections[0].programName,
+        gradeSectionProgramId: sections[0].gradeSectionProgramId,
         sections: sections.map(({ gradeSectionId, sectionName, maxSlot }) => ({
           gradeSectionId,
           sectionName,
@@ -356,7 +360,7 @@ export class EnrollService {
       }) => ({
         requirementId: requirement_id,
         name,
-        requirementTypr: requirement_type,
+        requirementType: requirement_type,
         acceptedDataTypes: accepted_data_type,
         isRequired: is_required,
       }),

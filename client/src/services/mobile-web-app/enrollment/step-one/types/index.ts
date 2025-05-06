@@ -70,6 +70,7 @@ interface Section {
 interface Program {
   programId: string;
   programName: string;
+  gradeSectionProgramId: number;
   sections: Section[];
 }
 

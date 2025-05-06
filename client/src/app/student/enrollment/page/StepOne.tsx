@@ -1,5 +1,4 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { format } from "date-fns";
@@ -18,217 +17,25 @@ import CustomDropdown from "@/components/CustomDropdown";
 import { Calendar } from "primereact/calendar";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import {
-  getAcademicLevelsBySchool,
-  getGradeLevelsByAcademicLevel,
-  getSchedulesByGradeLevel,
-  getSectionsByGradeLevel,
-} from "@/services/mobile-web-app/enrollment/step-one/src";
 import { Schedule } from "@/services/mobile-web-app/enrollment/step-one/types";
-
-interface Option<T> {
-  id: T;
-  label: string;
-}
-
-type LevelOption = Option<string>;
-type GradeLevelOption = Option<string>;
-type ProgramOption = Option<string>;
-type SectionOption = Option<number>;
+import { useEnroll } from "../../context/enroll/hook";
+import { useNavigate } from "react-router";
 
 const StepOne = () => {
+  const navigate = useNavigate()
   const [displaySlots, setDisplaySlots] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showSubmit, setShowSubmit] = useState<boolean>(false);
-  const form = useForm<z.infer<typeof stepOneSchema>>({
-    resolver: zodResolver(stepOneSchema),
-    defaultValues: {
-      schoolName: "",
-      level: "",
-      gradeLevel: "",
-      program: "",
-      section: "",
-      enrollmentDate: undefined,
-      enrollmentTime: undefined,
-    },
-  });
 
-  const { data: levels } = useQuery({
-    queryKey: ["studentEnrollmentLevelSelection"],
-    queryFn: getAcademicLevelsBySchool,
-    select: (data): LevelOption[] => {
-      const raw = data.data;
-
-      return raw.map((level) => ({
-        id: level.academicLeveLCode,
-        label: level.academicLevel,
-      }));
-    },
-  });
-
-  const selectedLevelId = useWatch({
-    control: form.control,
-    name: "level",
-  });
-
-  useEffect(() => {
-    form.setValue("gradeLevel", "");
-    form.setValue("program", "");
-    form.setValue("section", "");
-    setShowSubmit(false);
-  }, [form, selectedLevelId]);
-
-  const { data: gradeLevels } = useQuery({
-    queryKey: ["studentEnrollmentGradeLevelSelection", selectedLevelId],
-    queryFn: () => getGradeLevelsByAcademicLevel(selectedLevelId),
-    select: (data): GradeLevelOption[] => {
-      const raw = data.data;
-
-      return raw.map((level) => ({
-        id: level.gradeLevelCode,
-        label: level.gradeLevel,
-      }));
-    },
-    enabled: Boolean(selectedLevelId),
-  });
-
-  const selectedGradeLevelId = useWatch({
-    control: form.control,
-    name: "gradeLevel",
-  });
-
-  useEffect(() => {
-    form.setValue("program", "");
-    form.setValue("section", "");
-    setShowSubmit(false);
-  }, [form, selectedGradeLevelId]);
-
-  const { data: programSections } = useQuery({
-    queryKey: [
-      "studentEnrollmentProgramSectionSelection",
-      selectedGradeLevelId,
-    ],
-    queryFn: () => getSectionsByGradeLevel(selectedGradeLevelId),
-    select: (data) => data.data,
-    enabled: Boolean(selectedGradeLevelId),
-  });
-
-  const programs = useMemo(() => {
-    if (!programSections) return undefined;
-    return programSections.map<ProgramOption>((programSection) => ({
-      id: programSection.programId,
-      label: programSection.programName,
-    }));
-  }, [programSections]);
-
-  const selectedProgramId = useWatch({
-    control: form.control,
-    name: "program",
-  });
-
-  useEffect(() => {
-    form.setValue("section", "");
-    setShowSubmit(false);
-  }, [form, selectedProgramId]);
-
-  const sections = useMemo(() => {
-    if (!programSections || !selectedProgramId) return undefined;
-
-    const program = programSections.find(
-      (program) => program.programId === selectedProgramId,
-    );
-
-    if (!program) return undefined;
-
-    return program.sections.map<SectionOption>((section) => ({
-      id: section.gradeSectionId,
-      label: section.sectionName,
-    }));
-  }, [programSections, selectedProgramId]);
-
-  // const selectedSectionId = useWatch({
-  //   control: form.control,
-  //   name: "section",
-  // });
-
-  const { data: schedules } = useQuery({
-    queryKey: [
-      "studentEnrollmentProgramScheduleSelection",
-      selectedGradeLevelId,
-    ],
-    queryFn: () => getSchedulesByGradeLevel(selectedGradeLevelId),
-    select: (data) => data.data,
-    enabled: Boolean(selectedGradeLevelId),
-  });
-
-  // // Example: allowed enrollment dates
-  // const allowedDates = [
-  //   new Date(2025, 4, 5), // May 5, 2025
-  //   new Date(2025, 4, 10), // May 10, 2025
-  //   new Date(2025, 4, 15), // May 15, 2025
-  // ];
-
-  // // Time and number of slots
-  // const timeAndSlots = useMemo(
-  //   () => [
-  //     {
-  //       id: 1,
-  //       date: new Date(2025, 4, 5),
-  //       timeslots: [
-  //         {
-  //           timeslotId: 1,
-  //           timeStart: "8:00 AM",
-  //           timeEnd: "10:00 AM",
-  //           slots: 100,
-  //         },
-  //         {
-  //           timeslotId: 2,
-  //           timeStart: "1:00 PM",
-  //           timeEnd: "4:00 PM",
-  //           slots: 50,
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       id: 2,
-  //       date: new Date(2025, 4, 10),
-  //       timeslots: [
-  //         {
-  //           timeslotId: 1,
-  //           timeStart: "9:00 AM",
-  //           timeEnd: "11:00 AM",
-  //           slots: 80,
-  //         },
-  //         {
-  //           timeslotId: 2,
-  //           timeStart: "2:00 PM",
-  //           timeEnd: "5:00 PM",
-  //           slots: 50,
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       id: 3,
-  //       date: new Date(2025, 4, 15),
-  //       timeslots: [
-  //         {
-  //           timeslotId: 1,
-  //           timeStart: "9:00 AM",
-  //           timeEnd: "12:00 PM",
-  //           slots: 75,
-  //         },
-  //         {
-  //           timeslotId: 2,
-  //           timeStart: "1:00 PM",
-  //           timeEnd: "3:00 PM",
-  //           slots: 25,
-  //         },
-  //       ],
-  //     },
-  //   ],
-  //   [],
-  // );
+  const {
+    showSubmitStep1: showSubmit,
+    setShowSubmitStep1: setShowSubmit,
+    levels,
+    gradeLevels,
+    programs,
+    sections,
+    schedules,
+    form,
+  } = useEnroll();
 
   const normalizeDate = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -365,7 +172,12 @@ const StepOne = () => {
     } else {
       setShowSubmit(false);
     }
-  }, [enrollmentDate, enrollmentTime, form.formState.dirtyFields]);
+  }, [
+    enrollmentDate,
+    enrollmentTime,
+    form.formState.dirtyFields,
+    setShowSubmit,
+  ]);
 
   // Watch the selected enrollment date
   const selectedDate = useWatch({
@@ -574,6 +386,7 @@ const StepOne = () => {
                   type="submit"
                   disabled={isLoading}
                   className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
+                  onClick={() => navigate('/student/enroll/step-2')}
                 >
                   {isLoading ? "Submitting" : "Enroll Now"}
                 </Button>
