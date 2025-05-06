@@ -596,6 +596,7 @@ model system_log {
   details       Json?
   log_datetime  DateTime? @default(now()) @db.Timestamp(6)
   school_id     Int?
+  role          String    @db.VarChar(15)
   school        school?   @relation(fields: [school_id], references: [school_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_school_history_logs")
 
   @@index([initiator], map: "idx_system_log_initiator")

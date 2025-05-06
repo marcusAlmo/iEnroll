@@ -15,18 +15,30 @@ export class HistoryAndLogsService {
 
   public async retrieveHistoryLogs(
     schoolId: number,
+    role: string | null,
+    startDate: Date | null,
+    endDate: Date | null,
   ): Promise<MicroserviceUtility['returnValue']> {
-    const rawHistoryLogs: HistoryAndLogs['convertedHistoryLogsRaw'][] | null =
-      await this.retrieveHistoryLogsRaw(schoolId);
+    const rawHistoryLogs: HistoryAndLogs['convertedHistoryLogsRaw'][] | number =
+      await this.retrieveHistoryLogsRaw(schoolId, role, startDate, endDate);
 
-    if (!rawHistoryLogs)
-      return this.microserviceUtilityService.returnSuccess([]);
+    if (typeof rawHistoryLogs === 'number') {
+      if (rawHistoryLogs === 1) {
+        return this.microserviceUtilityService.badRequestExceptionReturn(
+          'Please complete the date range',
+        );
+      } else {
+        return this.microserviceUtilityService.notFoundExceptionReturn(
+          'No history logs found',
+        );
+      }
+    }
 
     const processedHistory: HistoryAndLogs['processedHistoryLogs'][] =
       rawHistoryLogs.map((e) => {
         return {
           initiator: e.initiator,
-          role: e.details.role,
+          role: e.role,
           systemAction: e.system_action,
           details: `${
             e.details.success ? 'Success' : 'Failed'
@@ -41,22 +53,41 @@ export class HistoryAndLogsService {
   // UTILITY FUNCTION
   private async retrieveHistoryLogsRaw(
     schoolId: number,
-  ): Promise<HistoryAndLogs['convertedHistoryLogsRaw'][] | null> {
+    role: string | null,
+    startDate: Date | null,
+    endDate: Date | null,
+  ): Promise<HistoryAndLogs['convertedHistoryLogsRaw'][] | number> {
+    const whereClause: any = {
+      school_id: schoolId,
+    };
+
+    if (role) whereClause.role = role;
+
+    if (startDate || endDate) {
+      if (startDate && endDate) {
+        whereClause.log_datetime = { gte: startDate };
+        whereClause.log_datetime = { lte: endDate };
+      } else {
+        return 1;
+      }
+    }
+
     const historyRaw: HistoryAndLogs['rawHistoryLogs'][] | null =
       await this.prisma.system_log.findMany({
-        where: {
-          school_id: schoolId,
-        },
+        where: whereClause,
         select: {
           initiator: true,
           system_action: true,
           details: true,
           log_datetime: true,
+          role: true,
         },
         orderBy: {
           log_datetime: 'desc',
         },
       });
+
+    if (!historyRaw) return 2;
 
     return historyRaw as HistoryAndLogs['convertedHistoryLogsRaw'][];
   }

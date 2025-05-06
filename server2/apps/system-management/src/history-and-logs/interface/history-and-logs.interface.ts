@@ -6,12 +6,12 @@ export interface HistoryAndLogs {
     system_action: string;
     details: JsonValue;
     log_datetime: Date | null;
+    role: string;
   };
 
   detailInfo: {
     success: boolean;
     actionDetails: string;
-    role: string;
   };
 
   convertedHistoryLogsRaw: {
@@ -19,6 +19,7 @@ export interface HistoryAndLogs {
     system_action: string;
     details: HistoryAndLogs['detailInfo'];
     log_datetime: Date | null;
+    role: string;
   };
 
   processedHistoryLogs: {
