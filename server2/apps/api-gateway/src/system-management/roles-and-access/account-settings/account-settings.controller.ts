@@ -1,6 +1,6 @@
 import { Controller, Put, Param, Body } from '@nestjs/common';
 import { AccountSettingsService } from './account-settings.service';
-import { AccountSettings } from './dto/account-settings.dto';
+import { AccountSettings, UpdatePassword } from './dto/account-settings.dto';
 
 @Controller('account-settings')
 export class AccountSettingsController {
@@ -16,6 +16,17 @@ export class AccountSettingsController {
     return this.accountSettingsService.updateAccountSettings({
       employeeId: Number(id),
       updateData: payload,
+    });
+  }
+
+  @Put('update-password/:id')
+  async updatePassword(
+    @Param('id') id: string,
+    @Body() payload: UpdatePassword,
+  ) {
+    return this.accountSettingsService.updatePassword({
+      employeeId: Number(id),
+      password: payload.password,
     });
   }
 }

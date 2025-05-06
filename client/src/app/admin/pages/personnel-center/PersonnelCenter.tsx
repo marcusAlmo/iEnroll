@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AccessManagementPanel from "@/app/admin/pages/personnel-center/roles&access/role-access";
 import HistoryLogsPanel from "@/app/admin/pages/personnel-center/history&logs/history-logs";
 import { Search, Plus } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
+import { requestData } from "@/lib/dataRequester";
 
 export const FormResetContext = React.createContext({
   shouldResetForm: false,
@@ -10,100 +11,27 @@ export const FormResetContext = React.createContext({
 });
 
 interface Personnel {
-  id: number;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  suffix?: string;
-  birthdate: string;
-  sex: string;
-  phoneNumber: string;
-  email: string;
-  username: string;
-  address: {
-    houseNumber: string;
-    street: string;
-    district: string;
-    province: string;
-  };
-  role: {
-    admin: boolean;
-    registrar: boolean;
-  };
-  accessPermissions: {
-    dashboard: { view: boolean; canMakeChanges: boolean };
-    enrollmentReview: { view: boolean; canMakeChanges: boolean };
-    enrollmentManagement: { view: boolean; canMakeChanges: boolean };
-    personnelCenter: { view: boolean; canMakeChanges: boolean };
-    settings: { view: boolean; canMakeChanges: boolean };
-  };
+  userId: number;
+  name: string;
+  role: string;
 }
-
-const samplePersonnel: Personnel[] = [
-  {
-    id: 1,
-    firstName: "John",
-    middleName: "Doe",
-    lastName: "Smith",
-    suffix: "Jr",
-    birthdate: "1990-05-15",
-    sex: "Male",
-    phoneNumber: "0912 345 6789",
-    email: "john.smith@example.com",
-    username: "johnsmith",
-    address: {
-      houseNumber: "123",
-      street: "Main St",
-      district: "District 1",
-      province: "Province A"
-    },
-    role: { admin: true, registrar: false },
-    accessPermissions: {
-      dashboard: { view: true, canMakeChanges: true },
-      enrollmentReview: { view: true, canMakeChanges: true },
-      enrollmentManagement: { view: true, canMakeChanges: true },
-      personnelCenter: { view: true, canMakeChanges: true },
-      settings: { view: true, canMakeChanges: true }
-    }
-  },
-  {
-    id: 2,
-    firstName: "Jane",
-    lastName: "Doe",
-    birthdate: "1992-08-21",
-    sex: "Female",
-    phoneNumber: "0923 456 7890",
-    email: "jane.doe@example.com",
-    username: "janedoe",
-    address: {
-      houseNumber: "456",
-      street: "Oak Ave",
-      district: "District 2",
-      province: "Province B"
-    },
-    role: { admin: false, registrar: true },
-    accessPermissions: {
-      dashboard: { view: true, canMakeChanges: false },
-      enrollmentReview: { view: true, canMakeChanges: true },
-      enrollmentManagement: { view: true, canMakeChanges: true },
-      personnelCenter: { view: true, canMakeChanges: false },
-      settings: { view: false, canMakeChanges: false }
-    }
-  }
-];
 
 const PersonnelCenter: React.FC = () => {
   const [shouldResetForm, setShouldResetForm] = useState(false);
-  const [personnel, setPersonnel] = useState(samplePersonnel);
+  const [personnel, setPersonnel] = useState<Personnel[]>([]);
   const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("roles-access");
-  const [userFilter, setUserFilter] = useState("");
-  const [actionFilter, setActionFilter] = useState("");
+  const [userFilter, setUserFilter] = useState<string>("");
+  const [isAddingNewPersonnel, setIsAddingNewPersonnel] = useState(false);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
+  // Update the handleAddNewPersonnel function
   const handleAddNewPersonnel = () => {
     setSelectedPersonnel(null);
     setShouldResetForm(true);
+    setIsAddingNewPersonnel(true);  // Add this line
     if (activeTab !== "roles-access") setActiveTab("roles-access");
     toast.success("New personnel form opened", { duration: 2000, position: "top-right" });
   };
@@ -113,18 +41,25 @@ const PersonnelCenter: React.FC = () => {
     toast.success("Personnel selected", { duration: 2000, position: "top-right" });
   };
 
-  const handleSavePersonnel = (data: any) => {
-    if (!data.firstName || !data.lastName || !data.email) {
-      toast.error("Please fill all required fields", { duration: 2000, position: "top-right" });
-      return;
-    }
-    if (selectedPersonnel) {
-      setPersonnel(prev => prev.map(p => (p.id === selectedPersonnel.id ? { ...p, ...data } : p)));
-    } else {
-      const newId = Math.max(...personnel.map(p => p.id), 0) + 1;
-      setPersonnel(prev => [...prev, { id: newId, ...data }]);
-    }
+  const handleSavePersonnel = async () => {
+    await retrievePersonnels();
     toast.success("Personnel saved successfully", { duration: 2000, position: "top-right" });
+  };
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartDate(e.target.value);
+    if (e.target.value && !endDate) {
+      const today = new Date().toISOString().split('T')[0];
+      setEndDate(today);
+  }
+
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndDate(e.target.value);
+    if (e.target.value && !startDate) {
+      setStartDate(e.target.value);
+    }
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,17 +70,34 @@ const PersonnelCenter: React.FC = () => {
     setUserFilter(e.target.value);
   };
 
-  const handleActionFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setActionFilter(e.target.value);
-  };
+  const retrievePersonnels = async () => {
+    try {
+      console.log('retrieving personels')
+      const response = await requestData<Personnel[]>({
+        url: "http://localhost:3000/api/employee-list/retrieve",
+        method: "GET",
+      });
 
-  const filteredPersonnel = personnel.filter(person => {
+      if (response) {
+        setPersonnel(response);
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error("An unknown error occurred");
+
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    retrievePersonnels();
+  }, []);
+
+  const filteredPersonnel = personnel.filter((person) => {
     const query = searchQuery.toLowerCase();
     return (
-      person.firstName.toLowerCase().includes(query) ||
-      person.lastName.toLowerCase().includes(query) ||
-      person.email.toLowerCase().includes(query) ||
-      person.username.toLowerCase().includes(query)
+      person.name.toLowerCase().includes(query) ||
+      person.role.toLowerCase().includes(query)
     );
   });
 
@@ -207,17 +159,17 @@ const PersonnelCenter: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPersonnel.map(person => (
+                  {filteredPersonnel.map((person) => (
                     <tr
-                      key={person.id}
+                      key={person.userId}
                       onClick={() => handlePersonnelRowClick(person)}
                       className="hover:bg-blue-100 cursor-pointer"
                     >
-                      <td className="px-4 py-2">{person.id}</td>
-                      <td className="px-4 py-2">{person.firstName} {person.lastName}</td>
+                      <td className="px-4 py-2">{person.userId}</td>
+                      <td className="px-4 py-2">{person.name}</td>
                       <td className="px-4 py-2">
-                        {person.role.admin && <span className="text-gray-800">Admin</span>}
-                        {person.role.registrar && <span className="text-gray-800">Registrar</span>}
+                        {person.role == 'admin' && <span className="text-gray-800">Admin</span>}
+                        {person.role == 'registrar' && <span className="text-gray-800">Registrar</span>}
                       </td>
                     </tr>
                   ))}
@@ -234,11 +186,13 @@ const PersonnelCenter: React.FC = () => {
           {/* Right panel */}
           <div className="flex-1 p-5 overflow-auto">
             <FormResetContext.Provider value={{ shouldResetForm, setShouldResetForm }}>
-              <AccessManagementPanel
-                selectedPersonnel={selectedPersonnel}
-                onSave={handleSavePersonnel}
-                searchQuery={searchQuery}
-              />
+            <AccessManagementPanel
+              selectedPersonnel={selectedPersonnel}
+              onSave={handleSavePersonnel}
+              searchQuery={searchQuery}
+              isAddingNewPersonnel={isAddingNewPersonnel}
+              setIsAddingNewPersonnel={setIsAddingNewPersonnel}
+            />
             </FormResetContext.Provider>
           </div>
         </div>
@@ -266,32 +220,59 @@ const PersonnelCenter: React.FC = () => {
               History & Logs
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-4 w-80">
-            <div>
+          <div className="flex items-center gap-4 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+            {/* Role Filter */}
+            <div className="flex flex-col min-w-[180px]">
+              <label htmlFor="role-filter" className="text-xs font-medium text-gray-500 mb-1">
+                Filter by Role
+              </label>
               <select
-                className="w-full border-border-1 border-3 bg-white rounded-md p-2 text-sm"
+                id="role-filter"
+                className="w-full border border-gray-200 bg-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                 value={userFilter}
                 onChange={handleUserFilterChange}
               >
-                <option value="">Sort by User</option>
-                <option value="Admin1">Admin1</option>
-                <option value="Admin2">Admin2</option>
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="registrar">Registrar</option>
               </select>
             </div>
-            <div>
-              <select
-                className="w-full border-border-1 border-3 bg-white rounded-md p-2 text-sm"
-                value={actionFilter}
-                onChange={handleActionFilterChange}
-              >
-                <option value="">Sort by Action</option>
-                <option value="Logged in">Logged in</option>
-                <option value="Enrolled Student">Enrolled Student</option>
-              </select>
+
+            {/* Date Range Filter */}
+            <div className="flex flex-col">
+              <label className="text-xs font-medium text-gray-500 mb-1">
+                Date Range
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="date"
+                    className="border border-gray-200 bg-white rounded-md px-3 py-2 text-sm w-[140px] focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                    value={startDate}
+                    onChange={handleStartDateChange}
+                    placeholder="Start Date"
+                  />
+                </div>
+                <span className="text-gray-400">to</span>
+                <div className="relative">
+                  <input
+                    type="date"
+                    className="border border-gray-200 bg-white rounded-md px-3 py-2 text-sm w-[140px] focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                    value={endDate}
+                    onChange={handleEndDateChange}
+                    placeholder="End Date"
+                    min={startDate}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <HistoryLogsPanel userFilter={userFilter} actionFilter={actionFilter} />
+        <HistoryLogsPanel
+          userFilter={userFilter}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </div>
     );
   };

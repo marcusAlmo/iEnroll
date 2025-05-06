@@ -1,4 +1,5 @@
 import {
+  IsEmail,
   IsIn,
   IsNotEmpty,
   IsOptional,
@@ -24,7 +25,7 @@ export class UpdateProfileSettingsDto {
 
   @IsString()
   @IsOptional()
-  @Length(1, 5)
+  @Length(0, 5)
   suffix!: string;
 
   @IsIn(['male', 'female', 'other'])
@@ -48,4 +49,9 @@ export class CreateEmployeeDto extends UpdateProfileSettingsDto {
   @IsNotEmpty()
   @Length(8, 15)
   password!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsEmail()
+  email!: string;
 }

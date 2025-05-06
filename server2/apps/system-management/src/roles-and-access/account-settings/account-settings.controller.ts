@@ -19,4 +19,15 @@ export class AccountSettingsController {
       payload.updateData,
     );
   }
+
+  @MessagePattern({ cmd: 'account-settings-update-password' })
+  public async updatePassword(payload: {
+    employeeId: number;
+    password: string;
+  }) {
+    return this.accountSettingsService.updatePassword(
+      payload.employeeId,
+      payload.password,
+    );
+  }
 }

@@ -30,26 +30,54 @@ export class AccountSettingsService {
     });
   }
 
+  // update password
+  public async updatePassword(
+    employeeId: number,
+    password: string,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const result = await this.savePassword(employeeId, password);
+
+    if (!result)
+      return this.microserviceUtilityService.internalServerErrorReturn(
+        'Failed updating password',
+      );
+
+    return this.microserviceUtilityService.returnSuccess({
+      message: 'Password updated successfully',
+    });
+  }
+
   // UTILITY FUNCTION
   private async saveAccountSettings(
     employeeId: number,
     data: AccountSettings['updateAccountSettings'],
   ): Promise<boolean> {
-    const dataUpdate: any = {
-      username: data.username,
-      email_address: data.email,
-    };
+    const result = await this.prisma.user.update({
+      where: {
+        user_id: employeeId,
+      },
+      data: {
+        username: data.username,
+        email_address: data.email,
+      },
+    });
 
-    if (data.password) {
-      const hashedPassword = await this.authService.hashPassword(data.password);
-      dataUpdate.password_hash = hashedPassword;
-    }
+    return result ? true : false;
+  }
+
+  private async savePassword(
+    employeeId: number,
+    password: string,
+  ): Promise<boolean> {
+    const hashedPassword = await this.authService.hashPassword(password);
 
     const result = await this.prisma.user.update({
       where: {
         user_id: employeeId,
       },
-      data: dataUpdate,
+      data: {
+        password_hash: hashedPassword,
+      },
     });
 
     return result ? true : false;

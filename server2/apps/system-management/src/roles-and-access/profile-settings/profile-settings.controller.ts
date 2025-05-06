@@ -10,10 +10,10 @@ export class ProfileSettingsController {
   ) {}
 
   @MessagePattern({ cmd: 'get-employee-info' })
-  public async getEmployeeInfo(payload: { schoolId: number; userId: number }) {
+  public async getEmployeeInfo(payload: { userId: number; schoolId: number }) {
     return await this.profileSettingsService.getEmployeeInfo(
-      payload.schoolId,
       payload.userId,
+      payload.schoolId,
     );
   }
 
@@ -30,12 +30,12 @@ export class ProfileSettingsController {
 
   @MessagePattern({ cmd: 'create-employee' })
   public async createEmployee(payload: {
-    schoolId: number;
     data: ProfileSettings['createProfileSettings'];
+    schoolId: number;
   }) {
-    return await this.profileSettingsService.creteEmployee(
-      payload.schoolId,
+    return await this.profileSettingsService.createEmployee(
       payload.data,
+      payload.schoolId,
     );
   }
 }
