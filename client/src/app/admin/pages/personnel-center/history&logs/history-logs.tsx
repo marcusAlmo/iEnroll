@@ -1,53 +1,94 @@
+import { requestData } from "@/lib/dataRequester";
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 type LogEntry = {
-  timestamp: string;
-  action: string;
-  user: string;
+  initiator: string;
+  role: string;
+  systemAction: string;
+  details: string;
+  logDatetime: string;
 };
-
-// Create sample logs with more diverse data
-const sampleLogs: LogEntry[] = Array.from({ length: 298 }, (_, i) => ({
-  timestamp: "2024-08-29 10:45:00",
-  action: i === 0 ? "Admin1 Logged in" : `Enrolled Student ${i + 12000}`,
-  user: i === 0 ? "Admin1" : (i % 5 === 0 ? "Admin1" : "Admin2"),
-}));
 
 // Props interface to receive filters from parent component
 interface HistoryLogsPanelProps {
-  userFilter?: string;
-  actionFilter?: string;
+  userFilter: string;
+  startDate: string;
+  endDate: string;
 }
 
-const HistoryLogsPanel: React.FC<HistoryLogsPanelProps> = ({ userFilter = "", actionFilter = "" }) => {
+const HistoryLogsPanel: React.FC<HistoryLogsPanelProps> = ({
+  userFilter,
+  startDate,
+  endDate
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>(sampleLogs);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
   const itemsPerPage = 10;
 
-  // Apply filters when filter props change
-  useEffect(() => {
-    let result = [...sampleLogs];
-    
-    // Filter by user if a user filter is selected
-    if (userFilter) {
-      result = result.filter(log => log.user === userFilter);
-    }
-    
-    // Filter by action if an action filter is selected
-    if (actionFilter) {
-      result = result.filter(log => {
-        // Check if the action includes the filter text
-        return log.action.toLowerCase().includes(actionFilter.toLowerCase());
+  const retrieveHistoryLogs = async () => {
+    try {
+      const response = await requestData<LogEntry[]>({
+        url: "http://localhost:3000/api/history-and-logs/retrieve-history-logs",
+        method: "GET",
       });
-    }
-    
-    setFilteredLogs(result);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [userFilter, actionFilter]);
 
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentLogs = filteredLogs.slice(startIndex, startIndex + itemsPerPage);
+      if (response) {
+        setLogs(response);
+        setFilteredLogs(response); // Initialize filtered logs with all logs
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error("An unknown error occurred");
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    retrieveHistoryLogs();
+  }, []);
+
+    // Apply filters when filter props change
+    useEffect(() => {
+      let result = [...logs];
+      
+      // Filter by role
+      if (userFilter) {
+        result = result.filter(log => 
+          log.role.toLowerCase() === userFilter.toLowerCase()
+        );
+      }
+      
+      // Filter by date range
+      if (startDate && endDate) {
+        const start = new Date(startDate).getTime();
+        const end = new Date(endDate).getTime() + 86400000; // Add 1 day to include end date
+        
+        result = result.filter(log => {
+          const logDate = new Date(log.logDatetime).getTime();
+          return logDate >= start && logDate <= end;
+        });
+      }
+  
+      setFilteredLogs(result);
+      setCurrentPage(1); // Reset to first page when filters change
+    }, [userFilter, startDate, endDate, logs]);
+  
+    const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentLogs = filteredLogs.slice(startIndex, startIndex + itemsPerPage);
+  
+    const formatDateTime = (isoString: string) => {
+      const date = new Date(isoString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
 
   const handlePrint = () => window.print();
 
@@ -58,22 +99,26 @@ const HistoryLogsPanel: React.FC<HistoryLogsPanelProps> = ({ userFilter = "", ac
           <thead className="bg-white border-b">
             <tr>
               <th className="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">Date & Time</th>
+              <th className="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">Initiator</th>
+              <th className="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">Role</th>
               <th className="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">Action</th>
-              <th className="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">User</th>
+              <th className="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">Details</th>
             </tr>
           </thead>
           <tbody>
             {currentLogs.length > 0 ? (
               currentLogs.map((log, index) => (
                 <tr key={index} className="border-b hover:bg-blue-200 transition duration-300">
-                  <td className="px-4 py-3">{log.timestamp}</td>
-                  <td className="px-4 py-3">{log.action}</td>
-                  <td className="px-4 py-3">{log.user}</td>
+                  <td className="px-4 py-3">{formatDateTime(log.logDatetime)}</td>
+                  <td className="px-4 py-3">{log.initiator}</td>
+                  <td className="px-4 py-3">{`${log.role.charAt(0).toUpperCase()}${log.role.slice(1)}`}</td>
+                  <td className="px-4 py-3">{log.systemAction}</td>
+                  <td className="px-4 py-3">{log.details}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={3} className="px-4 py-3 text-center text-gray-500">
+                <td colSpan={5} className="px-4 py-3 text-center text-gray-500">
                   No records found matching the selected filters
                 </td>
               </tr>

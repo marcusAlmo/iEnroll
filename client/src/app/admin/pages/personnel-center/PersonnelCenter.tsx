@@ -22,9 +22,10 @@ const PersonnelCenter: React.FC = () => {
   const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("roles-access");
-  const [userFilter, setUserFilter] = useState("");
-  const [actionFilter, setActionFilter] = useState("");
+  const [userFilter, setUserFilter] = useState<string>("");
   const [isAddingNewPersonnel, setIsAddingNewPersonnel] = useState(false);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
   // Update the handleAddNewPersonnel function
   const handleAddNewPersonnel = () => {
@@ -45,16 +46,28 @@ const PersonnelCenter: React.FC = () => {
     toast.success("Personnel saved successfully", { duration: 2000, position: "top-right" });
   };
 
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartDate(e.target.value);
+    if (e.target.value && !endDate) {
+      const today = new Date().toISOString().split('T')[0];
+      setEndDate(today);
+  }
+
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndDate(e.target.value);
+    if (e.target.value && !startDate) {
+      setStartDate(e.target.value);
+    }
+  };
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
   const handleUserFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setUserFilter(e.target.value);
-  };
-
-  const handleActionFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setActionFilter(e.target.value);
   };
 
   const retrievePersonnels = async () => {
@@ -207,32 +220,59 @@ const PersonnelCenter: React.FC = () => {
               History & Logs
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-4 w-80">
-            <div>
+          <div className="flex items-center gap-4 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+            {/* Role Filter */}
+            <div className="flex flex-col min-w-[180px]">
+              <label htmlFor="role-filter" className="text-xs font-medium text-gray-500 mb-1">
+                Filter by Role
+              </label>
               <select
-                className="w-full border-border-1 border-3 bg-white rounded-md p-2 text-sm"
+                id="role-filter"
+                className="w-full border border-gray-200 bg-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                 value={userFilter}
                 onChange={handleUserFilterChange}
               >
-                <option value="">Sort by User</option>
-                <option value="Admin1">Admin1</option>
-                <option value="Admin2">Admin2</option>
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="registrar">Registrar</option>
               </select>
             </div>
-            <div>
-              <select
-                className="w-full border-border-1 border-3 bg-white rounded-md p-2 text-sm"
-                value={actionFilter}
-                onChange={handleActionFilterChange}
-              >
-                <option value="">Sort by Action</option>
-                <option value="Logged in">Logged in</option>
-                <option value="Enrolled Student">Enrolled Student</option>
-              </select>
+
+            {/* Date Range Filter */}
+            <div className="flex flex-col">
+              <label className="text-xs font-medium text-gray-500 mb-1">
+                Date Range
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="date"
+                    className="border border-gray-200 bg-white rounded-md px-3 py-2 text-sm w-[140px] focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                    value={startDate}
+                    onChange={handleStartDateChange}
+                    placeholder="Start Date"
+                  />
+                </div>
+                <span className="text-gray-400">to</span>
+                <div className="relative">
+                  <input
+                    type="date"
+                    className="border border-gray-200 bg-white rounded-md px-3 py-2 text-sm w-[140px] focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                    value={endDate}
+                    onChange={handleEndDateChange}
+                    placeholder="End Date"
+                    min={startDate}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <HistoryLogsPanel userFilter={userFilter} actionFilter={actionFilter} />
+        <HistoryLogsPanel
+          userFilter={userFilter}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </div>
     );
   };

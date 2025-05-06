@@ -15,12 +15,9 @@ export class HistoryAndLogsService {
 
   public async retrieveHistoryLogs(
     schoolId: number,
-    role: string | null,
-    startDate: Date | null,
-    endDate: Date | null,
   ): Promise<MicroserviceUtility['returnValue']> {
     const rawHistoryLogs: HistoryAndLogs['convertedHistoryLogsRaw'][] | number =
-      await this.retrieveHistoryLogsRaw(schoolId, role, startDate, endDate);
+      await this.retrieveHistoryLogsRaw(schoolId);
 
     if (typeof rawHistoryLogs === 'number') {
       if (rawHistoryLogs === 1) {
@@ -53,28 +50,12 @@ export class HistoryAndLogsService {
   // UTILITY FUNCTION
   private async retrieveHistoryLogsRaw(
     schoolId: number,
-    role: string | null,
-    startDate: Date | null,
-    endDate: Date | null,
   ): Promise<HistoryAndLogs['convertedHistoryLogsRaw'][] | number> {
-    const whereClause: any = {
-      school_id: schoolId,
-    };
-
-    if (role) whereClause.role = role;
-
-    if (startDate || endDate) {
-      if (startDate && endDate) {
-        whereClause.log_datetime = { gte: startDate };
-        whereClause.log_datetime = { lte: endDate };
-      } else {
-        return 1;
-      }
-    }
-
     const historyRaw: HistoryAndLogs['rawHistoryLogs'][] | null =
       await this.prisma.system_log.findMany({
-        where: whereClause,
+        where: {
+          school_id: schoolId,
+        },
         select: {
           initiator: true,
           system_action: true,
