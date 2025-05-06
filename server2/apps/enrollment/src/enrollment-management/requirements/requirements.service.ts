@@ -136,6 +136,7 @@ export class RequirementsService {
           },
         },
         select: {
+          grade_section_program_id: true,
           grade_level_offered: {
             select: {
               grade_level: {
@@ -149,11 +150,19 @@ export class RequirementsService {
           grade_level_offered_id: true,
           enrollment_requirement: {
             select: {
+              requirement_id: true,
               name: true,
               requirement_type: true,
               accepted_data_type: true,
               is_required: true,
               description: true,
+            },
+          },
+        },
+        orderBy: {
+          grade_level_offered: {
+            grade_level: {
+              order_position: 'asc',
             },
           },
         },
@@ -167,11 +176,14 @@ export class RequirementsService {
   private async processRetrieveData(
     data: Requirements['retrieveRequirementsRaw'],
   ): Promise<Requirements['processedRequirements']> {
-    return data.map((item) => ({
+    // First transform all data to the desired format
+    const transformedData = data.map((item) => ({
+      gradeSectionProgramId: item.grade_section_program_id,
       gradeLevelOfferedId: item.grade_level_offered_id,
       gradeLevel: item.grade_level_offered.grade_level.grade_level,
       gradeLevelCode: item.grade_level_offered.grade_level.grade_level_code,
       requirements: item.enrollment_requirement.map((requirement) => ({
+        requirementId: requirement.requirement_id,
         name: requirement.name,
         type: requirement.requirement_type,
         dataType: requirement.accepted_data_type,
@@ -179,6 +191,27 @@ export class RequirementsService {
         description: requirement.description,
       })),
     }));
+
+    // Create a map to group by gradeLevelOfferedId
+    const gradeLevelMap = new Map<number, (typeof transformedData)[0]>();
+
+    for (const item of transformedData) {
+      if (gradeLevelMap.has(item.gradeLevelOfferedId)) {
+        // If we've seen this grade level before, merge the requirements
+        const existing = gradeLevelMap.get(item.gradeLevelOfferedId);
+        existing!.requirements.push(...item.requirements);
+      } else {
+        // First time seeing this grade level, add to map
+        gradeLevelMap.set(item.gradeLevelOfferedId, {
+          ...item,
+          // Create a new array to avoid reference issues
+          requirements: [...item.requirements],
+        });
+      }
+    }
+
+    // Convert the map values back to an array
+    return Array.from(gradeLevelMap.values());
   }
 
   // for creating new

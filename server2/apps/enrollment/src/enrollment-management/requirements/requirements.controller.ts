@@ -27,10 +27,10 @@ export class RequirementsController {
   }
 
   @MessagePattern({ cmd: 'delete-requirement' })
-  async deleteRequirement(
-    requirementId: number,
-  ): Promise<MicroserviceUtility['returnValue']> {
-    return this.requirementsService.deleteRequirement(requirementId);
+  async deleteRequirement(payload: {
+    requirementId: number;
+  }): Promise<MicroserviceUtility['returnValue']> {
+    return this.requirementsService.deleteRequirement(payload.requirementId);
   }
 
   @MessagePattern({ cmd: 'update-requirement' })

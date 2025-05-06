@@ -568,6 +568,7 @@ model grade_level {
   is_supported        Boolean?              @default(true)
   creation_datetime   DateTime?             @default(now()) @db.Timestamp(6)
   update_datetime     DateTime?             @default(now()) @db.Timestamp(6)
+  order_position      Int
   grade_level_offered grade_level_offered[]
   academic_level      academic_level        @relation(fields: [academic_level_code], references: [academic_level_code], map: "fk_grade_level_academic_level_code")
 

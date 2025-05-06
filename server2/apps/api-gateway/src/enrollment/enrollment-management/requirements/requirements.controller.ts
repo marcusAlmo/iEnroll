@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Delete } from '@nestjs/common';
 import { RequirementsService } from './requirements.service';
 import { User } from '@lib/decorators/user.decorator';
 import { RequirementsDTO, UpdateRequirementsDTO } from './dto/requirements.dto';
@@ -23,10 +23,11 @@ export class RequirementsController {
     });
   }
 
-  @Post('delete/:requirementId')
+  @Delete('delete/:requirementId')
   async deleteRequirement(@Param('requirementId') requirementId: string) {
+    const requirementIdNumber = Number(requirementId);
     return this.requirementsService.deleteRequirement({
-      requirementId,
+      requirementId: requirementIdNumber,
     });
   }
 

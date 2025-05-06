@@ -8,13 +8,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckSquare } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { GradeLevelsWithSections } from "./fees.types";
+//import { GradeLevelsWithSections } from "./fees.types";
 
-// Sample data
-import data from "./test/grade-level-with-sections.json";
 
 export default function Fees() {
-  const [selectedGradeLevels, setSelectedGradeLevels] = useState<GradeLevelsWithSections[] | null>(null);
+  const data = [];
+  const [selectedGradeLevels, setSelectedGradeLevels] = useState<any[] | null>(null);
 
   return (
     <section className="flex flex-row justify-center items-center gap-x-5 py-14">
