@@ -1,0 +1,5 @@
+[
+  { "id": "Bank Transfer", "label": "Bank Transfer" },
+  { "id": "E-wallet", "label": "E-wallet" },
+  { "id": "Over-the-counter", "label": "Over-the-counter" }
+]
