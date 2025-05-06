@@ -35,12 +35,8 @@ export class RequirementsController {
 
   @MessagePattern({ cmd: 'update-requirement' })
   async updateRequirement(payload: {
-    requirementId: number;
-    isRequired: boolean;
+    data: Requirements['updateRequirement'][];
   }): Promise<MicroserviceUtility['returnValue']> {
-    return this.requirementsService.updateRequirement(
-      payload.requirementId,
-      payload.isRequired,
-    );
+    return this.requirementsService.updateRequirement(payload.data);
   }
 }

@@ -59,4 +59,13 @@ export interface Requirements {
     is_required: boolean;
     description: string;
   };
+
+  updateRequirement: {
+    dataType: string;
+    requirementId: number;
+    description: string;
+    isRequired: boolean;
+    name: string;
+    type: string;
+  };
 }

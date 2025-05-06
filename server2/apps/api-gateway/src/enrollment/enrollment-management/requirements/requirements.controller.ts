@@ -1,7 +1,15 @@
-import { Controller, Get, Post, Param, Body, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Delete,
+  Put,
+} from '@nestjs/common';
 import { RequirementsService } from './requirements.service';
 import { User } from '@lib/decorators/user.decorator';
-import { RequirementsDTO, UpdateRequirementsDTO } from './dto/requirements.dto';
+import { RequirementsDTO, UpdateRequirementDto } from './dto/requirements.dto';
 
 @Controller('requirements')
 export class RequirementsController {
@@ -31,14 +39,11 @@ export class RequirementsController {
     });
   }
 
-  @Post('update/:requirementId')
-  async updateRequirement(
-    @User('school_id') schoolId: number,
-    @Body() updateRequirementsDTO: UpdateRequirementsDTO,
-  ) {
+  @Put('update')
+  async updateRequirement(@Body() data: UpdateRequirementDto) {
+    console.log(data);
     return this.requirementsService.updateRequirement({
-      schoolId,
-      updateRequirementsDTO,
+      data: data.data,
     });
   }
 }

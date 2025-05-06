@@ -99,23 +99,47 @@ export class RequirementsService {
   }
 
   public async updateRequirement(
-    requirementId: number,
-    isRequired: boolean,
+    data: Requirements['updateRequirement'][],
   ): Promise<MicroserviceUtility['returnValue']> {
-    const result = await this.prisma.enrollment_requirement.update({
-      where: {
-        requirement_id: requirementId,
-      },
-      data: {
-        is_required: isRequired,
-      },
-    });
+    try {
+      const result = await this.prisma.$transaction(async (prisma) => {
+        for (const requirement of data) {
+          const result1 = await prisma.enrollment_requirement.update({
+            where: {
+              requirement_id: requirement.requirementId,
+            },
+            data: {
+              is_required: requirement.isRequired,
+              name: requirement.name,
+              requirement_type: requirement.type as $Enums.requirement_type,
+              accepted_data_type:
+                requirement.dataType as $Enums.accepted_data_type,
+              description: requirement.description,
+            },
+          });
 
-    if (result) {
-      return this.microserviceUtility.returnSuccess({
-        message: 'Requirement updated successfully',
+          if (!result1) {
+            throw new Error('Failed to update requirement');
+          }
+        }
+
+        return {
+          message: 'Requirement updated successfully',
+        };
       });
-    } else {
+
+      if (result) {
+        return this.microserviceUtility.returnSuccess(result);
+      } else {
+        return this.microserviceUtility.internalServerErrorReturn(
+          'Failed to update requirement',
+        );
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        return this.microserviceUtility.internalServerErrorReturn(err.message);
+      }
+
       return this.microserviceUtility.internalServerErrorReturn(
         'Failed to update requirement',
       );

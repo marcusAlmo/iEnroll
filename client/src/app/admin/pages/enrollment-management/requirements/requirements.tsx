@@ -269,15 +269,16 @@ const Requirements = () => {
         grade.gradeLevelOfferedId === activeGradeId
           ? {
               ...grade,
-              requirements: [...grade.requirements, newRequirement]
+              requirements: [...grade.requirements, {...newRequirement}] // Create new object
             }
           : grade
       )
     );
   
+    // Track the addition separately
     setChanges(prev => ({
       ...prev,
-      added: [...prev.added, newRequirement]
+      added: [...prev.added, {...newRequirement}] // Create new object
     }));
     
     setHasUnsavedChanges(true);
@@ -339,10 +340,12 @@ const Requirements = () => {
   };
 
   // Update requirement field
+  // eslint-disable-next-line
   const updateRequirement = (index: number, field: keyof Requirement, value: any) => {
     const requirement = requirements[index];
     const updatedRequirement = { ...requirement, [field]: value };
   
+    // Update local state
     setGradeLevels(prevLevels => 
       prevLevels.map(grade => 
         grade.gradeLevelOfferedId === activeGradeId
@@ -356,8 +359,9 @@ const Requirements = () => {
       )
     );
   
-    // Only track modifications for existing requirements (with ID)
+    // Track changes
     if (requirement.requirementId) {
+      // Existing requirement being modified
       setChanges(prev => {
         const existingModified = prev.modified.find(r => r.requirementId === requirement.requirementId);
         return {
@@ -366,6 +370,25 @@ const Requirements = () => {
             ? prev.modified.map(r => r.requirementId === requirement.requirementId ? updatedRequirement : r)
             : [...prev.modified, updatedRequirement]
         };
+      });
+    } else {
+      // New requirement being modified before saving
+      setChanges(prev => {
+        const existingAddedIndex = prev.added.findIndex(r => 
+          r === requirement || // Compare references
+          (r.name === requirement.name && r.description === requirement.description) // Fallback comparison
+        );
+        
+        if (existingAddedIndex >= 0) {
+          const updatedAdded = [...prev.added];
+          updatedAdded[existingAddedIndex] = updatedRequirement;
+          return {
+            ...prev,
+            added: updatedAdded
+          };
+        }
+        
+        return prev;
       });
     }
   
@@ -395,17 +418,37 @@ const Requirements = () => {
   
       if (hasEmptyDescriptions) throw new Error('All requirements must have a description');
       
-      // Here you would typically make your API calls for modifications and additions
-      // if (changes.modified.length > 0) {
-      //   await api.updateRequirements(changes.modified);
-      // }
-      // if (changes.added.length > 0) {
-      //   await api.addRequirements(activeGradeId, changes.added);
-      // }
+      // Process additions
+      if (changes.added.length > 0) {
+        console.log('Adding requirements:', changes.added);
+        /**
+         * const addResults = await Promise.all(
+          changes.added.map(async (newReq) => {
+            return await requestData<Requirement>({
+              url: 'http://localhost:3000/api/requirements/create',
+              method: 'POST',
+              body: {
+                grade_section_program_id: activeGradeId,
+                name: newReq.name,
+                requirement_type: newReq.type,
+                accepted_data_type: newReq.dataType,
+                is_required: newReq.isRequired,
+                description: newReq.description
+              }
+            });
+          })
+        );
+         */
+        
+        // Refresh requirements after successful additions
+        await retrieveRequirements();
+      }
   
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      // Process modifications
+      if (changes.modified.length > 0) {
+        await updateData(changes.modified);
+      }
+  
       // Reset changes after successful save
       setChanges({
         modified: [],
@@ -421,6 +464,28 @@ const Requirements = () => {
       addToast('error', error instanceof Error ? error.message : 'Failed to save requirements');
     }
   };
+
+  const updateData = async (data: Requirement[]) => {
+    try {
+      const finalData = {
+        data: data,
+      };
+      const response = await requestData<{message: string}>({
+        url: 'http://localhost:3000/api/requirements/update',
+        method: 'PUT',
+        body: finalData,
+      });
+
+      if (response) {
+        toast.success('Requirements updated successfully');
+        return response;
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error('An error occurred');
+      console.log(error);
+    }
+  }
 
   // Type options for dropdown
   const typeOptions: DropdownOption[] = [
