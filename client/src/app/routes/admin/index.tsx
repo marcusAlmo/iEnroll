@@ -5,6 +5,7 @@ import { personnelManagementRoutes } from "./personnelManagementRoutes";
 import ContactSection from "../../admin/components/ContactSection";
 import PricingList from "../../admin/components/PricingList";
 import { enrollmentManagementRoutes } from "./enrollmentManagementRoutes";
+import Settings from "@/app/admin/pages/settings/Settings";
 
 /**
  * Defines the routes for the admin section of the application.
@@ -34,4 +35,8 @@ export const adminRoutes: RouteObject[] = [
     path: "pricing-list",
     element: <PricingList />,
   },
+  {
+    path: "settings",
+    element: <Settings />
+  }
 ];
