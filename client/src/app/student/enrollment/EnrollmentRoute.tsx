@@ -1,12 +1,17 @@
-import { useScreenSize } from "@/contexts/useScreenSize"
-import { Navigate, Outlet } from "react-router"
+import { useScreenSize } from "@/contexts/useScreenSize";
+import { Navigate, Outlet } from "react-router";
+import { EnrollProvider } from "../context/enroll/provider";
 
 const EnrollmentRoute = () => {
   const { mobile } = useScreenSize();
 
-  if (!mobile) return <Navigate to="/i-Enroll" />
+  if (!mobile) return <Navigate to="/i-Enroll" />;
 
-  return <Outlet />
-}
+  return (
+    <EnrollProvider>
+      <Outlet />
+    </EnrollProvider>
+  );
+};
 
-export default EnrollmentRoute
+export default EnrollmentRoute;

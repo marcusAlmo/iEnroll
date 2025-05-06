@@ -1,128 +1,129 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { z } from "zod";
+
+import { format } from "date-fns";
+
 import { stepOneSchema } from "../schema/StepOneSchema";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import CustomDropdown from "@/components/CustomDropdown";
-import { gradeLevels, levels, schools, sections } from "../dropdownOptions";
-import { Calendar } from 'primereact/calendar';
+// import { gradeLevels, levels, schools, sections } from "../dropdownOptions";
+import { Calendar } from "primereact/calendar";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-
+import { Schedule } from "@/services/mobile-web-app/enrollment/step-one/types";
+import { useEnroll } from "../../context/enroll/hook";
+import { useNavigate } from "react-router";
 
 const StepOne = () => {
+  const navigate = useNavigate()
   const [displaySlots, setDisplaySlots] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showSubmit, setShowSubmit] = useState<boolean>(false);
 
-  // Example: allowed enrollment dates
-  const allowedDates = [
-    new Date(2025, 4, 5),  // May 5, 2025
-    new Date(2025, 4, 10), // May 10, 2025
-    new Date(2025, 4, 15), // May 15, 2025
-  ];
+  const {
+    showSubmitStep1: showSubmit,
+    setShowSubmitStep1: setShowSubmit,
+    levels,
+    gradeLevels,
+    programs,
+    sections,
+    schedules,
+    form,
+  } = useEnroll();
 
-  // Time and number of slots
-  const timeAndSlots = useMemo(() => [
-    {
-      id: 1,
-      date: new Date(2025, 4, 5),
-      timeslots: [
-        {
-          timeslotId: 1,
-          timeStart: "8:00 AM",
-          timeEnd: "10:00 AM",
-          slots: 100
-        },
-        {
-          timeslotId: 2,
-          timeStart: "1:00 PM",
-          timeEnd: "4:00 PM",
-          slots: 50
-        }
-      ]
-    },
-    {
-      id: 2,
-      date: new Date(2025, 4, 10),
-      timeslots: [
-        {
-          timeslotId: 1,
-          timeStart: "9:00 AM",
-          timeEnd: "11:00 AM",
-          slots: 80
-        },
-        {
-          timeslotId: 2,
-          timeStart: "2:00 PM",
-          timeEnd: "5:00 PM",
-          slots: 50
-        }
-      ]
-    },
-    {
-      id: 3,
-      date: new Date(2025, 4, 15),
-      timeslots: [
-        {
-          timeslotId: 1,
-          timeStart: "9:00 AM",
-          timeEnd: "12:00 PM",
-          slots: 75
-        },
-        {
-          timeslotId: 2,
-          timeStart: "1:00 PM",
-          timeEnd: "3:00 PM",
-          slots: 25
-        }
-      ]
-    }
-  ], []);
+  const normalizeDate = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+
+  const { allowedDates, timeAndSlots } = useMemo(() => {
+    if (!schedules) return { allowedDates: [], timeAndSlots: [] };
+
+    // Step 1: Group schedules by date
+    const groupedByDate = new Map<string, Schedule[]>();
+
+    schedules.forEach((schedule) => {
+      const key = normalizeDate(schedule.dateStart).toISOString(); // e.g., '2025-05-05T00:00:00.000Z'
+      if (!groupedByDate.has(key)) {
+        groupedByDate.set(key, []);
+      }
+      groupedByDate.get(key)!.push(schedule);
+    });
+
+    // Step 2: Build allowedDates array
+    const allowedDates = Array.from(groupedByDate.keys()).map(
+      (key) => new Date(key),
+    );
+
+    // Step 3: Build timeAndSlots array
+    const timeAndSlots = Array.from(groupedByDate.entries()).map(
+      ([dateKey, schedules], dateIndex) => ({
+        id: dateIndex + 1,
+        date: new Date(dateKey),
+        timeslots: schedules.map((sched, timeslotIndex) => ({
+          timeslotId: timeslotIndex + 1,
+          timeStart: format(sched.dateStart, "h:mm a"),
+          timeEnd: format(sched.dateEnd, "h:mm a"),
+          slots: sched.slotsLeft ?? 0,
+        })),
+      }),
+    );
+
+    return { allowedDates, timeAndSlots };
+  }, [schedules]);
 
   // Generate all dates in the month and disable those not in allowedDates
-  const generateDisabledDates = () => {
-    const year = 2025;
-    const month = 4; // May
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const generateDisabledDates = (allowedDates: Date[]): Date[] => {
+    if (!allowedDates || allowedDates.length === 0) return [];
 
-    const allDates = Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1));
-
-    return allDates.filter(
-      d => !allowedDates.some(ad => ad.getDate() === d.getDate())
+    // Step 1: Find the date range
+    const sortedDates = [...allowedDates].sort(
+      (a, b) => a.getTime() - b.getTime(),
     );
-  };
+    const startDate = new Date(
+      sortedDates[0].getFullYear(),
+      sortedDates[0].getMonth(),
+      1,
+    );
+    const endDate = new Date(
+      sortedDates[sortedDates.length - 1].getFullYear(),
+      sortedDates[sortedDates.length - 1].getMonth() + 1,
+      0,
+    );
 
-  const form = useForm<z.infer<typeof stepOneSchema>>({
-    resolver: zodResolver(stepOneSchema),
-    defaultValues: {
-      schoolName: "",
-      level: "",
-      gradeLevel: "",
-      section: "",
-      enrollmentDate: undefined,
-      enrollmentTime: undefined
-    },
-  });
-
-  // Watch the "level" field to trigger re-renders when it changes
-  const selectedLevel = useWatch({
-    control: form.control,
-    name: "level",
-  });
-
-  // Filter the available grade levels to be displayed in the dropdown according to the level selected
-  const filteredGradeLevels = (level: string) => {
-    if (level === "Elementary") {
-      return gradeLevels.slice(1, 7);
-    } else if (level === "Junior High School") {
-      return gradeLevels.slice(7, 10);
-    } else if (level === "Senior High School") {
-      return gradeLevels.slice(11);
+    // Step 2: Generate all dates in the month range
+    const allDates: Date[] = [];
+    for (
+      let d = new Date(startDate);
+      d <= endDate;
+      d.setDate(d.getDate() + 1)
+    ) {
+      allDates.push(new Date(d)); // Copy the date
     }
-    // Return empty array if no level is selected yet
-    return [];
+
+    // Step 3: Filter out allowed dates
+    const disabledDates = allDates.filter(
+      (d) =>
+        !allowedDates.some(
+          (ad) =>
+            ad.getFullYear() === d.getFullYear() &&
+            ad.getMonth() === d.getMonth() &&
+            ad.getDate() === d.getDate(),
+        ),
+    );
+
+    return disabledDates;
   };
+
+  const disabledDates = useMemo(
+    () => generateDisabledDates(allowedDates),
+    [allowedDates],
+  );
 
   // Check if level, grade level, and section are ALL changed
   useEffect(() => {
@@ -138,21 +139,45 @@ const StepOne = () => {
     return () => subscription.unsubscribe();
   }, [form]);
 
-  const enrollmentDate = useWatch({ control: form.control, name: "enrollmentDate" });
-  const enrollmentTime = useWatch({ control: form.control, name: "enrollmentTime" });
-  
+  const enrollmentDate = useWatch({
+    control: form.control,
+    name: "enrollmentDate",
+  });
+  const enrollmentTime = useWatch({
+    control: form.control,
+    name: "enrollmentTime",
+  });
+
   useEffect(() => {
     const isDateDirty = form.formState.dirtyFields.enrollmentDate;
     const isTimeDirty = form.formState.dirtyFields.enrollmentTime;
-  
-    if (isDateDirty && isTimeDirty) {
+    const isSectionDirty = form.formState.dirtyFields.section;
+    const isProgramDirty = form.formState.dirtyFields.program;
+    const isGradeLevelDirty = form.formState.dirtyFields.gradeLevel;
+    const isLevelDirty = form.formState.dirtyFields.level;
+    // program
+    // gradelevel
+    // level
+
+    if (
+      isDateDirty &&
+      isTimeDirty &&
+      isSectionDirty &&
+      isProgramDirty &&
+      isGradeLevelDirty &&
+      isLevelDirty
+    ) {
       console.log("Both fields are dirty:", isDateDirty, isTimeDirty);
       setShowSubmit(true);
     } else {
       setShowSubmit(false);
     }
-  }, [enrollmentDate, enrollmentTime, form.formState.dirtyFields]);
-  
+  }, [
+    enrollmentDate,
+    enrollmentTime,
+    form.formState.dirtyFields,
+    setShowSubmit,
+  ]);
 
   // Watch the selected enrollment date
   const selectedDate = useWatch({
@@ -167,7 +192,7 @@ const StepOne = () => {
       (slot) =>
         slot.date.getDate() === selectedDate.getDate() &&
         slot.date.getMonth() === selectedDate.getMonth() &&
-        slot.date.getFullYear() === selectedDate.getFullYear()
+        slot.date.getFullYear() === selectedDate.getFullYear(),
     );
   }, [selectedDate, timeAndSlots]);
 
@@ -177,68 +202,80 @@ const StepOne = () => {
 
   return (
     <section className="flex flex-col items-center justify-center py-12">
-      <div className="text-center space-y-1.5">
-        <h1 className="text-accent font-semibold text-3xl">Simple lang</h1>
-        <p className="text-text-2 text-sm font-semibold">Please fill the form to enroll</p>
+      <div className="space-y-1.5 text-center">
+        <h1 className="text-accent text-3xl font-semibold">Simple lang</h1>
+        <p className="text-text-2 text-sm font-semibold">
+          Please fill the form to enroll
+        </p>
       </div>
 
       <div className="mt-8 w-screen">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="px-14 space-y-6">
-              <CustomDropdown
-                control={form.control}
-                name="schoolName"
-                values={schools}
-                buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
-                menuClassName="w-full rounded-[10px] bg-white"
-                itemClassName="rounded-[10px] pl-4 pr-36 py-2 transition-all ease-in-out"
-                label="Choose School"
-                labelClassName="text-sm text-text-2"
-              />
-              <CustomDropdown
-                control={form.control}
-                name="level"
-                values={levels}
-                buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
-                menuClassName="w-full rounded-[10px] bg-white"
-                itemClassName="rounded-[10px] pl-4 pr-18 py-2 transition-all ease-in-out"
-                label="Choose Level"
-                labelClassName="text-sm text-text-2"
-              />
-              <CustomDropdown
-                control={form.control}
-                name="gradeLevel"
-                values={filteredGradeLevels(selectedLevel)}
-                buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
-                menuClassName="w-full rounded-[10px] bg-white"
-                itemClassName="rounded-[10px] pl-4 pr-36 py-2 transition-all ease-in-out"
-                label="Choose Grade Level"
-                labelClassName="text-sm text-text-2"
-              />
-              <CustomDropdown
-                control={form.control}
-                name="section"
-                values={sections}
-                buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
-                menuClassName="w-full rounded-[10px] bg-white"
-                itemClassName="rounded-[10px] pl-4 pr-36 py-2 transition-all ease-in-out"
-                label="Choose Section"
-                labelClassName="text-sm text-text-2"
-              />
+            <div className="space-y-6 px-14">
+              {levels && (
+                <CustomDropdown
+                  control={form.control}
+                  name="level"
+                  values={levels}
+                  buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
+                  menuClassName="w-full rounded-[10px] bg-white"
+                  itemClassName="rounded-[10px] pl-4 pr-18 py-2 transition-all ease-in-out"
+                  label="Choose Level"
+                  labelClassName="text-sm text-text-2"
+                />
+              )}
+              {gradeLevels && (
+                <CustomDropdown
+                  control={form.control}
+                  name="gradeLevel"
+                  values={gradeLevels}
+                  buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
+                  menuClassName="w-full rounded-[10px] bg-white"
+                  itemClassName="rounded-[10px] pl-4 pr-36 py-2 transition-all ease-in-out"
+                  label="Choose Grade Level"
+                  labelClassName="text-sm text-text-2"
+                />
+              )}
+              {programs && (
+                <CustomDropdown
+                  control={form.control}
+                  name="program"
+                  values={programs}
+                  buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
+                  menuClassName="w-full rounded-[10px] bg-white"
+                  itemClassName="rounded-[10px] pl-4 pr-36 py-2 transition-all ease-in-out"
+                  label="Choose Program"
+                  labelClassName="text-sm text-text-2"
+                />
+              )}
+              {sections && (
+                <CustomDropdown
+                  control={form.control}
+                  name="section"
+                  values={sections}
+                  buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
+                  menuClassName="w-full rounded-[10px] bg-white"
+                  itemClassName="rounded-[10px] pl-4 pr-36 py-2 transition-all ease-in-out"
+                  label="Choose Section"
+                  labelClassName="text-sm text-text-2"
+                />
+              )}
             </div>
-            
+
             {displaySlots && (
-              <div className="flex flex-col gap-y-2 mt-6 items-center px-3">
+              <div className="mt-6 flex flex-col items-center gap-y-2 px-3">
                 <FormField
                   control={form.control}
                   name="enrollmentDate"
                   render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormLabel className="flex flex-col items-center text-text-2 my-4">
+                      <FormLabel className="text-text-2 my-4 flex flex-col items-center">
                         <>
                           <div>Please choose your desired enrollment date</div>
-                          <div className="font-normal italic">Dates in green are the available dates</div>
+                          <div className="font-normal italic">
+                            Dates in green are the available dates
+                          </div>
                         </>
                       </FormLabel>
                       <FormControl>
@@ -248,15 +285,18 @@ const StepOne = () => {
                             field.onChange(e.value);
                             form.setValue("enrollmentTime", undefined); // reset timeslot
                           }}
-                          disabledDates={generateDisabledDates()}
+                          disabledDates={disabledDates}
                           dateTemplate={(date) => {
-                            const isAllowed = allowedDates.some(ad =>
-                              ad.getDate() === date.day &&
-                              ad.getMonth() === date.month &&
-                              ad.getFullYear() === date.year
+                            const isAllowed = allowedDates.some(
+                              (ad) =>
+                                ad.getDate() === date.day &&
+                                ad.getMonth() === date.month &&
+                                ad.getFullYear() === date.year,
                             );
 
-                            const selected = field.value ? new Date(field.value) : null;
+                            const selected = field.value
+                              ? new Date(field.value)
+                              : null;
                             const isSelected =
                               selected &&
                               selected.getDate() === date.day &&
@@ -265,11 +305,7 @@ const StepOne = () => {
 
                             return (
                               <div
-                                className={`
-                                  w-8 h-8 flex items-center justify-center rounded-full
-                                  ${isSelected ? 'bg-primary text-white' : ''}
-                                  ${isAllowed && !isSelected ? 'bg-success text-background font-semibold' : ''}
-                                `}
+                                className={`flex h-8 w-8 items-center justify-center rounded-full ${isSelected ? "bg-primary text-white" : ""} ${isAllowed && !isSelected ? "bg-success text-background font-semibold" : ""} `}
                               >
                                 {date.day}
                               </div>
@@ -278,15 +314,20 @@ const StepOne = () => {
                           inline
                           pt={{
                             root: {
-                              className: `${fieldState?.error ? "border-red-500" : "border-container-2"}`
+                              className: `${fieldState?.error ? "border-red-500" : "border-container-2"}`,
                             },
-                            panel: { className: "bg-background p-3 rounded-[10px] border" },
-                            input: { className: `text-sm ${fieldState?.error ? "text-red-500" : ""}` },
+                            panel: {
+                              className:
+                                "bg-background p-3 rounded-[10px] border",
+                            },
+                            input: {
+                              className: `text-sm ${fieldState?.error ? "text-red-500" : ""}`,
+                            },
                             day: { className: "p-2 text-text-2 font-normal" },
                             month: { className: "p-2" },
                             year: { className: "p-2" },
                             previousButton: { className: "hidden" },
-                            nextButton: { className: "hidden" }
+                            nextButton: { className: "hidden" },
                           }}
                         />
                       </FormControl>
@@ -294,44 +335,47 @@ const StepOne = () => {
                     </FormItem>
                   )}
                 />
-                <div className="px-14 justify-center flex flex-row gap-4 flex-wrap">
-                <FormField
-                  control={form.control}
-                  name="enrollmentTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex flex-col items-center text-text-2 my-4">
-                        Choose your desired time
-                      </FormLabel>
-                      <FormControl>    
-                        <div>
-                          {filteredTimeAndSlots.map((slot) => (
-                            <div key={slot.id} className="space-y-4">
-                              {slot.timeslots.map((timeslot) => (
-                                <div
-                                  key={timeslot.timeslotId}
-                                  className={`
-                                    ${form.watch("enrollmentTime") === timeslot.timeslotId ? "bg-success text-background" : "text-text-2"}
-                                    p-4 border rounded-lg shadow-sm flex flex-col items-center
-                                  `}
-                                  onClick={() => {field.onChange(timeslot.timeslotId); console.log("timeslot selected: ", timeslot.timeslotId)}}
-                                >
-                                  <div className="font-semibold">
-                                    {timeslot.timeStart} - {timeslot.timeEnd}
+                <div className="flex flex-row flex-wrap justify-center gap-4 px-14">
+                  <FormField
+                    control={form.control}
+                    name="enrollmentTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-text-2 my-4 flex flex-col items-center">
+                          Choose your desired time
+                        </FormLabel>
+                        <FormControl>
+                          <div>
+                            {filteredTimeAndSlots.map((slot) => (
+                              <div key={slot.id} className="space-y-4">
+                                {slot.timeslots.map((timeslot) => (
+                                  <div
+                                    key={timeslot.timeslotId}
+                                    className={` ${form.watch("enrollmentTime") === timeslot.timeslotId ? "bg-success text-background" : "text-text-2"} flex flex-col items-center rounded-lg border p-4 shadow-sm`}
+                                    onClick={() => {
+                                      field.onChange(timeslot.timeslotId);
+                                      console.log(
+                                        "timeslot selected: ",
+                                        timeslot.timeslotId,
+                                      );
+                                    }}
+                                  >
+                                    <div className="font-semibold">
+                                      {timeslot.timeStart} - {timeslot.timeEnd}
+                                    </div>
+                                    <div className="text-sm">
+                                      Slots Available: {timeslot.slots}
+                                    </div>
                                   </div>
-                                  <div className="text-sm">
-                                    Slots Available: {timeslot.slots}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
             )}
@@ -341,7 +385,8 @@ const StepOne = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full font-semibold text-background py-6 rounded-[10px] bg-accent`}
+                  className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
+                  onClick={() => navigate('/student/enroll/step-2')}
                 >
                   {isLoading ? "Submitting" : "Enroll Now"}
                 </Button>
@@ -351,7 +396,7 @@ const StepOne = () => {
         </Form>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default StepOne
+export default StepOne;

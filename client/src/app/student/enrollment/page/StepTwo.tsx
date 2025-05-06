@@ -1,11 +1,7 @@
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import UploadBox from "../components/UploadBox";
-import { stepTwoSchema } from "../schema/StepTwoSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Form } from "@/components/ui/form";
 import CustomInput from "@/components/CustomInput";
 import FeeBreakdown from "../components/FeeBreakdown";
@@ -13,11 +9,11 @@ import CustomDropdown from "@/components/CustomDropdown";
 import { Button } from "@/components/ui/button";
 
 // Sample data
-import requirements from "@/test/data/requirements.json";
-import fees from "@/test/data/fees.json";
-import paymentMethods from "@/test/data/payment-methods.json";
-import { generateSchemaFromRequirements } from "../schema/RequirementsSchema";
+// import requirements from "@/test/data/requirements.json";
+// import fees from "@/test/data/fees.json";
+// import paymentMethods from "@/test/data/payment-methods.json";
 import { sanitizeName } from "@/utils/stringUtils";
+import { useEnroll } from "../../context/enroll/hook";
 
 const StepTwo = () => {
   const [isUploaded, setIsUploaded] = useState<boolean>(false);
@@ -25,44 +21,68 @@ const StepTwo = () => {
   const [isErrorUploading, setIsErrorUploading] = useState<boolean>(false);
 
   // Show tooltips
-  const [showFatherDetailsTooltip, setShowFatherDetailsTooltip] = useState<boolean>(false);
-  const [showMotherDetailsTooltip, setShowMotherDetailsTooltip] = useState<boolean>(false);
-  const [showRequirementsTooltip, setShowRequirementsTooltip] = useState<boolean>(false);
+  const [showFatherDetailsTooltip, setShowFatherDetailsTooltip] =
+    useState<boolean>(false);
+  const [showMotherDetailsTooltip, setShowMotherDetailsTooltip] =
+    useState<boolean>(false);
+  const [showRequirementsTooltip, setShowRequirementsTooltip] =
+    useState<boolean>(false);
   const [showFeesTooltip, setShowFeesTooltip] = useState<boolean>(false);
+  const { form, requirements, paymentMethods, fees } = useEnroll();
 
   // Calculate fees
   const calculateTotalFees = () => {
-    return fees.reduce((total, fee) => total + fee.feeBreakdown.reduce((subTotal, breakdown) => subTotal + breakdown.feeAmount, 0), 0);
+    return (
+      fees?.reduce(
+        (total, fee) =>
+          total +
+          fee.feeBreakdown.reduce(
+            (subTotal, breakdown) => subTotal + breakdown.feeAmount,
+            0,
+          ),
+        0,
+      ) ?? 0
+    );
   };
 
-  // Generate dynamic schema for the requirements
-  const requirementsSchema = generateSchemaFromRequirements(requirements);
+  // // Generate dynamic schema for the requirements
+  // const requirementsSchema = useMemo(
+  //   () =>
+  //     requirements ? generateSchemaFromRequirements(requirements) : undefined,
+  //   [requirements],
+  // );
 
-  // Generate default values for the requirementsSchema
-  const requirementsDefaultValues = Object.fromEntries(
-    requirements.map((req) => [sanitizeName(req.name), undefined])
-  );  
+  // // Generate default values for the requirementsSchema
+  // const requirementsDefaultValues = useMemo(
+  //   () =>
+  //     requirements
+  //       ? Object.fromEntries(
+  //           requirements.map((req) => [sanitizeName(req.name), undefined]),
+  //         )
+  //       : undefined,
+  //   [requirements],
+  // );
 
   // Merge stepTwoSchema and requirementsSchema
-  const finalSchema = stepTwoSchema.merge(requirementsSchema);
+  // const finalSchema = stepTwoSchema.merge(requirementsSchema);
 
-  const form = useForm<z.infer<typeof finalSchema>>({
-    resolver: zodResolver(finalSchema),
-    defaultValues: {
-      fatherFN: "",
-      fatherMN: "",
-      fatherLN: "",
-      maidenMotherFN: "",
-      maidenMotherMN: "",
-      maidenMotherLN: "",
-      paymentMethodName: "",
-      isAgree: undefined,
-      paymentProof: undefined,
-      ...requirementsDefaultValues
-    },
-  });
+  // const form = useForm<z.infer<typeof finalSchema>>({
+  //   resolver: zodResolver(finalSchema),
+  //   defaultValues: {
+  //     fatherFN: "",
+  //     fatherMN: "",
+  //     fatherLN: "",
+  //     maidenMotherFN: "",
+  //     maidenMotherMN: "",
+  //     maidenMotherLN: "",
+  //     paymentMethodName: "",
+  //     isAgree: undefined,
+  //     paymentProof: undefined,
+  //     ...requirementsDefaultValues,
+  //   },
+  // });
 
-  const onSubmit = (data: z.infer<typeof finalSchema>) => {
+  const onSubmit = (data: any) => {
     console.log(data);
   };
 
@@ -70,127 +90,151 @@ const StepTwo = () => {
   const selectedPaymentMethod = form.watch("paymentMethodName");
 
   // For dynamically displaying account number and name upon selecting a method
-  const selectedPaymentDetails = paymentMethods.find(
-    (method) => method.id === parseInt(selectedPaymentMethod)
+  const selectedPaymentDetails = useMemo(
+    () =>
+      paymentMethods
+        ? paymentMethods.find(
+            (method) => method.id === parseInt(selectedPaymentMethod),
+          )
+        : undefined,
+    [paymentMethods, selectedPaymentMethod],
   );
 
   return (
-    <section className="w-screen flex flex-col items-center justify-center p-12 bg-container-1">
-      <div className="text-center space-y-1.5">
-        <h1 className="text-accent font-semibold text-3xl">
+    <section className="bg-container-1 flex w-screen flex-col items-center justify-center p-12">
+      <div className="space-y-1.5 text-center">
+        <h1 className="text-accent text-3xl font-semibold">
           {isUploaded ? "Nice, uploaded na!" : "Uy, requirements!"}
         </h1>
-        <p className="text-text-2 text-sm font-semibold">Please submit the needed requirements</p>
+        <p className="text-text-2 text-sm font-semibold">
+          Please submit the needed requirements
+        </p>
       </div>
 
-      <div className="rounded-[10px] bg-accent py-0.5 px-2.5 space-x-1 mt-6">
+      <div className="bg-accent mt-6 space-x-1 rounded-[10px] px-2.5 py-0.5">
         <span className="text-sm font-semibold">
-          Need help? Just tap the <FontAwesomeIcon icon={faInfoCircle} className="text-primary"/> icon!  
+          Need help? Just tap the{" "}
+          <FontAwesomeIcon icon={faInfoCircle} className="text-primary" /> icon!
         </span>
       </div>
 
       <div className="mt-8 w-screen px-14">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="flex flex-col gap-y-5 mb-10">
+            <div className="mb-10 flex flex-col gap-y-5">
               <div className="relative inline-block">
-                <span className="text-primary font-semibold text-base">
+                <span className="text-primary text-base font-semibold">
                   Father's Details
-                  <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowFatherDetailsTooltip((prev) => !prev)}/>
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    className="text-text-2/40 ml-2"
+                    onClick={() => setShowFatherDetailsTooltip((prev) => !prev)}
+                  />
                 </span>
                 {showFatherDetailsTooltip && (
-                  <div className="w-32 absolute top-0 left-38 z-10 bg-slate-300 p-2 rounded-[10px] text-xs">
-                    Please provide the full name of the student's father. Middle name is optional.
+                  <div className="absolute top-0 left-38 z-10 w-32 rounded-[10px] bg-slate-300 p-2 text-xs">
+                    Please provide the full name of the student's father. Middle
+                    name is optional.
                   </div>
                 )}
               </div>
-                <CustomInput
-                  control={form.control}
-                  name="fatherFN"
-                  label="Father's First Name"
-                  placeholder="ex. Juan"
-                  inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                  labelStyle="text-sm text-text-2"
-                />
+              <CustomInput
+                control={form.control}
+                name="fatherFN"
+                label="Father's First Name"
+                placeholder="ex. Juan"
+                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                labelStyle="text-sm text-text-2"
+              />
 
-                <CustomInput
-                  control={form.control}
-                  name="fatherMN"
-                  label="Father's Middle Name (optional)"
-                  placeholder="ex. Santos"
-                  inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                  labelStyle="text-sm text-text-2"
-                />
+              <CustomInput
+                control={form.control}
+                name="fatherMN"
+                label="Father's Middle Name (optional)"
+                placeholder="ex. Santos"
+                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                labelStyle="text-sm text-text-2"
+              />
 
-                <CustomInput
-                  control={form.control}
-                  name="fatherLN"
-                  label="Father's Last Name"
-                  placeholder="ex. Dela Cruz"
-                  inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                  labelStyle="text-sm text-text-2"
-                />
+              <CustomInput
+                control={form.control}
+                name="fatherLN"
+                label="Father's Last Name"
+                placeholder="ex. Dela Cruz"
+                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                labelStyle="text-sm text-text-2"
+              />
             </div>
 
-            <div className="flex flex-col gap-y-5 mb-10">
+            <div className="mb-10 flex flex-col gap-y-5">
               <div className="relative inline-block">
-                <span className="text-primary font-semibold text-base">
+                <span className="text-primary text-base font-semibold">
                   Mother's Details
-                  <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowMotherDetailsTooltip((prev) => !prev)}/>
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    className="text-text-2/40 ml-2"
+                    onClick={() => setShowMotherDetailsTooltip((prev) => !prev)}
+                  />
                 </span>
                 {showMotherDetailsTooltip && (
-                  <div className="w-32 absolute top-0 left-40 z-10 bg-slate-300 p-2 rounded-[10px] text-xs">
-                    Please provide the full MAIDEN name of the student's mother. Middle name is optional.
+                  <div className="absolute top-0 left-40 z-10 w-32 rounded-[10px] bg-slate-300 p-2 text-xs">
+                    Please provide the full MAIDEN name of the student's mother.
+                    Middle name is optional.
                   </div>
                 )}
               </div>
-                <CustomInput
-                  control={form.control}
-                  name="maidenMotherFN"
-                  label="Mother's First Name"
-                  placeholder="ex. Jane"
-                  inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                  labelStyle="text-sm text-text-2"
-                />
+              <CustomInput
+                control={form.control}
+                name="maidenMotherFN"
+                label="Mother's First Name"
+                placeholder="ex. Jane"
+                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                labelStyle="text-sm text-text-2"
+              />
 
-                <CustomInput
-                  control={form.control}
-                  name="maidenMotherMN"
-                  label="Mother's Maiden Middle Name (optional)"
-                  placeholder="ex. Dimaano"
-                  inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                  labelStyle="text-sm text-text-2"
-                />
+              <CustomInput
+                control={form.control}
+                name="maidenMotherMN"
+                label="Mother's Maiden Middle Name (optional)"
+                placeholder="ex. Dimaano"
+                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                labelStyle="text-sm text-text-2"
+              />
 
-                <CustomInput
-                  control={form.control}
-                  name="maidenMotherLN"
-                  label="Mother's Maiden Last Name"
-                  placeholder="ex. Sanchez"
-                  inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                  labelStyle="text-sm text-text-2"
-                />
+              <CustomInput
+                control={form.control}
+                name="maidenMotherLN"
+                label="Mother's Maiden Last Name"
+                placeholder="ex. Sanchez"
+                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                labelStyle="text-sm text-text-2"
+              />
             </div>
 
             <div className="w-full">
-              <div className="relative inline-block mb-4">
-                <span className="text-primary font-semibold text-base">
+              <div className="relative mb-4 inline-block">
+                <span className="text-primary text-base font-semibold">
                   Requirements
-                  <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowRequirementsTooltip((prev) => !prev)}/>
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    className="text-text-2/40 ml-2"
+                    onClick={() => setShowRequirementsTooltip((prev) => !prev)}
+                  />
                 </span>
                 {showRequirementsTooltip && (
-                  <div className="w-32 absolute top-[5%] right-[-105%] z-10 bg-slate-300 p-2 rounded-[10px] text-xs">
-                    Please upload the documentary requirements for enrollment. Allow necessary permissions during upload
+                  <div className="absolute top-[5%] right-[-105%] z-10 w-32 rounded-[10px] bg-slate-300 p-2 text-xs">
+                    Please upload the documentary requirements for enrollment.
+                    Allow necessary permissions during upload
                   </div>
                 )}
               </div>
-              {requirements.map((requirement, index) => (
+              {requirements?.map((requirement, index) => (
                 <div key={index} className="mb-6">
-                  <UploadBox 
+                  <UploadBox
                     control={form.control}
                     name={sanitizeName(requirement.name)}
-                    label={requirement.name} 
-                    requirementType={requirement.requirementType} 
+                    label={requirement.name}
+                    requirementType={requirement.requirementType}
                   />
                   {form.formState.errors[sanitizeName(requirement.name)] && (
                     <span className="text-danger text-sm">
@@ -202,69 +246,93 @@ const StepTwo = () => {
             </div>
 
             <div className="w-full">
-              <div className="relative inline-block mb-4">
-                <span className="text-primary font-semibold text-base">
+              <div className="relative mb-4 inline-block">
+                <span className="text-primary text-base font-semibold">
                   Fees
-                  <FontAwesomeIcon icon={faInfoCircle} className="text-text-2/40 ml-2" onClick={() => setShowFeesTooltip((prev) => !prev)}/>
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    className="text-text-2/40 ml-2"
+                    onClick={() => setShowFeesTooltip((prev) => !prev)}
+                  />
                 </span>
                 {showFeesTooltip && (
-                  <div className="w-32 absolute left-18 top-0 z-10 bg-slate-300 p-2 rounded-[10px] text-xs">
-                    Please upload the documentary requirements for enrollment. Allow necessary permissions during upload
+                  <div className="absolute top-0 left-18 z-10 w-32 rounded-[10px] bg-slate-300 p-2 text-xs">
+                    Please upload the documentary requirements for enrollment.
+                    Allow necessary permissions during upload
                   </div>
                 )}
               </div>
-              {fees.map((fee, index) => (
+              {fees?.map((fee, index) => (
                 <div key={index} className="mb-6">
-                  <FeeBreakdown feeType={fee.feeType} feeBreakdown={fee.feeBreakdown} feeDetails={fee.feeDetails} />
+                  <FeeBreakdown
+                    feeType={fee.feeType}
+                    feeBreakdown={fee.feeBreakdown}
+                    feeDetails={fee.feeDetails}
+                  />
                 </div>
               ))}
-              <div className="rounded-[10px] py-3 px-4 bg-danger/15 flex flex-row justify-between">
-                <span className="font-semibold text-danger text-sm">TOTAL AMOUNT</span>
-                <span className="font-semibold text-danger text-sm">PHP {calculateTotalFees()}</span>
+              <div className="bg-danger/15 flex flex-row justify-between rounded-[10px] px-4 py-3">
+                <span className="text-danger text-sm font-semibold">
+                  TOTAL AMOUNT
+                </span>
+                <span className="text-danger text-sm font-semibold">
+                  PHP {calculateTotalFees()}
+                </span>
               </div>
             </div>
 
             <div className="flex flex-col gap-y-2">
-              <div className="text-text-2 text-sm text-center">You can securely pay by selecting any of the payment options below.</div>
-                <CustomDropdown
-                  control={form.control}
-                  name="paymentMethodName"
-                  values={paymentMethods.map((method) => ({
+              <div className="text-text-2 text-center text-sm">
+                You can securely pay by selecting any of the payment options
+                below.
+              </div>
+              <CustomDropdown
+                control={form.control}
+                name="paymentMethodName"
+                values={
+                  paymentMethods?.map((method) => ({
                     label: method.methodName,
                     ...method,
-                  }))}
-                  buttonClassName="rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
-                  menuClassName="w-full rounded-[10px] bg-white"
-                  itemClassName="rounded-[10px] transition-all ease-in-out"
-                  label=""
-                  labelClassName="text-sm text-text-2"
-                  placeholder="Select payment method"
-                />
-                {selectedPaymentMethod && (
-                  <>
-                    <div className="bg-accent/20 rounded-[10px] py-2 w-full flex justify-center">
-                      <div className="text-primary font-semibold text-sm">
-                        Account Number: {selectedPaymentDetails?.accountNumber || "No account number available"}
-                      </div>
+                  })) ?? []
+                }
+                buttonClassName="rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
+                menuClassName="w-full rounded-[10px] bg-white"
+                itemClassName="rounded-[10px] transition-all ease-in-out"
+                label=""
+                labelClassName="text-sm text-text-2"
+                placeholder="Select payment method"
+              />
+              {selectedPaymentMethod && (
+                <>
+                  <div className="bg-accent/20 flex w-full justify-center rounded-[10px] py-2">
+                    <div className="text-primary text-sm font-semibold">
+                      Account Number:{" "}
+                      {selectedPaymentDetails?.accountNumber ||
+                        "No account number available"}
                     </div>
-                    
-                    <div className="bg-accent/20 rounded-[10px] py-2 w-full flex justify-center">
-                      <div className="text-primary font-semibold text-sm">
-                        Account Name: {selectedPaymentDetails?.ownerName || "No account name available"}
-                      </div>
+                  </div>
+
+                  <div className="bg-accent/20 flex w-full justify-center rounded-[10px] py-2">
+                    <div className="text-primary text-sm font-semibold">
+                      Account Name:{" "}
+                      {selectedPaymentDetails?.ownerName ||
+                        "No account name available"}
                     </div>
-                  </>
-                )}
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="w-full">
-              <div className="text-primary font-semibold text-sm mb-4">Please upload proof of your payment</div>
-              <UploadBox 
+              <div className="text-primary mb-4 text-sm font-semibold">
+                Please upload proof of your payment
+              </div>
+              <UploadBox
                 label=""
                 control={form.control}
-                name="paymentProof" 
-                requirementType=".pdf" 
-              /> 
+                name="paymentProof"
+                requirementType=".pdf"
+              />
               {/* NOTE -> if passing image, pass "image/*" */}
               {form.formState.errors.paymentProof && (
                 <span className="text-danger text-sm">
@@ -274,27 +342,32 @@ const StepTwo = () => {
             </div>
 
             <div className="flex flex-col gap-y-2">
-              <div className="flex items-start gap-x-2 mt-4 bg-background rounded-[10px] px-6 py-4">
+              <div className="bg-background mt-4 flex items-start gap-x-2 rounded-[10px] px-6 py-4">
                 <input
                   type="checkbox"
                   id="isAgree"
                   {...form.register("isAgree")}
-                  className="w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2 checked:bg-secondary"
+                  className="text-secondary focus:ring-secondary checked:bg-secondary h-4 w-4 rounded border-gray-300 bg-gray-100 focus:ring-2"
                 />
-                <label htmlFor="isAgree" className="text-sm text-primary">
-                  I agree that the school may use and store the uploaded documents for the purpose of processing my enrollment, in accordance with the school's privacy policy.
+                <label htmlFor="isAgree" className="text-primary text-sm">
+                  I agree that the school may use and store the uploaded
+                  documents for the purpose of processing my enrollment, in
+                  accordance with the school's privacy policy.
                 </label>
               </div>
-              <span className="text-danger text-sm">{form.formState.errors.isAgree && "Please agree to the terms and conditions"}</span>
+              <span className="text-danger text-sm">
+                {form.formState.errors.isAgree &&
+                  "Please agree to the terms and conditions"}
+              </span>
             </div>
 
-            <div className="flex flex-col gap-y-2 items-center">
+            <div className="flex flex-col items-center gap-y-2">
               {!isUploaded ? (
                 <>
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full font-semibold text-background py-6 rounded-[10px] bg-accent`}
+                    className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
                   >
                     {isLoading ? "Submitting" : "Submit Requirements"}
                   </Button>
@@ -302,10 +375,10 @@ const StepTwo = () => {
                   {/* Only display when the form is partially filled */}
                   {form.formState.isDirty && (
                     <>
-                      <span className="text-sm text-text-2">or</span>
+                      <span className="text-text-2 text-sm">or</span>
                       <Button
                         // onclick
-                        className="w-full font-semibold bg-success/10 border border-success rounded-[10px] py-6 text-success text-sm"
+                        className="bg-success/10 border-success text-success w-full rounded-[10px] border py-6 text-sm font-semibold"
                       >
                         Save as Draft
                       </Button>
@@ -313,7 +386,9 @@ const StepTwo = () => {
                   )}
                 </>
               ) : (
-                <div className="rounded-[10px] bg-success py-3 text-background font-semibold w-full text-center">Uploaded successfully</div>
+                <div className="bg-success text-background w-full rounded-[10px] py-3 text-center font-semibold">
+                  Uploaded successfully
+                </div>
               )}
             </div>
           </form>
@@ -322,12 +397,12 @@ const StepTwo = () => {
 
       {/* Display if upload failed */}
       {isErrorUploading && (
-        <div className="text-sm text-danger font-semibold text-center mt-4">
+        <div className="text-danger mt-4 text-center text-sm font-semibold">
           Upload failed. Please make sure you have a strong internet connection.
         </div>
       )}
     </section>
-  )
-}
+  );
+};
 
-export default StepTwo
+export default StepTwo;

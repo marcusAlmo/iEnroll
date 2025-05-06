@@ -8,6 +8,12 @@ export class EnrollService {
   constructor(private readonly prisma: PrismaService) {}
 
   // TODO: Add slots for each schedule
+  // break down this into
+  // all academic levels by school
+  // all gradelevel by academic level
+  // all schedules by grade level
+  // all gradesectiontype by grade level
+  // all sections by grade level
   async getSchoolLevelAndScheduleSelection(schoolId: number) {
     const now = new Date();
 
@@ -153,6 +159,183 @@ export class EnrollService {
     return Object.values(grouped);
   }
 
+  async getAcademicLevelsBySchool(schoolId: number) {
+    const result = await this.prisma.grade_level_offered.findMany({
+      where: {
+        is_active: true,
+        school_id: schoolId,
+        grade_level: {
+          academic_level: {
+            is_supported: true,
+          },
+        },
+      },
+      select: {
+        grade_level: {
+          select: {
+            academic_level: {
+              select: {
+                academic_level: true,
+                academic_level_code: true,
+              },
+            },
+          },
+        },
+      },
+      distinct: ['grade_level_code', 'grade_level_offered_id'],
+      // distinct: ['grade_level.academic_level.academic_level_code'],
+    });
+
+    return result.map(
+      ({
+        grade_level: {
+          academic_level: { academic_level, academic_level_code },
+        },
+      }) => ({
+        academicLeveLCode: academic_level_code,
+        academicLevel: academic_level,
+      }),
+    );
+  }
+
+  async getGradeLevelsByAcademicLevel(academicLevelCode: string) {
+    const result = await this.prisma.grade_level.findMany({
+      where: {
+        academic_level_code: academicLevelCode,
+        is_supported: true,
+      },
+      select: {
+        grade_level_code: true,
+        grade_level: true,
+      },
+    });
+
+    return result.map((data) => ({
+      gradeLevelCode: data.grade_level_code,
+      gradeLevel: data.grade_level,
+    }));
+  }
+
+  async getSchedulesByGradeLevel(gradeLevelCode: string) {
+    const now = new Date();
+
+    const result = await this.prisma.enrollment_schedule.findMany({
+      where: {
+        end_datetime: {
+          gte: now,
+        },
+        grade_level_offered: {
+          grade_level_code: gradeLevelCode,
+        },
+      },
+      select: {
+        start_datetime: true,
+        end_datetime: true,
+        aux_schedule_slot: {
+          select: {
+            application_slot_left: true,
+          },
+        },
+      },
+    });
+
+    return result.map((data) => ({
+      dateStart: data.start_datetime,
+      dateEnd: data.end_datetime,
+      // if slots left is undefined, it still didnt accepting slots.
+      slotsLeft: data.aux_schedule_slot?.application_slot_left,
+    }));
+  }
+
+  async getGradeSectionTypesByGradeLevel(gradeLevelCode: string) {
+    const result = await this.prisma.grade_section_program.findMany({
+      where: {
+        grade_level_offered: {
+          grade_level_code: gradeLevelCode,
+        },
+      },
+      select: {
+        grade_section_program_id: true,
+        academic_program: {
+          select: {
+            program: true,
+          },
+        },
+      },
+    });
+
+    return result.map((data) => ({
+      gradeSectionId: data.grade_section_program_id,
+      gradeSectionType: data.academic_program.program,
+    }));
+  }
+
+  async getSectionsByGradeLevel(gradeLevelCode: string) {
+    const result = await this.prisma.grade_section.findMany({
+      where: {
+        grade_section_program: {
+          grade_level_offered: {
+            grade_level_code: gradeLevelCode,
+          },
+        },
+      },
+      select: {
+        grade_section_program: {
+          select: {
+            grade_section_program_id: true,
+            academic_program: {
+              select: {
+                program_id: true,
+                program: true,
+              },
+            },
+          },
+        },
+        grade_section_id: true,
+        section_name: true,
+        max_application_slot: true,
+      },
+    });
+
+    const mapped = result.map((data) => ({
+      programId: data.grade_section_program.academic_program.program_id,
+      programName: data.grade_section_program.academic_program.program,
+      gradeSectionProgramId:
+        data.grade_section_program.grade_section_program_id,
+      gradeSectionId: data.grade_section_id,
+      sectionName: data.section_name,
+      maxSlot: data.max_application_slot,
+    }));
+
+    function groupByKey<T extends Record<string, any>>(
+      array: T[],
+      key: keyof T,
+    ) {
+      return array.reduce((acc: Record<string, T[]>, item) => {
+        const groupKey = item[key];
+        if (!acc[groupKey]) {
+          acc[groupKey] = [];
+        }
+        acc[groupKey].push(item);
+        return acc;
+      }, {});
+    }
+
+    // Restructure to desired output format
+    return Object.entries(groupByKey(mapped, 'programId')).map(
+      ([programId, sections]) => ({
+        programId,
+        programName: sections[0].programName,
+        gradeSectionProgramId: sections[0].gradeSectionProgramId,
+        sections: sections.map(({ gradeSectionId, sectionName, maxSlot }) => ({
+          gradeSectionId,
+          sectionName,
+          maxSlot,
+        })),
+      }),
+    );
+  }
+
   async getAllGradeSectionTypeRequirements(gradeSectionProgramId: number) {
     const result = await this.prisma.enrollment_requirement.findMany({
       where: {
@@ -177,7 +360,7 @@ export class EnrollService {
       }) => ({
         requirementId: requirement_id,
         name,
-        requirementTypr: requirement_type,
+        requirementType: requirement_type,
         acceptedDataTypes: accepted_data_type,
         isRequired: is_required,
       }),

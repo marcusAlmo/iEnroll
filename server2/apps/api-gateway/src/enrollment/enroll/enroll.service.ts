@@ -16,6 +16,11 @@ import {
   ValidatePaymentOptionReturn,
   CheckStudentAlreadyPaidReturn,
   CheckRequirementIdsValidReturn,
+  AcademicLevelsReturn,
+  GradeLevelsReturn,
+  SchedulesReturn,
+  GradeSectionTypesReturn,
+  SectionsReturn,
 } from './enroll.types';
 import { FileService } from '../../file/file.service';
 import {
@@ -50,6 +55,71 @@ export class EnrollService {
       this.client.send(
         {
           cmd: 'get_sch_and_schedule_selection',
+        },
+        payload,
+      ),
+    );
+
+    return result;
+  }
+
+  async getAcademicLevelsBySchool(payload: { schoolId: number }) {
+    const result: AcademicLevelsReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_academic_levels_by_school',
+        },
+        payload,
+      ),
+    );
+
+    return result;
+  }
+
+  async getGradeLevelsByAcademicLevel(payload: { academicLevelCode: string }) {
+    const result: GradeLevelsReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_grade_levels_by_academic_level',
+        },
+        payload,
+      ),
+    );
+
+    return result;
+  }
+
+  async getSchedulesByGradeLevel(payload: { gradeLevelCode: string }) {
+    const result: SchedulesReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_schedules_by_grade_level',
+        },
+        payload,
+      ),
+    );
+
+    return result;
+  }
+
+  async getGradeSectionTypesByGradeLevel(payload: { gradeLevelCode: string }) {
+    const result: GradeSectionTypesReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_grade_section_types_by_grade_level',
+        },
+        payload,
+      ),
+    );
+
+    return result;
+  }
+
+  async getSectionsByGradeLevel(payload: { gradeLevelCode: string }) {
+    const result: SectionsReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'get_sections_by_grade_level',
         },
         payload,
       ),
