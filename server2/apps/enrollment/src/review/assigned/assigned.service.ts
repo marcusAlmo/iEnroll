@@ -455,13 +455,24 @@ export class AssignedService {
     }
 
     try {
-      await this.prisma.student_enrollment.create({
-        data: {
-          enrollment_id: enrollmentApplication.application_id,
-          grade_section_id: sectionId,
-          approver_id: approverId,
-          enrollment_remarks: enrollmentRemarks,
-        },
+      await this.prisma.$transaction(async (tx) => {
+        await tx.student_enrollment.create({
+          data: {
+            enrollment_id: enrollmentApplication.application_id,
+            grade_section_id: sectionId,
+            approver_id: approverId,
+            enrollment_remarks: enrollmentRemarks,
+          },
+        });
+
+        await tx.student.update({
+          where: {
+            student_id: studentId,
+          },
+          data: {
+            has_enrolled: true,
+          },
+        });
       });
 
       return {
