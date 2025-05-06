@@ -240,6 +240,7 @@ export class AssignedService {
           status,
           reviewer_id: reviewerId,
           remarks,
+          review_datetime: new Date(),
         },
       });
 
