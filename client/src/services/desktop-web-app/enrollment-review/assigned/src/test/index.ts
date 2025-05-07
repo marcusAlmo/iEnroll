@@ -32,7 +32,7 @@ export const getSectionsByGradeId = (gradeId: number): SectionResponse => {
       sectionId: section.sectionId,
       sectionName: section.sectionName,
       gradeSectionProgramId: section.gradeSectionProgramId,
-      programName: program.programName
+      programName: program.programName,
     })),
   );
 };
@@ -97,7 +97,6 @@ export const getUnassignedStudentsByGradeSectionProgramId = (
   return results;
 };
 
-
 // export const getUnasssignedStudentsByGradeId = (
 //   gradeId: number,
 // ): StudentResponse => {
@@ -133,11 +132,12 @@ export const getRequirementsByStudentId = (
   if (!grade) return [];
 
   // Find the program that contains the student, then find the section
-  const program = grade.programs.find((program) =>
-    program.unassigned.some((s) => s.studentId === studentId) ||
-    program.sections.some((section) =>
-      section.students.some((s) => s.studentId === studentId),
-    ),
+  const program = grade.programs.find(
+    (program) =>
+      program.unassigned.some((s) => s.studentId === studentId) ||
+      program.sections.some((section) =>
+        section.students.some((s) => s.studentId === studentId),
+      ),
   );
 
   if (!program) return [];
@@ -190,12 +190,16 @@ export const approveOrDenyMockRequirement = (
   if (!grade) throw new Error("Grade level not found");
 
   // Find the program that contains the requirement
-  const program = grade.programs.find((program) =>
-    program.sections.some((section) =>
-      section.students.some((s) =>
+  const program = grade.programs.find(
+    (program) =>
+      program.sections.some((section) =>
+        section.students.some((s) =>
+          s.requirements.some((r) => r.applicationId === applicationId),
+        ),
+      ) ||
+      program.unassigned.some((s) =>
         s.requirements.some((r) => r.applicationId === applicationId),
       ),
-    ),
   );
 
   if (!program) throw new Error("Program not found");
