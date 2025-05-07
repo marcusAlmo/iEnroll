@@ -15,7 +15,7 @@ export class SchoolDetailsController {
 
   @MessagePattern({ cmd: 'save-school-details' })
   async saveSchoolDetails(payload: {
-    schoolDetails: SchoolDetails['scholarDetails'];
+    schoolDetails: SchoolDetails['receiveInput'];
     schoolId: number;
   }) {
     return await this.schoolDetailsService.saveSchoolDetails(

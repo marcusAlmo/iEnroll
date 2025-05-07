@@ -446,10 +446,12 @@ export class EnrollmentScheduleService {
   ): Promise<Decimal> {
     const count = await this.prisma.enrollment_application.count({
       where: {
-        grade_level_offered: {
-          school_id: schoolId,
-          grade_level: {
-            grade_level: grade_level,
+        grade_section_program: {
+          grade_level_offered: {
+            school_id: schoolId,
+            grade_level: {
+              grade_level: grade_level,
+            },
           },
         },
       },

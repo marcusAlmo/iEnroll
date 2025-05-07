@@ -60,7 +60,8 @@ export class SchoolDetails {
   schoolEmail!: string;
 
   @IsString()
-  schoolWebUrl!: string;
+  @IsOptional()
+  schoolWebUrl?: string;
 
   @IsString()
   @IsNotEmpty()
