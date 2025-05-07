@@ -22,6 +22,7 @@ type CustomInputProps<TSchema extends z.ZodType<any, any>> = {
   inputStyle: string;
   labelStyle: string;
   type?: "text" | "password" | "date"; 
+  value?: string | number;
 };
 
 const CustomInput = <TSchema extends z.ZodType<any, any>>({

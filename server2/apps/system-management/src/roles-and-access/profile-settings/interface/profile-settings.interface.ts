@@ -12,6 +12,7 @@ export interface ProfileSettings {
   createProfileSettings: ProfileSettings['updateProfileSettings'] & {
     username: string;
     password: string;
+    email: string;
   };
 
   employeeInfo: {
