@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "methodName": "BDO Unibank",
+    "methodName": "BDO Unibank, Inc.",
     "methodType": "Bank Transfer",
     "accountNumber": 1234567890,
     "ownerName": "Juan Dela Cruz"
@@ -15,21 +15,21 @@
   },
   {
     "id": 3,
-    "methodName": "Metrobank",
+    "methodName": "Metropolitan Bank and Trust Co.",
     "methodType": "Bank Transfer",
     "accountNumber": 1122334455,
     "ownerName": "Jose Rizal"
   },
   {
     "id": 4,
-    "methodName": "Landbank of the Philippines",
+    "methodName": "LANDBANK / OFBank",
     "methodType": "Bank Transfer",
     "accountNumber": 5566778899,
     "ownerName": "Andres Bonifacio"
   },
   {
     "id": 5,
-    "methodName": "UnionBank of the Philippines",
+    "methodName": "Union Bank of the Philippines",
     "methodType": "Bank Transfer",
     "accountNumber": 6677889900,
     "ownerName": "Emilio Aguinaldo"

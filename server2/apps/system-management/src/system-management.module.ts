@@ -6,6 +6,7 @@ import { AccountSettingsModule } from './roles-and-access/account-settings/accou
 import { ProfileSettingsModule } from './roles-and-access/profile-settings/profile-settings.module';
 import { EmployeeListModule } from './roles-and-access/employee-list/employee-list.module';
 import { RoleManagementModule } from './roles-and-access/role-management/role-management.module';
+import { HistoryAndLogsModule } from './history-and-logs/history-and-logs.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RoleManagementModule } from './roles-and-access/role-management/role-ma
       load: [configuration],
       isGlobal: false,
     }),
+    HistoryAndLogsModule,
   ],
   controllers: [SystemManagementController],
   providers: [],
