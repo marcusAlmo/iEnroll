@@ -78,32 +78,37 @@ export class AssignedService {
     return refined;
   }
 
+  //TODO: All students must be returned regardless of their status
+  // This can include unenrolled ones
   async getAllStudentsAssigned(sectionId: number) {
-    const result = await this.prisma.student_enrollment.findMany({
+    const result = await this.prisma.enrollment_application.findMany({
       where: {
-        grade_section_id: sectionId,
-        // enrollment_application: {
-        //   status: {
-        //     in: ['accepted', 'pending'],
-        //   },
-        // },
+        OR: [
+          // enrolled
+          {
+            student_enrollment: {
+              grade_section_id: sectionId,
+            },
+          },
+          // not enrolled
+          {
+            grade_section_id: sectionId,
+            student_enrollment: null,
+          },
+        ],
       },
       select: {
-        enrollment_application: {
+        status: true,
+        student: {
           select: {
-            status: true,
-            student: {
+            // since enroller is the student itself
+            user_student_enroller_idTouser: {
               select: {
-                // since enroller is the student itself
-                user_student_enroller_idTouser: {
-                  select: {
-                    first_name: true,
-                    last_name: true,
-                    middle_name: true,
-                    suffix: true,
-                    user_id: true,
-                  },
-                },
+                first_name: true,
+                last_name: true,
+                middle_name: true,
+                suffix: true,
+                user_id: true,
               },
             },
           },
@@ -112,25 +117,16 @@ export class AssignedService {
     });
 
     return result.map((data) => ({
-      studentId:
-        data.enrollment_application.student.user_student_enroller_idTouser
-          .user_id,
-      firstName:
-        data.enrollment_application.student.user_student_enroller_idTouser
-          .first_name,
-      lastName:
-        data.enrollment_application.student.user_student_enroller_idTouser
-          .last_name,
-      middleName:
-        data.enrollment_application.student.user_student_enroller_idTouser
-          .middle_name,
-      suffix:
-        data.enrollment_application.student.user_student_enroller_idTouser
-          .suffix,
-      enrollmentStatus: data.enrollment_application.status,
+      studentId: data.student.user_student_enroller_idTouser.user_id,
+      firstName: data.student.user_student_enroller_idTouser.first_name,
+      lastName: data.student.user_student_enroller_idTouser.last_name,
+      middleName: data.student.user_student_enroller_idTouser.middle_name,
+      suffix: data.student.user_student_enroller_idTouser.suffix,
+      enrollmentStatus: data.status,
     }));
   }
 
+  //TODO: Make sure that this will filter the sections that have not preferred
   // Since enrollment application now linked to grade_section_program_id, it will now be used
   async getAllStudentsUnassigned(gradeSectionProgramId: number | number[]) {
     if (
@@ -160,6 +156,8 @@ export class AssignedService {
             : {
                 in: gradeSectionProgramId as number[],
               },
+        // Makes sure that all included are all unassigned
+        grade_section_id: null,
         student_enrollment: null,
         // status: {
         //   in: ['accepted', 'pending'],
