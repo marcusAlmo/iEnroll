@@ -65,11 +65,15 @@ export class DashboardService {
         enrollment_application: {
           select: {
             status: true,
-            grade_level_offered: {
+            grade_section_program: {
               select: {
-                grade_level: {
+                grade_level_offered: {
                   select: {
-                    grade_level: true,
+                    grade_level: {
+                      select: {
+                        grade_level: true,
+                      },
+                    },
                   },
                 },
               },
@@ -117,8 +121,8 @@ export class DashboardService {
     return {
       enrollmentStatus: result.enrollment_application?.status,
       gradeLevel:
-        result.enrollment_application?.grade_level_offered.grade_level
-          .grade_level,
+        result.enrollment_application?.grade_section_program.grade_level_offered
+          .grade_level.grade_level,
       section:
         result.enrollment_application?.student_enrollment?.grade_section
           .section_name,

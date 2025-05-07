@@ -25,6 +25,11 @@ export class AssignedService {
           },
         },
       },
+      orderBy: {
+        grade_level: {
+          order_position: 'asc',
+        },
+      },
     });
 
     return result.map((data) => ({
@@ -40,22 +45,35 @@ export class AssignedService {
         },
       },
       select: {
+        grade_section_program: {
+          select: {
+            grade_section_program_id: true,
+            academic_program: {
+              select: {
+                program: true,
+              },
+            },
+          },
+        },
         grade_section_id: true,
         section_name: true,
       },
     });
 
     const refined = result.map((data) => ({
+      gradeSectionProgramId:
+        data.grade_section_program.grade_section_program_id,
+      programName: data.grade_section_program.academic_program.program,
       sectionId: data.grade_section_id,
       sectionName: data.section_name,
     }));
 
-    // TODO: You can dynamically check if theres unassigned students in a particular grade level
-    refined.push({
-      // section id becomes that grade level id
-      sectionId: gradeLevelId,
-      sectionName: 'Unassigned',
-    });
+    // // TODO: You can dynamically check if theres unassigned students in a particular grade level
+    // refined.push({
+    //   // section id becomes that grade level id
+    //   sectionId: gradeLevelId,
+    //   sectionName: 'Unassigned',
+    // });
 
     return refined;
   }
@@ -112,10 +130,36 @@ export class AssignedService {
       enrollmentStatus: data.enrollment_application.status,
     }));
   }
-  async getAllStudentsUnassigned(gradeLevelId: number) {
+
+  // Since enrollment application now linked to grade_section_program_id, it will now be used
+  async getAllStudentsUnassigned(gradeSectionProgramId: number | number[]) {
+    if (
+      typeof gradeSectionProgramId !== 'number' ||
+      !Array.isArray(gradeSectionProgramId)
+    )
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_GRADE_SECTION_PROGRAM_ID_INVALID_TYPE',
+      });
+
+    if (Array.isArray(gradeSectionProgramId)) {
+      // Ensure all elements in the array are numbers
+      if (!gradeSectionProgramId.every((id) => typeof id === 'number')) {
+        throw new RpcException({
+          statusCode: 400,
+          message: 'ERR_GRADE_SECTION_PROGRAM_ID_ARRAY_CONTAINS_NON_NUMBER',
+        });
+      }
+    }
+
     const result = await this.prisma.enrollment_application.findMany({
       where: {
-        grade_level_offered_id: gradeLevelId,
+        grade_section_program_id:
+          typeof gradeSectionProgramId === 'number'
+            ? gradeSectionProgramId
+            : {
+                in: gradeSectionProgramId as number[],
+              },
         student_enrollment: null,
         // status: {
         //   in: ['accepted', 'pending'],
@@ -149,6 +193,44 @@ export class AssignedService {
       enrollmentStatus: data.status,
     }));
   }
+  // async getAllStudentsUnassigned(gradeLevelId: number) {
+  //   const result = await this.prisma.enrollment_application.findMany({
+  //     where: {
+  //       grade_level_offered_id: gradeLevelId,
+  //       student_enrollment: null,
+  //       // status: {
+  //       //   in: ['accepted', 'pending'],
+  //       // },
+  //     },
+  //     select: {
+  //       status: true,
+  //       student: {
+  //         select: {
+  //           // since enroller is the student itself
+  //           user_student_enroller_idTouser: {
+  //             select: {
+  //               first_name: true,
+  //               last_name: true,
+  //               middle_name: true,
+  //               suffix: true,
+  //               user_id: true,
+  //             },
+  //           },
+  //         },
+  //       },
+  //     },
+  //   });
+
+  //   return result.map((data) => ({
+  //     studentId: data.student.user_student_enroller_idTouser.user_id,
+  //     firstName: data.student.user_student_enroller_idTouser.first_name,
+  //     lastName: data.student.user_student_enroller_idTouser.last_name,
+  //     middleName: data.student.user_student_enroller_idTouser.middle_name,
+  //     suffix: data.student.user_student_enroller_idTouser.suffix,
+  //     enrollmentStatus: data.status,
+  //   }));
+  // }
+
   async getAllRequiermentsByStudent(studentId: number) {
     const result = await this.prisma.application_attachment.findMany({
       where: {
@@ -196,7 +278,7 @@ export class AssignedService {
 
         // requirementType = image or document
         fileUrl: data.file?.uuid
-          ? this.fileCommonService.formatFileUrl(data.file.uuid)
+          ? this.fileCommonService.formatFileUrl(String(data.file.uuid))
           : null,
         fileName: data.file?.name ?? null,
 

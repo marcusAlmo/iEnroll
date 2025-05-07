@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -39,18 +40,39 @@ export class AssignedController {
     return await this.assignedService.getAllStudentsAssigned(sectionId);
   }
 
-  @Get('students/unassigned/:gradeLevelId')
+  @Get('students/unassigned/:gradeSectionProgramId')
   async getAllStudentsUnassigned(
-    @Param('gradeLevelId', ParseIntPipe) gradeLevelId: number,
+    @Param('gradeSectionProgramId') gradeSectionProgramId: string, // Accepts the parameter as string to handle comma separation
   ) {
-    return await this.assignedService.getAllStudentsUnassigned(gradeLevelId);
+    const gradeSectionProgramIds = gradeSectionProgramId
+      .split(',')
+      .map((id) => {
+        const parsedId = parseInt(id, 10);
+        if (isNaN(parsedId)) {
+          throw new BadRequestException(
+            'ERR_GRADE_SECTION_PROGRAM_ID_INVALID_TYPE',
+          );
+        }
+        return parsedId;
+      });
+
+    // Pass either a single number or an array of numbers to the service
+    return await this.assignedService.getAllStudentsUnassigned(
+      gradeSectionProgramIds,
+    );
   }
+  // @Get('students/unassigned/:gradeLevelId')
+  // async getAllStudentsUnassigned(
+  //   @Param('gradeLevelId', ParseIntPipe) gradeLevelId: number,
+  // ) {
+  //   return await this.assignedService.getAllStudentsUnassigned(gradeLevelId);
+  // }
 
   @Get('requirements/:studentId')
   async getAllRequiermentsByStudent(
     @Param('studentId', ParseIntPipe) studentId: number,
   ) {
-    return await this.assignedService.getAllRequiermentsByStudent(studentId);
+    return await this.assignedService.getAllRequirementsByStudent(studentId);
   }
 
   @Post('requirements/approve-or-deny')

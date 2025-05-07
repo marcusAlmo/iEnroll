@@ -65,6 +65,11 @@ export class EnrolledService {
           },
         },
       },
+      orderBy: {
+        grade_level: {
+          order_position: 'asc',
+        },
+      },
     });
 
     return result.map((data) => ({
@@ -81,15 +86,30 @@ export class EnrolledService {
         },
       },
       select: {
+        grade_section_program: {
+          select: {
+            grade_section_program_id: true,
+            academic_program: {
+              select: {
+                program: true,
+              },
+            },
+          },
+        },
         grade_section_id: true,
         section_name: true,
       },
     });
 
-    return result.map((data) => ({
+    const refined = result.map((data) => ({
+      gradeSectionProgramId:
+        data.grade_section_program.grade_section_program_id,
+      programName: data.grade_section_program.academic_program.program,
       sectionId: data.grade_section_id,
       sectionName: data.section_name,
     }));
+
+    return refined;
   }
 
   private mapStudentEnrollmentData = (data: any) => {

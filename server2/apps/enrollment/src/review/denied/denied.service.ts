@@ -16,8 +16,13 @@ export class DeniedService {
       await this.prisma.enrollment_application.findMany({
         where: {
           status: 'denied',
-          grade_level_offered: {
-            school_id: schoolId,
+          // grade_level_offered: {
+          //   school_id: schoolId,
+          // },
+          grade_section_program: {
+            grade_level_offered: {
+              school_id: schoolId,
+            },
           },
         },
         select: {

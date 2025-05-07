@@ -6,6 +6,7 @@ import {
   CallHandler,
   BadRequestException,
 } from '@nestjs/common';
+import { $Enums, requirement_type } from '@prisma/client';
 import { Observable } from 'rxjs';
 
 @Injectable()
@@ -17,7 +18,7 @@ export class MultipleDynamicFileInterceptor implements NestInterceptor {
       const files: Express.Multer.File[] = req.files;
 
       interface Payload {
-        type: string;
+        type: requirement_type;
         value?: any;
       }
 
@@ -25,7 +26,7 @@ export class MultipleDynamicFileInterceptor implements NestInterceptor {
         (item: string): Payload | string => {
           try {
             const parsed: Payload = JSON.parse(item);
-            if (parsed.type === 'document') {
+            if (parsed.type === $Enums.requirement_type.image) {
               const file = files.shift(); // assign corresponding file
               if (!file) {
                 throw new BadRequestException(

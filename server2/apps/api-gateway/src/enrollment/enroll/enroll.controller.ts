@@ -4,10 +4,12 @@ import {
   Body,
   Controller,
   Get,
+  InternalServerErrorException,
   Param,
   ParseIntPipe,
   Post,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -20,6 +22,12 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { User } from '@lib/decorators/user.decorator';
 import { MultipleDynamicFileInterceptor } from './interceptors/multiple-file-dynamic.interceptor';
+import {
+  EnrollmentApplicationDtoHttp,
+  RequirementTextDto,
+  RequirementFileDto,
+} from '@lib/dtos/src/enrollment/v1/microservice/enroll.dto';
+import { Request } from 'express';
 
 @Controller('enroll')
 @UseGuards(JwtAuthGuard)
@@ -144,5 +152,55 @@ export class EnrollController {
     });
 
     return result;
+  }
+
+  @Post()
+  @UseInterceptors(FilesInterceptor('files'))
+  async enrollStudent(
+    @Req() req: Request,
+    @Body() body: EnrollmentApplicationDtoHttp,
+    @User('user_id') studentId: number,
+    @User('school_id') schoolId: number,
+  ) {
+    const files = req.files as Express.Multer.File[] | undefined;
+
+    if (!files?.length) {
+      throw new BadRequestException('ERR_FILES_NOT_FOUND');
+    }
+
+    const uploadedFiles = await Promise.all(
+      files.map((file) =>
+        this.enrollService.uploadFile(file, studentId, schoolId),
+      ),
+    );
+
+    const failedUpload = uploadedFiles.find((res) => !res.success);
+    if (failedUpload) {
+      throw new InternalServerErrorException('ERR_FILE_UPLOAD_UNSUCCESSFUL');
+    }
+
+    const { details, requirements, payment } = body;
+
+    const mappedRequirements = requirements.map((requirement, i) => {
+      return requirement.textContent
+        ? ({
+            ...requirement,
+            textContent: requirement.textContent,
+            fileId: undefined,
+          } as RequirementTextDto)
+        : ({
+            ...requirement,
+            fileId: uploadedFiles[i]?.document?.id,
+          } as RequirementFileDto);
+    });
+
+    return this.enrollService.makeStudentEnrollmentApplication({
+      details: { ...details, studentId, schoolId },
+      requirements: mappedRequirements,
+      payment: {
+        ...payment,
+        fileId: uploadedFiles.at(-1)!.document?.id, // safer access than [length - 1]
+      },
+    });
   }
 }

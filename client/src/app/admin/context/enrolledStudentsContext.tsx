@@ -101,7 +101,13 @@ export const EnrolledStudentsProvider: React.FC<{
   const { data: sections, isPending: isSectionsPending } = useQuery({
     queryKey: ["enrolledSections", selectedGradeLevel],
     queryFn: () => getAllSectionsByGradeLevel(selectedGradeLevel!),
-    select: (data) => data.data,
+    select: (data) => {
+      const raw = data.data;
+      return raw.map((section) => ({
+        ...section,
+        sectionName: `${section.programName} | ${section.sectionName}`,
+      }));
+    },
     enabled: selectedGradeLevel !== null,
   });
 
