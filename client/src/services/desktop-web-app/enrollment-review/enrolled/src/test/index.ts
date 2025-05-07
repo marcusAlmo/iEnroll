@@ -18,6 +18,8 @@ export const getSectionsByGradeId = (gradeId: number): SectionResponse => {
   return grade.sections.map((section) => ({
     sectionId: section.sectionId,
     sectionName: section.sectionName,
+    programName: "Regular",
+    gradeSectionProgramId: 1,
   }));
 };
 

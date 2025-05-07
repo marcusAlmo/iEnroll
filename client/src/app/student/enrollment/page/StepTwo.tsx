@@ -1,6 +1,6 @@
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import UploadBox from "../components/UploadBox";
 import { Form } from "@/components/ui/form";
 import CustomInput from "@/components/CustomInput";
@@ -14,8 +14,21 @@ import { Button } from "@/components/ui/button";
 // import paymentMethods from "@/test/data/payment-methods.json";
 import { sanitizeName } from "@/utils/stringUtils";
 import { useEnroll } from "../../context/enroll/hook";
+import { useWatch } from "react-hook-form";
 
 const StepTwo = () => {
+  const {
+    stepTwoForm: form,
+    requirements,
+    paymentMethods,
+    fees,
+    setCurrentStep,
+  } = useEnroll();
+
+  useEffect(() => {
+    setCurrentStep(2);
+  }, [setCurrentStep]);
+
   const [isUploaded, setIsUploaded] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isErrorUploading, setIsErrorUploading] = useState<boolean>(false);
@@ -28,10 +41,9 @@ const StepTwo = () => {
   const [showRequirementsTooltip, setShowRequirementsTooltip] =
     useState<boolean>(false);
   const [showFeesTooltip, setShowFeesTooltip] = useState<boolean>(false);
-  const { form, requirements, paymentMethods, fees } = useEnroll();
 
   // Calculate fees
-  const calculateTotalFees = () => {
+  const calculateTotalFees = useCallback(() => {
     return (
       fees?.reduce(
         (total, fee) =>
@@ -43,7 +55,7 @@ const StepTwo = () => {
         0,
       ) ?? 0
     );
-  };
+  }, [fees]);
 
   // // Generate dynamic schema for the requirements
   // const requirementsSchema = useMemo(
@@ -84,21 +96,21 @@ const StepTwo = () => {
 
   const onSubmit = (data: any) => {
     console.log(data);
+    alert("Not yet working! Might modify later")
   };
 
   // For watching if the selected payment method name changed
-  const selectedPaymentMethod = form.watch("paymentMethodName");
+  const selectedPaymentMethod = useWatch({
+    control: form.control,
+    name: "paymentMethodName",
+  });
 
   // For dynamically displaying account number and name upon selecting a method
-  const selectedPaymentDetails = useMemo(
-    () =>
-      paymentMethods
-        ? paymentMethods.find(
-            (method) => method.id === parseInt(selectedPaymentMethod),
-          )
-        : undefined,
-    [paymentMethods, selectedPaymentMethod],
-  );
+  const selectedPaymentDetails = useMemo(() => {
+    return paymentMethods
+      ? paymentMethods.find((method) => method.id == selectedPaymentMethod)
+      : undefined;
+  }, [paymentMethods, selectedPaymentMethod]);
 
   return (
     <section className="bg-container-1 flex w-screen flex-col items-center justify-center p-12">
@@ -228,21 +240,50 @@ const StepTwo = () => {
                   </div>
                 )}
               </div>
-              {requirements?.map((requirement, index) => (
-                <div key={index} className="mb-6">
-                  <UploadBox
-                    control={form.control}
-                    name={sanitizeName(requirement.name)}
-                    label={requirement.name}
-                    requirementType={requirement.requirementType}
-                  />
-                  {form.formState.errors[sanitizeName(requirement.name)] && (
-                    <span className="text-danger text-sm">
-                      Please upload a file
-                    </span>
-                  )}
-                </div>
-              ))}
+              {requirements?.map((requirement, index) => {
+                const fieldName = sanitizeName(requirement.name);
+                const error = form.formState.errors[fieldName];
+
+                return (
+                  <div key={index} className="mb-6">
+                    {/* Render UploadBox for image/document requirements */}
+                    {requirement.requirementType === "image" ||
+                    requirement.requirementType === "document" ? (
+                      <UploadBox
+                        control={form.control}
+                        name={fieldName}
+                        label={requirement.name}
+                        requirementType={requirement.requirementType}
+                      />
+                    ) : (
+                      // Render CustomInput for text requirements
+                      <CustomInput
+                        control={form.control}
+                        name={fieldName}
+                        label={requirement.name}
+                        placeholder={`Enter ${requirement.name}`}
+                        inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                        labelStyle="text-sm text-text-2"
+                        type={
+                          requirement.acceptedDataTypes === "string"
+                            ? "text"
+                            : requirement.acceptedDataTypes as "password" | "date" | undefined
+                        }
+                      />
+                    )}
+
+                    {/* Dynamic error handling */}
+                    {error && (
+                      <span className="text-danger text-sm">
+                        {requirement.requirementType === "image" ||
+                        requirement.requirementType === "document"
+                          ? "Please upload a file"
+                          : "This field is required"}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="w-full">
@@ -292,7 +333,7 @@ const StepTwo = () => {
                 values={
                   paymentMethods?.map((method) => ({
                     label: method.methodName,
-                    ...method,
+                    id: method.id,
                   })) ?? []
                 }
                 buttonClassName="rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
@@ -331,7 +372,7 @@ const StepTwo = () => {
                 label=""
                 control={form.control}
                 name="paymentProof"
-                requirementType=".pdf"
+                requirementType="image"
               />
               {/* NOTE -> if passing image, pass "image/*" */}
               {form.formState.errors.paymentProof && (

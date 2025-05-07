@@ -8,6 +8,8 @@ export type GradeLevelResponse = GradeLevel[];
 interface Section {
   sectionId: number;
   sectionName: string;
+  gradeSectionProgramId: number;
+  programName: string;
 }
 
 export type SectionResponse = Section[];

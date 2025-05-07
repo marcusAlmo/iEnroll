@@ -1,7 +1,8 @@
-import { Controller } from '@nestjs/common';
+import { Controller, ValidationPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { EnrollService } from './enroll.service';
 import { $Enums } from '@prisma/client';
+import { EnrollmentApplicationDto } from '../../../../libs/dtos/src/enrollment/v1/microservice/enroll.dto';
 
 @Controller('enroll')
 export class EnrollController {
@@ -118,5 +119,13 @@ export class EnrollController {
     return await this.enrollService.checkIfAllRequirementIdsAreValid({
       requirementIds,
     });
+  }
+
+  @MessagePattern({ cmd: 'make_student_enrollment_application' })
+  async makeStudentEnrollmentApplication(
+    @Payload(new ValidationPipe({ transform: true, whitelist: true }))
+    payload: EnrollmentApplicationDto,
+  ) {
+    return await this.enrollService.makeStudentEnrollmentApplication(payload);
   }
 }

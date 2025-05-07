@@ -39,18 +39,31 @@ export class AssignedController {
   }
 
   @MessagePattern({
-    cmd: 'enrollment_review_assigned:get_all_students_unassigned_by_grade_level',
+    cmd: 'enrollment_review_assigned:get_all_students_unassigned_by_grade_section_program',
   })
   async getAllStudentsUnassigned(
     @Payload()
     payload: {
-      gradeLevelId: number;
+      gradeSectionProgramId: number | number[];
     },
   ) {
     return await this.assignedService.getAllStudentsUnassigned(
-      payload.gradeLevelId,
+      payload.gradeSectionProgramId,
     );
   }
+  // @MessagePattern({
+  //   cmd: 'enrollment_review_assigned:get_all_students_unassigned_by_grade_level',
+  // })
+  // async getAllStudentsUnassigned(
+  //   @Payload()
+  //   payload: {
+  //     gradeLevelId: number;
+  //   },
+  // ) {
+  //   return await this.assignedService.getAllStudentsUnassigned(
+  //     payload.gradeLevelId,
+  //   );
+  // }
 
   @MessagePattern({
     cmd: 'enrollment_review_assigned:get_all_requirements_by_student',

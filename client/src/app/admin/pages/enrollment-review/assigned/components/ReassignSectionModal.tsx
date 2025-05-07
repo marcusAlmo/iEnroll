@@ -132,13 +132,13 @@ export default function ReassignSectionModal() {
   const filteredSections = useMemo(
     () =>
       query === ""
-        ? sections?.filter((s) => !s._unassigned)
+        ? sections?.filter((s) => !s._unassigned && selectedSection?.gradeSectionProgramId === s.gradeSectionProgramId)
         : sections
-            ?.filter((s) => !s._unassigned)
+            ?.filter((s) => !s._unassigned && selectedSection?.gradeSectionProgramId === s.gradeSectionProgramId)
             ?.filter((section) =>
               section.sectionName.toLowerCase().includes(query.toLowerCase()),
             ),
-    [query, sections],
+    [query, sections, selectedSection?.gradeSectionProgramId],
   );
 
   return (

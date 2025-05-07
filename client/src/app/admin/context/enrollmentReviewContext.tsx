@@ -6,7 +6,7 @@ import {
   getAllRequirementsByStudentId,
   getAllSectionsByGradeLevel,
   getAllStudentsAssignedBySection,
-  getAllStudentsUnassignedByGradeLevel,
+  getAllStudentsUnassignedByGradeSectionProgram,
   updateEnrollmentStatus,
 } from "@/services/desktop-web-app/enrollment-review/assigned";
 import Enums, {
@@ -31,6 +31,7 @@ interface GradeLevel {
 interface Section {
   sectionId: number; // Unique identifier for the section
   sectionName: string; // Display name for the section (e.g., "Section A")
+  gradeSectionProgramId: number | number[];
   _unassigned?: boolean; // Display unassigned section (e.g., "Unassigned")
 }
 
@@ -163,21 +164,35 @@ export const EnrollmentReviewProvider: React.FC<{
     queryFn: () => getAllSectionsByGradeLevel(selectedGradeLevel!),
     select: (data): Section[] => {
       const raw = data.data;
-      const result: Section[] = raw.map(
-        (section: { sectionId: number; sectionName: string }) => ({
-          sectionId: section.sectionId,
-          sectionName: section.sectionName,
-        }),
-      );
+      const gradeSectionPrograms = new Set<number>();
 
-      result.push({
-        sectionId: selectedGradeLevel!,
-        sectionName: "Unassigned",
-        _unassigned: true,
+      const result: Section[] = raw.map((section) => {
+        gradeSectionPrograms.add(section.gradeSectionProgramId);
+        return {
+          sectionId: section.sectionId,
+          sectionName: `${section.programName} | ${section.sectionName}`,
+          gradeSectionProgramId: section.gradeSectionProgramId,
+        };
       });
 
-      return result;
+      const unassignedSections: Section[] = [...gradeSectionPrograms].map(
+        (programId) => {
+          const program = raw.find(
+            (r) => r.gradeSectionProgramId === programId,
+          );
+
+          return {
+            sectionId: -programId, // Use a negative or unique identifier to prevent conflict
+            sectionName: `${program?.programName} | Unassigned`,
+            gradeSectionProgramId: programId,
+            _unassigned: true,
+          };
+        },
+      );
+
+      return [...result, ...unassignedSections];
     },
+
     enabled: selectedGradeLevel !== null,
   });
 
@@ -189,7 +204,9 @@ export const EnrollmentReviewProvider: React.FC<{
     ],
     queryFn: () =>
       selectedSection?._unassigned
-        ? getAllStudentsUnassignedByGradeLevel(selectedSection!.sectionId)
+        ? getAllStudentsUnassignedByGradeSectionProgram(
+            selectedSection!.gradeSectionProgramId as number[],
+          )
         : getAllStudentsAssignedBySection(selectedSection!.sectionId),
     select: (data): Student[] =>
       data.data.map((student) => ({

@@ -9,7 +9,9 @@ describe('AccountSettingsController', () => {
       controllers: [AccountSettingsController],
     }).compile();
 
-    controller = module.get<AccountSettingsController>(AccountSettingsController);
+    controller = module.get<AccountSettingsController>(
+      AccountSettingsController,
+    );
   });
 
   it('should be defined', () => {

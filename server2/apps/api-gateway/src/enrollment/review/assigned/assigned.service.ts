@@ -62,20 +62,32 @@ export class AssignedService {
     return result;
   }
 
-  async getAllStudentsUnassigned(gradeLevelId: number) {
+  async getAllStudentsUnassigned(gradeSectionProgramId: number | number[]) {
     const result: StudentsUnassignedReturn = await lastValueFrom(
       this.client.send(
         {
-          cmd: 'enrollment_review_assigned:get_all_students_unassigned_by_grade_level',
+          cmd: 'enrollment_review_assigned:get_all_students_unassigned_by_grade_section_program',
         },
-        { gradeLevelId },
+        { gradeSectionProgramId: gradeSectionProgramId },
       ),
     );
 
     return result;
   }
+  // async getAllStudentsUnassigned(gradeLevelId: number) {
+  //   const result: StudentsUnassignedReturn = await lastValueFrom(
+  //     this.client.send(
+  //       {
+  //         cmd: 'enrollment_review_assigned:get_all_students_unassigned_by_grade_level',
+  //       },
+  //       { gradeLevelId },
+  //     ),
+  //   );
 
-  async getAllRequiermentsByStudent(studentId: number) {
+  //   return result;
+  // }
+
+  async getAllRequirementsByStudent(studentId: number) {
     const result: RequirementsReturn = await lastValueFrom(
       this.client.send(
         {

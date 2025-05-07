@@ -26,21 +26,34 @@ export const getGradeLevels = (): GradeLevelResponse => {
 export const getSectionsByGradeId = (gradeId: number): SectionResponse => {
   const grade = data.find((item) => item.gradeId === gradeId);
   if (!grade) return [];
-  return grade.sections.map((section) => ({
-    sectionId: section.sectionId,
-    sectionName: section.sectionName,
-  }));
+
+  return grade.programs.flatMap((program) =>
+    program.sections.map((section) => ({
+      sectionId: section.sectionId,
+      sectionName: section.sectionName,
+      gradeSectionProgramId: section.gradeSectionProgramId,
+      programName: program.programName,
+    })),
+  );
 };
 
 export const getAssignedStudentsBySectionId = (
   sectionId: number,
 ): StudentResponse => {
   const grade = data.find((item) =>
-    item.sections.some((section) => section.sectionId === sectionId),
+    item.programs.some((program) =>
+      program.sections.some((section) => section.sectionId === sectionId),
+    ),
   );
   if (!grade) return [];
 
-  const section = grade.sections.find(
+  const program = grade.programs.find((program) =>
+    program.sections.some((section) => section.sectionId === sectionId),
+  );
+
+  if (!program) return [];
+
+  const section = program.sections.find(
     (section) => section.sectionId === sectionId,
   );
 
@@ -56,45 +69,88 @@ export const getAssignedStudentsBySectionId = (
   }));
 };
 
-export const getUnasssignedStudentsByGradeId = (
-  gradeId: number,
+export const getUnassignedStudentsByGradeSectionProgramId = (
+  gradeSectionProgramId: number | number[],
 ): StudentResponse => {
-  const grade = data.find((item) => item.gradeId === gradeId);
-  if (!grade) return [];
+  const ids = Array.isArray(gradeSectionProgramId)
+    ? gradeSectionProgramId
+    : [gradeSectionProgramId];
 
-  return grade.unassigned.map((student) => ({
-    studentId: student.studentId,
-    firstName: student.firstName,
-    lastName: student.lastName,
-    middleName: student.middleName,
-    suffix: student.suffix,
-    enrollmentStatus: student.enrollmentStatus,
-  }));
+  const results: StudentResponse = [];
+
+  for (const grade of data) {
+    for (const program of grade.programs) {
+      if (ids.includes(program.gradeSectionProgramId)) {
+        const mappedStudents = program.unassigned.map((student) => ({
+          studentId: student.studentId,
+          firstName: student.firstName,
+          lastName: student.lastName,
+          middleName: student.middleName,
+          suffix: student.suffix,
+          enrollmentStatus: student.enrollmentStatus,
+        }));
+        results.push(...mappedStudents);
+      }
+    }
+  }
+
+  return results;
 };
+
+// export const getUnasssignedStudentsByGradeId = (
+//   gradeId: number,
+// ): StudentResponse => {
+//   const grade = data.find((item) => item.gradeId === gradeId);
+//   if (!grade) return [];
+
+//   return grade.unassigned.map((student) => ({
+//     studentId: student.studentId,
+//     firstName: student.firstName,
+//     lastName: student.lastName,
+//     middleName: student.middleName,
+//     suffix: student.suffix,
+//     enrollmentStatus: student.enrollmentStatus,
+//   }));
+// };
 
 export const getRequirementsByStudentId = (
   studentId: number,
 ): RequirementResponse => {
   const grade = data.find((gradeLevel) => {
-    const inSection = gradeLevel.sections.some((section) =>
-      section.students.some((s) => s.studentId === studentId),
-    );
-    const inUnassigned = gradeLevel.unassigned.some(
-      (s) => s.studentId === studentId,
-    );
-    return inSection || inUnassigned;
+    // Check if student is in any section or unassigned within any program
+    return gradeLevel.programs.some((program) => {
+      const inSection = program.sections.some((section) =>
+        section.students.some((s) => s.studentId === studentId),
+      );
+      const inUnassigned = program.unassigned.some(
+        (s) => s.studentId === studentId,
+      );
+      return inSection || inUnassigned;
+    });
   });
 
   if (!grade) return [];
 
+  // Find the program that contains the student, then find the section
+  const program = grade.programs.find(
+    (program) =>
+      program.unassigned.some((s) => s.studentId === studentId) ||
+      program.sections.some((section) =>
+        section.students.some((s) => s.studentId === studentId),
+      ),
+  );
+
+  if (!program) return [];
+
+  // Find the section within the program or the unassigned list
   const section =
-    grade.sections.find((section) =>
+    program.sections.find((section) =>
       section.students.some((s) => s.studentId === studentId),
     ) || null;
 
   const student =
     section?.students.find((s) => s.studentId === studentId) ??
-    grade.unassigned.find((s) => s.studentId === studentId);
+    program.unassigned.find((s) => s.studentId === studentId);
 
   if (!student) return [];
 
@@ -117,36 +173,57 @@ export const approveOrDenyMockRequirement = (
   const { applicationId, requirementId, action, remarks } = payload;
 
   const grade = data.find((gradeLevel) => {
-    const inSection = gradeLevel.sections.some((section) =>
-      section.students.some((s) =>
+    // Check if the requirement is in any section or unassigned within any program
+    return gradeLevel.programs.some((program) => {
+      const inSection = program.sections.some((section) =>
+        section.students.some((s) =>
+          s.requirements.some((r) => r.applicationId === applicationId),
+        ),
+      );
+      const inUnassigned = program.unassigned.some((s) =>
         s.requirements.some((r) => r.applicationId === applicationId),
-      ),
-    );
-    const inUnassigned = gradeLevel.unassigned.some((s) =>
-      s.requirements.some((r) => r.applicationId === applicationId),
-    );
-    return inSection || inUnassigned;
+      );
+      return inSection || inUnassigned;
+    });
   });
 
   if (!grade) throw new Error("Grade level not found");
 
+  // Find the program that contains the requirement
+  const program = grade.programs.find(
+    (program) =>
+      program.sections.some((section) =>
+        section.students.some((s) =>
+          s.requirements.some((r) => r.applicationId === applicationId),
+        ),
+      ) ||
+      program.unassigned.some((s) =>
+        s.requirements.some((r) => r.applicationId === applicationId),
+      ),
+  );
+
+  if (!program) throw new Error("Program not found");
+
+  // Find the section containing the student
   const section =
-    grade.sections.find((section) =>
+    program.sections.find((section) =>
       section.students.some((s) =>
         s.requirements.some((r) => r.applicationId === applicationId),
       ),
     ) || null;
 
+  // Find the student either in the section or unassigned list
   const student =
     section?.students.find((s) =>
       s.requirements.some((r) => r.applicationId === applicationId),
     ) ??
-    grade.unassigned.find((s) =>
+    program.unassigned.find((s) =>
       s.requirements.some((r) => r.applicationId === applicationId),
     );
 
   if (!student) throw new Error("Student not found");
 
+  // Find the specific requirement
   const requirement = student.requirements.find(
     (r) =>
       r.applicationId === applicationId && r.requirementId === requirementId,
@@ -156,6 +233,7 @@ export const approveOrDenyMockRequirement = (
     throw new Error("Requirement not found");
   }
 
+  // Update requirement status based on the action
   switch (action) {
     case "approve":
       requirement.requirementStatus = Enums.attachment_status.accepted;
@@ -175,29 +253,44 @@ export const approveOrDenyMockRequirement = (
 
 export const enrollMockStudent = (payload: EnrollBody): EnrollResponse => {
   const gradeIdx = data.findIndex((grade) =>
-    grade.unassigned.some((student) => student.studentId === payload.studentId),
+    grade.programs.some((program) =>
+      program.unassigned.some(
+        (student) => student.studentId === payload.studentId,
+      ),
+    ),
   );
 
   if (gradeIdx === -1) throw new Error("Student not found in unassigned list.");
 
   const grade = data[gradeIdx];
 
-  const studentIdx = grade.unassigned.findIndex(
+  // Find the program that contains the unassigned student
+  const program = grade.programs.find((program) =>
+    program.unassigned.some(
+      (student) => student.studentId === payload.studentId,
+    ),
+  );
+
+  if (!program) throw new Error("Program not found for unassigned student.");
+
+  const studentIdx = program.unassigned.findIndex(
     (student) => student.studentId === payload.studentId,
   );
-  const [student] = grade.unassigned.splice(studentIdx, 1); // This modifies `data[gradeIdx].unassigned`
+  const [student] = program.unassigned.splice(studentIdx, 1); // This modifies `program.unassigned`
 
   student.enrollmentStatus = Enums.application_status.accepted;
 
-  const section = grade.sections.find(
+  // Find the target section within the program
+  const section = program.sections.find(
     (sec) => sec.sectionId === payload.sectionId,
   );
 
   if (!section) {
-    grade.unassigned.splice(studentIdx, 0, student);
-    throw new Error("Target section not found in the same grade.");
+    program.unassigned.splice(studentIdx, 0, student); // Restore the student back to unassigned
+    throw new Error("Target section not found in the same program.");
   }
 
+  // Add the student to the section
   section.students.push(student);
 
   return { success: true };
@@ -208,35 +301,44 @@ export const reassignMockStudentIntoDifferentSection = (
 ): ReassignResponse => {
   let studentFound = false;
 
-  data.forEach((grade) => {
-    grade.sections.forEach((section) => {
-      const studentIdx = section.students.findIndex(
-        (student) => student.studentId === payload.studentId,
+  // Iterate over all grades (Gra)
+  for (const grade of data) {
+    // Check through the programs within each grade
+    for (const program of grade.programs) {
+      // Find the section that contains the student
+      const section = program.sections.find((sec) =>
+        sec.students.some((student) => student.studentId === payload.studentId),
       );
 
-      if (studentIdx !== -1) {
-        // Check if the student is already in the target section
-        // if (section.sectionId === payload.sectionId) {
-        //   throw new Error("Student is already assigned to the target section.");
-        // }
-
-        const [student] = section.students.splice(studentIdx, 1);
-
-        const targetSection = grade.sections.find(
-          (s) => s.sectionId === payload.sectionId,
+      if (section) {
+        const studentIdx = section.students.findIndex(
+          (student) => student.studentId === payload.studentId,
         );
 
-        if (!targetSection) {
-          // Restore the student if the target section isn't found
-          section.students.splice(studentIdx, 0, student);
-          throw new Error("Target section not found in the same grade.");
-        }
+        if (studentIdx !== -1) {
+          const [student] = section.students.splice(studentIdx, 1);
 
-        targetSection.students.push(student);
-        studentFound = true;
+          // Find the target section within the same program
+          const targetSection = program.sections.find(
+            (s) => s.sectionId === payload.sectionId,
+          );
+
+          if (!targetSection) {
+            // Restore the student if the target section isn't found
+            section.students.splice(studentIdx, 0, student);
+            throw new Error("Target section not found in the same program.");
+          }
+
+          // Assign the student to the new section
+          targetSection.students.push(student);
+          studentFound = true;
+          break; // Exit the loop once the student has been reassigned
+        }
       }
-    });
-  });
+    }
+
+    if (studentFound) break; // Exit the outer loop as well if student is found and reassigned
+  }
 
   if (!studentFound) {
     throw new Error("Student not found in any section.");
@@ -254,9 +356,22 @@ export const updateMockEnrollmentStatus = (
   let studentFound = false;
 
   for (const grade of data) {
-    // Check within sections
-    for (const section of grade.sections) {
-      const student = section.students.find((s) => s.studentId === studentId);
+    // Check within programs and their sections
+    for (const program of grade.programs) {
+      // Check within sections
+      for (const section of program.sections) {
+        const student = section.students.find((s) => s.studentId === studentId);
+        if (student) {
+          processStatusChange(student, status);
+          studentFound = true;
+          return {
+            success: true,
+          };
+        }
+      }
+
+      // Check within unassigned
+      const student = program.unassigned.find((s) => s.studentId === studentId);
       if (student) {
         processStatusChange(student, status);
         studentFound = true;
@@ -264,16 +379,6 @@ export const updateMockEnrollmentStatus = (
           success: true,
         };
       }
-    }
-
-    // Check within unassigned
-    const student = grade.unassigned.find((s) => s.studentId === studentId);
-    if (student) {
-      processStatusChange(student, status);
-      studentFound = true;
-      return {
-        success: true,
-      };
     }
   }
 

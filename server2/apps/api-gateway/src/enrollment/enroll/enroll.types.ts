@@ -1,53 +1,61 @@
-import { EnrollService } from 'apps/enrollment/src/enroll/enroll.service';
+import { EnrollController } from 'apps/enrollment/src/enroll/enroll.controller';
 
 export type SelectionReturn = Awaited<
-  ReturnType<EnrollService['getSchoolLevelAndScheduleSelection']>
+  ReturnType<EnrollController['getSchoolLevelAndScheduleSelection']>
 >;
 
 export type AcademicLevelsReturn = Awaited<
-  ReturnType<EnrollService['getAcademicLevelsBySchool']>
+  ReturnType<EnrollController['getAcademicLevelsBySchool']>
 >;
 
 export type GradeLevelsReturn = Awaited<
-  ReturnType<EnrollService['getGradeLevelsByAcademicLevel']>
+  ReturnType<EnrollController['getGradeLevelsByAcademicLevel']>
 >;
 
 export type SchedulesReturn = Awaited<
-  ReturnType<EnrollService['getSchedulesByGradeLevel']>
+  ReturnType<EnrollController['getSchedulesByGradeLevel']>
 >;
 
 export type GradeSectionTypesReturn = Awaited<
-  ReturnType<EnrollService['getGradeSectionTypesByGradeLevel']>
+  ReturnType<EnrollController['getGradeSectionTypesByGradeLevel']>
 >;
 
 export type SectionsReturn = Awaited<
-  ReturnType<EnrollService['getSectionsByGradeLevel']>
+  ReturnType<EnrollController['getSectionsByGradeLevel']>
 >;
 
 export type RequirementsReturn = Awaited<
-  ReturnType<EnrollService['getAllGradeSectionTypeRequirements']>
+  ReturnType<EnrollController['getAllGradeSectionTypeRequirements']>
 >;
 
 export type PaymentMethodsReturn = Awaited<
-  ReturnType<EnrollService['getPaymentMethodDetails']>
+  ReturnType<EnrollController['getPaymentMethodDetails']>
 >;
 
 export type SubmitPaymentsReturn = Awaited<
-  ReturnType<EnrollService['submitPayment']>
+  ReturnType<EnrollController['submitPayment']>
 >;
 
 export type SubmitRequirementsReturn = Awaited<
-  ReturnType<EnrollService['submitRequirements']>
+  ReturnType<EnrollController['submitRequirements']>
 >;
 
 export type ValidatePaymentOptionReturn = Awaited<
-  ReturnType<EnrollService['validatePaymentOptionId']>
+  ReturnType<EnrollController['validatePaymentOptionId']>
 >;
 
 export type CheckStudentAlreadyPaidReturn = Awaited<
-  ReturnType<EnrollService['checkIfStudentIsALreadyPaid']>
+  ReturnType<EnrollController['checkIfStudentIsALreadyPaid']>
 >;
 
 export type CheckRequirementIdsValidReturn = Awaited<
-  ReturnType<EnrollService['checkIfAllRequirementIdsAreValid']>
+  ReturnType<EnrollController['checkIfAllRequirementIdsAreValid']>
 >;
+
+export type MakeStudentEnrollmentReturn = Awaited<
+  ReturnType<EnrollController['makeStudentEnrollmentApplication']>
+>;
+
+export type MakeStudentEnrollmentPayload = Parameters<
+  EnrollController['makeStudentEnrollmentApplication']
+>[0];
