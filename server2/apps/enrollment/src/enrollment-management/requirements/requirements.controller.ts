@@ -18,29 +18,22 @@ export class RequirementsController {
   @MessagePattern({ cmd: 'process-received-requirements' })
   async processReceivedData(payload: {
     data: Requirements['receivedData'];
-    schoolId: number;
   }): Promise<MicroserviceUtility['returnValue']> {
-    return this.requirementsService.processReceivedData(
-      payload.data,
-      payload.schoolId,
-    );
+    console.log('payload.data: ', payload.data);
+    return this.requirementsService.processReceivedData(payload.data);
   }
 
   @MessagePattern({ cmd: 'delete-requirement' })
-  async deleteRequirement(
-    requirementId: number,
-  ): Promise<MicroserviceUtility['returnValue']> {
-    return this.requirementsService.deleteRequirement(requirementId);
+  async deleteRequirement(payload: {
+    requirementId: number;
+  }): Promise<MicroserviceUtility['returnValue']> {
+    return this.requirementsService.deleteRequirement(payload.requirementId);
   }
 
   @MessagePattern({ cmd: 'update-requirement' })
   async updateRequirement(payload: {
-    requirementId: number;
-    isRequired: boolean;
+    data: Requirements['updateRequirement'][];
   }): Promise<MicroserviceUtility['returnValue']> {
-    return this.requirementsService.updateRequirement(
-      payload.requirementId,
-      payload.isRequired,
-    );
+    return this.requirementsService.updateRequirement(payload.data);
   }
 }

@@ -1,19 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PlusCircle, Trash2, ChevronDown, Check, X } from 'lucide-react';
+import { requestData } from '@/lib/dataRequester';
+import { toast } from 'react-toastify';
 
-// Type definitions
+// Type definitions based on your data structure
 interface Requirement {
-  id: string;
+  requirementId: number;
   name: string;
-  type: 'Input Field' | 'Image' | 'Documents';
-  acceptedTypes: string[];
-  required: boolean;
+  type: string;
+  dataType: string;
+  isRequired: boolean;
+  description: string;
 }
 
-interface GradeOption {
-  id: string;
-  label: string;
-  selected: boolean;
+interface GradeLevel {
+  gradeSectionProgramId: number;
+  gradeLevelOfferedId: number;
+  gradeLevel: string;
+  gradeLevelCode: string;
+  requirements: Requirement[];
 }
 
 // Toast notification interface
@@ -37,6 +42,11 @@ interface DropdownProps {
   className?: string;
 }
 
+interface RequirementChanges {
+  modified: Requirement[];
+  added: Requirement[];
+}
+
 const Dropdown: React.FC<DropdownProps> = ({ 
   options,
   value,
@@ -46,10 +56,10 @@ const Dropdown: React.FC<DropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   // Find the selected option label
   const selectedOption = options.find(option => option.value === value);
-  
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,7 +67,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         setIsOpen(false);
       }
     };
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -66,7 +76,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   // Toggle dropdown
   const toggleDropdown = () => setIsOpen(!isOpen);
-  
+
   // Handle option selection
   const handleSelect = (option: DropdownOption) => {
     onChange(option.value);
@@ -171,6 +181,10 @@ const ToastContainer: React.FC<{ toasts: Toast[]; removeToast: (id: string) => v
 const Requirements = () => {
   // Toast state
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [changes, setChanges] = useState<RequirementChanges>({
+    modified: [],
+    added: []
+  });
 
   // Function to add a toast
   const addToast = (type: 'success' | 'error' | 'info', message: string) => {
@@ -183,48 +197,53 @@ const Requirements = () => {
     setToasts(prevToasts => prevToasts.filter(toast => toast.id !== id));
   };
 
-  // State for grade options
-  const [grades, setGrades] = useState<GradeOption[]>([
-    { id: '1', label: 'Grade 1', selected: true },
-    { id: '2', label: 'Grade 2', selected: false },
-    { id: '3', label: 'Grade 3', selected: false },
-    { id: '4', label: 'Grade 4', selected: false },
-    { id: '5', label: 'Grade 5', selected: false },
-    { id: '6', label: 'Grade 6', selected: false },
-    { id: '7', label: 'Grade 7', selected: false },
-    { id: '8', label: 'Grade 8', selected: false },
-    { id: '9', label: 'Grade 9', selected: false },
-    { id: '10', label: 'Grade 10', selected: false },
-    { id: '11', label: 'Grade 11', selected: false }
-  ]);
-
-  // State for requirements and their mapping to grades
-  const [gradeRequirements, setGradeRequirements] = useState<{[gradeId: string]: Requirement[]}>({
-    '1': [
-      {
-        id: '1',
-        name: 'First Name',
-        type: 'Input Field',
-        acceptedTypes: ['Number'],
-        required: true
-      }
-    ]
-  });
+  // State for grade levels from your data
+  const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
   
-  // State to track active grade ID
-  const [activeGradeId, setActiveGradeId] = useState<string>('1');
+  // State to track active grade level ID
+  const [activeGradeId, setActiveGradeId] = useState<number>(4); // Default to Grade 11
   
   // State to track unsaved changes
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   
   // State for loading status
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const retrieveRequirements = async () => {
+    try {
+      setIsLoading(true);
+      
+      const response = await requestData<GradeLevel[]>({
+        url: 'http://localhost:3000/api/requirements/retrieve',
+        method: 'GET',
+      });
+
+      if (response) {
+        setGradeLevels(response);
+        if (response.length > 0) {
+          setActiveGradeId(response[0].gradeLevelOfferedId);
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error('An error occurred');
+
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    retrieveRequirements();
+  }, []);
   
   // Get the current requirements for the active grade
-  const requirements = gradeRequirements[activeGradeId] || [];
+  const activeGrade = gradeLevels.find(grade => grade.gradeLevelOfferedId === activeGradeId);
+  const requirements = activeGrade?.requirements || [];
 
   // Handle grade level selection
-  const handleGradeLevelClick = (gradeId: string, gradeLabel: string) => {
+  const handleGradeLevelClick = (gradeId: number) => {
     // Check if there are unsaved changes and confirm before changing grades
     if (hasUnsavedChanges) {
       const confirmChange = window.confirm(
@@ -237,148 +256,290 @@ const Requirements = () => {
     
     // Update active grade ID
     setActiveGradeId(gradeId);
-    
-    // Initialize the requirements array for this grade if it doesn't exist yet
-    if (!gradeRequirements[gradeId]) {
-      setGradeRequirements({
-        ...gradeRequirements,
-        [gradeId]: []
-      });
-    }
   };
 
   // Add a new requirement
   const addRequirement = () => {
-    const currentRequirements = gradeRequirements[activeGradeId] || [];
     const newRequirement: Requirement = {
-      id: (currentRequirements.length + 1).toString(),
+      requirementId: 0, // 0 indicates a new, unsaved requirement
       name: '',
-      type: 'Input Field',
-      acceptedTypes: ['Number'],
-      required: false
+      type: 'document',
+      dataType: 'document',
+      isRequired: false,
+      description: ''
     };
     
-    setGradeRequirements({
-      ...gradeRequirements,
-      [activeGradeId]: [...currentRequirements, newRequirement]
-    });
+    setGradeLevels(prevLevels => 
+      prevLevels.map(grade => 
+        grade.gradeLevelOfferedId === activeGradeId
+          ? {
+              ...grade,
+              requirements: [...grade.requirements, {...newRequirement}] // Create new object
+            }
+          : grade
+      )
+    );
+  
+    // Track the addition separately
+    setChanges(prev => ({
+      ...prev,
+      added: [...prev.added, {...newRequirement}] // Create new object
+    }));
     
     setHasUnsavedChanges(true);
   };
 
+  const deleteRequirementOnServer = async (requirementId: number) => {
+    console.log('requirementId: ', requirementId);
+    try {
+      console.log(`Deleting requirement with ID: ${requirementId} from server`);
+      const response = await requestData<{message: string}>({
+        url: `http://localhost:3000/api/requirements/delete/${requirementId}`,
+        method: 'DELETE',
+      });
+      
+      if (response){
+        //await retrieveRequirements();
+        toast.success(response.message);
+        return true;
+      }
+      //addToast('success', 'Requirement deleted successfully');
+      //return true;
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error('Failed to delete requirement');
+      
+      console.error('Failed to delete requirement:', error);
+      //addToast('error', 'Failed to delete requirement');
+      return false;
+    }
+  };
+
   // Delete a requirement
-  const deleteRequirement = (id: string) => {
-    const updatedRequirements = requirements.filter(req => req.id !== id);
-    setGradeRequirements({
-      ...gradeRequirements,
-      [activeGradeId]: updatedRequirements
-    });
+  const deleteRequirement = async (index: number) => {
+    const requirement = requirements[index];
     
+    if (requirement.requirementId) {
+      // Requirement exists on server - delete immediately
+      const success = await deleteRequirementOnServer(requirement.requirementId);
+      
+      if (!success) {
+        // If deletion failed, don't remove from local state
+        return;
+      }
+    }
+  
+    // Remove from local state whether it was a server item or local-only
+    setGradeLevels(prevLevels => 
+      prevLevels.map(grade => 
+        grade.gradeLevelOfferedId === activeGradeId
+          ? {
+              ...grade,
+              requirements: grade.requirements.filter((_, i) => i !== index)
+            }
+          : grade
+      )
+    );
+  
     setHasUnsavedChanges(true);
   };
 
   // Update requirement field
-  const updateRequirement = (id: string, field: keyof Requirement, value: any) => {
-    const updatedRequirements = requirements.map(req => 
-      req.id === id ? { ...req, [field]: value } : req
+  // eslint-disable-next-line
+  const updateRequirement = (index: number, field: keyof Requirement, value: any) => {
+    const requirement = requirements[index];
+    const updatedRequirement = { ...requirement, [field]: value };
+  
+    // Update local state
+    setGradeLevels(prevLevels => 
+      prevLevels.map(grade => 
+        grade.gradeLevelOfferedId === activeGradeId
+          ? {
+              ...grade,
+              requirements: grade.requirements.map((req, i) => 
+                i === index ? updatedRequirement : req
+              )
+            }
+          : grade
+      )
     );
-    
-    setGradeRequirements({
-      ...gradeRequirements,
-      [activeGradeId]: updatedRequirements
-    });
-    
+  
+    // Track changes
+    if (requirement.requirementId) {
+      // Existing requirement being modified
+      setChanges(prev => {
+        const existingModified = prev.modified.find(r => r.requirementId === requirement.requirementId);
+        return {
+          ...prev,
+          modified: existingModified
+            ? prev.modified.map(r => r.requirementId === requirement.requirementId ? updatedRequirement : r)
+            : [...prev.modified, updatedRequirement]
+        };
+      });
+    } else {
+      // New requirement being modified before saving
+      setChanges(prev => {
+        const existingAddedIndex = prev.added.findIndex(r => 
+          r === requirement || // Compare references
+          (r.name === requirement.name && r.description === requirement.description) // Fallback comparison
+        );
+        
+        if (existingAddedIndex >= 0) {
+          const updatedAdded = [...prev.added];
+          updatedAdded[existingAddedIndex] = updatedRequirement;
+          return {
+            ...prev,
+            added: updatedAdded
+          };
+        }
+        
+        return prev;
+      });
+    }
+  
     setHasUnsavedChanges(true);
   };
+
+  const processNewData = () => {
+    const selectedGradeSectionProgram = gradeLevels.find(grade => grade.gradeLevelOfferedId === activeGradeId);
+    console.log('requirements: ', requirements);
+    console.log('gradeSectionProgramId: ', selectedGradeSectionProgram);
+    console.log('changes: ', changes);
+    console.log('gradeLevels: ', gradeLevels);
+
+    if (selectedGradeSectionProgram){
+      const requirementsData = {
+        gradeSectionProgramId: selectedGradeSectionProgram.gradeSectionProgramId,
+        requirements: changes.added.map(newReq => ({
+          name: newReq.name,
+          type: newReq.type,
+          dataType: newReq.dataType,
+          isRequired: newReq.isRequired,
+          description: newReq.description
+        })),
+      };
+      console.log('requirementsData: ', requirementsData);
+
+      return requirementsData;
+    }
+
+    return null;
+  }
+
+  const createRequirements = async () => {
+    try {
+      const requirementsData = processNewData();
+      
+      if (!requirementsData) {
+        toast.error('No requirements to create');
+        return;
+      }
+      
+      console.log('requirementsData: ', requirementsData);
+      const response = await requestData<{message: string}>({
+        url: 'http://localhost:3000/api/requirements/process-received-requirements',
+        method: 'POST',
+        body: requirementsData
+      });
+
+      if (response){
+        toast.success(response.message);
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error('Failed to create requirements');
+
+      console.error('Failed to create requirements:', error);
+    }
+  }
 
   // Handle form submission
   const saveRequirements = async () => {
     try {
-      // Begin saving - update status
       setIsLoading(true);
-
-      // Validate data before saving
-      const gradesToSave = Object.keys(gradeRequirements);
-      if (gradesToSave.length === 0) {
-        throw new Error('No requirements to save');
-      }
       
-      // Check if there are any empty requirement names
-      let hasEmptyNames = false;
-      Object.values(gradeRequirements).forEach(reqs => {
-        reqs.forEach(req => {
-          if (!req.name.trim()) {
-            hasEmptyNames = true;
-          }
-        });
+      console.log('Changes to be saved:', {
+        modifications: changes.modified,
+        additions: changes.added
+      });
+  
+      // Validate data
+      const hasEmptyNames = gradeLevels.some(grade => 
+        grade.requirements.some(req => !req.name.trim())
+      );
+  
+      if (hasEmptyNames) throw new Error('All requirements must have a name');
+  
+      const hasEmptyDescriptions = gradeLevels.some(grade => 
+        grade.requirements.some(req => !req.description.trim())
+      );
+  
+      if (hasEmptyDescriptions) throw new Error('All requirements must have a description');
+      
+      // Process additions
+      if (changes.added.length > 0) {
+        console.log('Adding requirements:', changes.added);
+        await createRequirements();
+        
+        // Refresh requirements after successful additions
+        await retrieveRequirements();
+      }
+  
+      // Process modifications
+      if (changes.modified.length > 0) {
+        await updateData(changes.modified);
+      }
+  
+      // Reset changes after successful save
+      setChanges({
+        modified: [],
+        added: []
       });
       
-      if (hasEmptyNames) {
-        throw new Error('All requirements must have a name');
-      }
-
-      // Create the data object to send to API
-      const dataToSave = {
-        grades: grades.filter(g => Object.keys(gradeRequirements).includes(g.id)),
-        requirements: gradeRequirements
-      };
-      
-      console.log('Saving requirements:', dataToSave);
-      
-      // Simulate API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Here you would typically make an actual API call
-      // const response = await fetch('/api/requirements', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(dataToSave)
-      // });
-      
-      // if (!response.ok) throw new Error('Failed to save requirements');
-
-      // Reset unsaved changes flag
       setHasUnsavedChanges(false);
       setIsLoading(false);
-
-      // Show success toast
       addToast('success', 'Requirements saved successfully!');
       
     } catch (error) {
       setIsLoading(false);
-      
-      // Show error toast
       addToast('error', error instanceof Error ? error.message : 'Failed to save requirements');
     }
   };
 
-  // Get available accepted types based on type
-  const getAcceptedTypeOptionsForDropdown = (type: string): DropdownOption[] => {
-    switch (type) {
-      case 'Input Field':
-        return [
-          { value: 'Number', label: 'Number' },
-          { value: 'Text', label: 'Text' }
-        ];
-      case 'Image':
-        return [
-          { value: 'PNG', label: 'PNG' },
-          { value: 'JPEG', label: 'JPEG' }
-        ];
-      case 'Documents':
-        return [
-          { value: 'PDF', label: 'PDF' }
-        ];
-      default:
-        return [];
+  const updateData = async (data: Requirement[]) => {
+    try {
+      const finalData = {
+        data: data,
+      };
+      const response = await requestData<{message: string}>({
+        url: 'http://localhost:3000/api/requirements/update',
+        method: 'PUT',
+        body: finalData,
+      });
+
+      if (response) {
+        toast.success('Requirements updated successfully');
+        return response;
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error('An error occurred');
+      console.log(error);
     }
-  };
-  
+  }
+
   // Type options for dropdown
   const typeOptions: DropdownOption[] = [
-    { value: 'Input Field', label: 'Input Field' },
-    { value: 'Image', label: 'Image' },
-    { value: 'Documents', label: 'Documents' }
+    { value: 'document', label: 'Document' },
+    { value: 'image', label: 'Image' },
+    { value: 'text', label: 'Text' }
+  ];
+
+  // Data type options for dropdown
+  const dataTypeOptions: DropdownOption[] = [
+    { value: 'document', label: 'Document' },
+    { value: 'image', label: 'Image' },
+    { value: 'text', label: 'Text' }
   ];
 
   return (
@@ -387,20 +548,20 @@ const Requirements = () => {
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       
       <div className="flex gap-4 max-w-6xl mx-auto">
-        {/* Grade selection panel - New layout from GradeLevels component */}
+        {/* Grade selection panel */}
         <div className="bg-white rounded-lg shadow w-1/3 h-[480px]">
           <div className="border-r-2 border-gray-200 px-3 py-3 h-full">
             <h2 className="text-gray-700 font-semibold mt-5 ml-5 text-base">GRADE LEVELS</h2>
             <ul className="mt-4">
-              {grades.map((grade) => (
+              {gradeLevels.map((grade) => (
                 <li
-                  key={grade.id}
+                  key={grade.gradeLevelOfferedId}
                   className={`text-gray-800 flex cursor-pointer flex-col ml-5 gap-y-2 rounded-full px-3 py-1 text-md hover:scale-105 hover:bg-blue-100 transition-all ${
-                    activeGradeId === grade.id ? "bg-accent text-white font-semibold" : ""
+                    activeGradeId === grade.gradeLevelOfferedId ? "bg-accent text-white font-semibold" : ""
                   }`}
-                  onClick={() => handleGradeLevelClick(grade.id, grade.label)}
+                  onClick={() => handleGradeLevelClick(grade.gradeLevelOfferedId)}
                 >
-                  {grade.label}
+                  {grade.gradeLevel}
                 </li>
               ))}
             </ul>
@@ -414,16 +575,17 @@ const Requirements = () => {
               <div className="w-10"></div>
               <div className="flex-1 font-semibold text-gray-900">Requirement Name</div>
               <div className="w-36 font-semibold text-gray-900">Type</div>
-              <div className="w-36 font-semibold text-gray-900">Accepted types</div>
+              <div className="w-36 font-semibold text-gray-900">Data Type</div>
               <div className="w-20 font-semibold text-gray-900 text-center">Required</div>
             </div>
 
-            {requirements.map(req => (
-              <div key={req.id} className="flex items-center gap-4 mb-3">
+            {requirements.map((req, index) => (
+              <div key={index} className="flex items-center gap-4 mb-3">
                 <div className="w-10 flex justify-center">
                   <button 
-                    className="p-3 text-red-600 border-1 h-10 w-11  border-gray-500 bg-gray-100 rounded-md hover:bg-gray-300"
-                    onClick={() => deleteRequirement(req.id)}
+                    className="p-3 text-red-600 border-1 h-10 w-11 border-gray-500 bg-gray-100 rounded-md hover:bg-gray-300"
+                    onClick={async () => await deleteRequirement(index)}
+                    disabled={isLoading}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -432,34 +594,41 @@ const Requirements = () => {
                   <input
                     type="text"
                     value={req.name}
-                    onChange={e => updateRequirement(req.id, 'name', e.target.value)}
-                    placeholder="Enter name"
+                    onChange={e => updateRequirement(index, 'name', e.target.value)}
+                    placeholder="Enter name (e.g. BC, F137)"
                     className="w-full px-3 py-2 border-1 border-gray-500 bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                  />
+                  <input
+                    type="text"
+                    value={req.description}
+                    onChange={e => updateRequirement(index, 'description', e.target.value)}
+                    placeholder="Enter description"
+                    className="w-full mt-1 px-3 py-2 border-1 border-gray-500 bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                   />
                 </div>
                 <div className="w-36">
                   <Dropdown
                     options={typeOptions}
                     value={req.type}
-                    onChange={(value) => updateRequirement(req.id, 'type', value)}
+                    onChange={(value) => updateRequirement(index, 'type', value)}
                     className="w-full"
                   />
                 </div>
-                <div className="w-36 ">
+                <div className="w-36">
                   <Dropdown
-                    options={getAcceptedTypeOptionsForDropdown(req.type)}
-                    value={req.acceptedTypes[0] || ""}
-                    onChange={(value) => updateRequirement(req.id, 'acceptedTypes', [value])}
-                    className="w-full  "
+                    options={dataTypeOptions}
+                    value={req.dataType}
+                    onChange={(value) => updateRequirement(index, 'dataType', value)}
+                    className="w-full"
                   />
                 </div>
                 <div className="w-20 flex justify-center">
-                  <div className={`w-10 h-10 rounded-md border-1 border-gray-500 flex items-center justify-center ${req.required ? 'bg-gray-200 border-gray-300' : 'border-gray-300'}`}>
-                    {req.required && <Check size={20} className="text-gray-500" />}
+                  <div className={`w-10 h-10 rounded-md border-1 border-gray-500 flex items-center justify-center ${req.isRequired ? 'bg-gray-200 border-gray-300' : 'border-gray-300'}`}>
+                    {req.isRequired && <Check size={20} className="text-gray-500" />}
                     <input
                       type="checkbox"
-                      checked={req.required}
-                      onChange={e => updateRequirement(req.id, 'required', e.target.checked)}
+                      checked={req.isRequired}
+                      onChange={e => updateRequirement(index, 'isRequired', e.target.checked)}
                       className="opacity-0 absolute w-6 h-6 cursor-pointer"
                     />
                   </div>
@@ -473,7 +642,7 @@ const Requirements = () => {
             onClick={addRequirement}
           >
             <PlusCircle size={20} className="mr-2 text-blue-500" />
-            <span>add another section</span>
+            <span>add another requirement</span>
           </button>
         </div>
       </div>
