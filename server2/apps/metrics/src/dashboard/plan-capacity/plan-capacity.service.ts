@@ -43,9 +43,8 @@ export class PlanCapacityService {
 
     if (!durationDays) return { total: 0, max: 0 };
 
-    // eslint-disable-next-line
     const endDate = new Date(durationDays.end_datetime);
-    // eslint-disable-next-line
+
     const startDate = new Date(durationDays.start_datetime);
 
     const remainingDays = Math.ceil(

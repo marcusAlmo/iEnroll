@@ -8,6 +8,14 @@ import { EnrollmentScheduleModule } from './enrollment-schedule/enrollment-sched
 import { RequirementsModule } from './requirements/requirements.module';
 
 @Module({
-  imports: [AnnouncementsModule, SchoolClassificationModule, SchoolDetailsModule, GradeLevelsModule, FeesModule, EnrollmentScheduleModule, RequirementsModule],
+  imports: [
+    AnnouncementsModule,
+    SchoolClassificationModule,
+    SchoolDetailsModule,
+    GradeLevelsModule,
+    FeesModule,
+    EnrollmentScheduleModule,
+    RequirementsModule,
+  ],
 })
 export class EnrollmentManagementModule {}

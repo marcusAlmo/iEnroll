@@ -9,7 +9,9 @@ describe('EnrollmentScheduleController', () => {
       controllers: [EnrollmentScheduleController],
     }).compile();
 
-    controller = module.get<EnrollmentScheduleController>(EnrollmentScheduleController);
+    controller = module.get<EnrollmentScheduleController>(
+      EnrollmentScheduleController,
+    );
   });
 
   it('should be defined', () => {

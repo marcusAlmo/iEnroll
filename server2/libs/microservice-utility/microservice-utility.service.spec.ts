@@ -9,7 +9,9 @@ describe('MicroserviceUtilityService', () => {
       providers: [MicroserviceUtilityService],
     }).compile();
 
-    service = module.get<MicroserviceUtilityService>(MicroserviceUtilityService);
+    service = module.get<MicroserviceUtilityService>(
+      MicroserviceUtilityService,
+    );
   });
 
   it('should be defined', () => {
