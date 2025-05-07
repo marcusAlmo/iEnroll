@@ -27,14 +27,14 @@ export class RequirementsService {
 
   public async processReceivedData(
     payload: object,
-  ): Promise<Requirements['processedRequirements']> {
+  ): Promise<EnrollmentSchedule['processReturn']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
       this.client.send({ cmd: 'process-received-requirements' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
 
-    return result.data as Requirements['processedRequirements'];
+    return result.data as EnrollmentSchedule['processReturn'];
   }
 
   public async deleteRequirement(

@@ -14,7 +14,7 @@ interface Requirement {
 }
 
 interface GradeLevel {
-  grade_section_program_id: number;
+  gradeSectionProgramId: number;
   gradeLevelOfferedId: number;
   gradeLevel: string;
   gradeLevelCode: string;
@@ -218,7 +218,12 @@ const Requirements = () => {
         method: 'GET',
       });
 
-      if (response) setGradeLevels(response);
+      if (response) {
+        setGradeLevels(response);
+        if (response.length > 0) {
+          setActiveGradeId(response[0].gradeLevelOfferedId);
+        }
+      }
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
       else toast.error('An error occurred');
@@ -395,6 +400,59 @@ const Requirements = () => {
     setHasUnsavedChanges(true);
   };
 
+  const processNewData = () => {
+    const selectedGradeSectionProgram = gradeLevels.find(grade => grade.gradeLevelOfferedId === activeGradeId);
+    console.log('requirements: ', requirements);
+    console.log('gradeSectionProgramId: ', selectedGradeSectionProgram);
+    console.log('changes: ', changes);
+    console.log('gradeLevels: ', gradeLevels);
+
+    if (selectedGradeSectionProgram){
+      const requirementsData = {
+        gradeSectionProgramId: selectedGradeSectionProgram.gradeSectionProgramId,
+        requirements: changes.added.map(newReq => ({
+          name: newReq.name,
+          type: newReq.type,
+          dataType: newReq.dataType,
+          isRequired: newReq.isRequired,
+          description: newReq.description
+        })),
+      };
+      console.log('requirementsData: ', requirementsData);
+
+      return requirementsData;
+    }
+
+    return null;
+  }
+
+  const createRequirements = async () => {
+    try {
+      const requirementsData = processNewData();
+      
+      if (!requirementsData) {
+        toast.error('No requirements to create');
+        return;
+      }
+      
+      console.log('requirementsData: ', requirementsData);
+      const response = await requestData<{message: string}>({
+        url: 'http://localhost:3000/api/requirements/process-received-requirements',
+        method: 'POST',
+        body: requirementsData
+      });
+
+      if (response){
+        toast.success(response.message);
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error('Failed to create requirements');
+
+      console.error('Failed to create requirements:', error);
+    }
+  }
+
   // Handle form submission
   const saveRequirements = async () => {
     try {
@@ -421,24 +479,7 @@ const Requirements = () => {
       // Process additions
       if (changes.added.length > 0) {
         console.log('Adding requirements:', changes.added);
-        /**
-         * const addResults = await Promise.all(
-          changes.added.map(async (newReq) => {
-            return await requestData<Requirement>({
-              url: 'http://localhost:3000/api/requirements/create',
-              method: 'POST',
-              body: {
-                grade_section_program_id: activeGradeId,
-                name: newReq.name,
-                requirement_type: newReq.type,
-                accepted_data_type: newReq.dataType,
-                is_required: newReq.isRequired,
-                description: newReq.description
-              }
-            });
-          })
-        );
-         */
+        await createRequirements();
         
         // Refresh requirements after successful additions
         await retrieveRequirements();

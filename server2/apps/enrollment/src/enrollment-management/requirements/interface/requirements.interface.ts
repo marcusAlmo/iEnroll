@@ -35,15 +35,14 @@ export interface Requirements {
   }[];
 
   receivedData: {
-    gradeLevelCodes: string[];
-    sectionId: number[];
+    gradeSectionProgramId: number;
     requirements: {
       name: string;
       type: string;
       dataType: string;
       isRequired: boolean;
       description: string;
-    };
+    }[];
   };
 
   dataForProcessing: {

@@ -1,4 +1,4 @@
-import { $Enums, Prisma } from '@prisma/client';
+import { $Enums } from '@prisma/client';
 import { MicroserviceUtilityService } from '@lib/microservice-utility/microservice-utility.service';
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
@@ -26,46 +26,8 @@ export class RequirementsService {
 
   public async processReceivedData(
     data: Requirements['receivedData'],
-    schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    const idArr: number[] = [];
-
-    const {
-      tobeCreated,
-      toBeCreatedRequirements,
-    }: Requirements['dataForProcessing'] = await this.getGradeSectionProgram(
-      data.gradeLevelCodes,
-      schoolId,
-    );
-
-    idArr.push(...toBeCreatedRequirements);
-
-    if (tobeCreated.length > 0) {
-      const programId: number = await this.retrieveProgramId();
-
-      const gradeLevelOfferedIdArr: number[] =
-        await this.retrieveGradeLevelOfferedIdArr(tobeCreated, schoolId);
-
-      const gradeSectionProgramIdArr = await this.createGradeSectionProgram(
-        gradeLevelOfferedIdArr,
-        programId,
-        this.prisma,
-      );
-
-      idArr.push(...gradeSectionProgramIdArr);
-    }
-
-    if (data.sectionId.length > 0) {
-      const gradeSectionProgramIdArr: number[] =
-        await this.retrieveGradeSectionProgramIdArr(data.sectionId);
-
-      idArr.push(...gradeSectionProgramIdArr);
-    }
-
-    const finalData: Requirements['finalData'][] =
-      await this.processToBeCreatedRequirements(idArr, data);
-
-    const result = await this.createRequirements(finalData);
+    const result = await this.createRequirements(data);
 
     if (result) {
       return this.microserviceUtility.returnSuccess({
@@ -239,173 +201,24 @@ export class RequirementsService {
   }
 
   // for creating new
-  private async getGradeSectionProgram(
-    gradeLevelCode: string[],
-    schoolId: number,
-  ): Promise<Requirements['dataForProcessing']> {
-    const gradeSectionProgramIdArr =
-      await this.prisma.grade_section_program.findMany({
-        where: {
-          grade_level_offered: {
-            grade_level_code: {
-              in: gradeLevelCode,
-            },
-            school_id: schoolId,
-          },
-        },
-        select: {
-          grade_section_program_id: true,
-          grade_level_offered: {
-            select: {
-              grade_level_code: true,
-            },
-          },
-        },
-      });
-
-    if (!gradeSectionProgramIdArr)
-      return {
-        tobeCreated: gradeLevelCode,
-        toBeCreatedRequirements: [],
-      };
-
-    const foundGradeLevels = new Map<string, number>(); // grade_level_code -> id
-
-    for (const g of gradeSectionProgramIdArr) {
-      foundGradeLevels.set(
-        g.grade_level_offered.grade_level_code,
-        g.grade_section_program_id,
-      );
-    }
-
-    const tobeCreated: string[] = [];
-    const toBeCreatedRequirements: number[] = [];
-
-    for (const code of gradeLevelCode) {
-      if (foundGradeLevels.has(code))
-        toBeCreatedRequirements.push(foundGradeLevels.get(code)!);
-      else tobeCreated.push(code);
-    }
-
-    return {
-      tobeCreated,
-      toBeCreatedRequirements,
-    };
-  }
-
-  private async processToBeCreatedRequirements(
-    gradeSectionProgramIdArr: number[],
-    data: Requirements['receivedData'],
-  ): Promise<Requirements['finalData'][]> {
-    const requirements: Requirements['finalData'][] =
-      gradeSectionProgramIdArr.map((g) => {
-        return {
-          grade_section_program_id: g,
-          name: data.requirements.name,
-          requirement_type: data.requirements.type as $Enums.requirement_type,
-          accepted_data_type: data.requirements
-            .dataType as $Enums.accepted_data_type,
-          is_required: data.requirements.isRequired,
-          description: data.requirements.description,
-        };
-      });
-
-    return requirements;
-  }
-
-  private async retrieveProgramId(): Promise<number> {
-    const programId = await this.prisma.academic_program.findFirst({
-      where: {
-        program: 'General',
-      },
-      select: {
-        program_id: true,
-      },
-    });
-
-    return programId?.program_id ?? 0;
-  }
-
-  private async retrieveGradeLevelOfferedIdArr(
-    gradeLevelCode: string[],
-    schoolId: number,
-  ): Promise<number[]> {
-    const gradeLevelOfferedIdArr =
-      await this.prisma.grade_level_offered.findMany({
-        where: {
-          grade_level_code: {
-            in: gradeLevelCode,
-          },
-          school_id: schoolId,
-        },
-        select: {
-          grade_level_offered_id: true,
-        },
-      });
-
-    return gradeLevelOfferedIdArr.map((g) => g.grade_level_offered_id);
-  }
-
-  private async retrieveGradeSectionProgramIdArr(
-    sectionId: number[],
-  ): Promise<number[]> {
-    const gradeSectionProgramIdArr = await this.prisma.grade_section.findMany({
-      where: {
-        grade_section_program_id: {
-          in: sectionId,
-        },
-      },
-      select: {
-        grade_section_program: {
-          select: {
-            grade_section_program_id: true,
-          },
-        },
-      },
-    });
-
-    return gradeSectionProgramIdArr.map(
-      (g) => g.grade_section_program.grade_section_program_id,
-    );
-  }
-
-  private async createGradeSectionProgram(
-    gradeLevelOfferedArr: number[],
-    programId: number,
-    prisma: Prisma.TransactionClient,
-  ): Promise<number[]> {
-    const mapFinalData = gradeLevelOfferedArr.map((g) => ({
-      grade_level_offered_id: g,
-      program_id: programId,
-    }));
-
-    await prisma.grade_section_program.createMany({
-      data: mapFinalData,
-    });
-
-    const gradeSectionProgramIdArr =
-      await prisma.grade_section_program.findMany({
-        where: {
-          grade_level_offered_id: {
-            in: gradeLevelOfferedArr,
-          },
-          program_id: programId,
-        },
-        select: {
-          grade_section_program_id: true,
-        },
-      });
-
-    return gradeSectionProgramIdArr.map((g) => g.grade_section_program_id);
-  }
-
   private async createRequirements(
-    finalData: Requirements['finalData'][],
+    data: Requirements['receivedData'],
   ): Promise<boolean> {
-    const result = await this.prisma.enrollment_requirement.createMany({
-      data: finalData,
+    const result = data.requirements.map((requirement) => {
+      return {
+        grade_section_program_id: data.gradeSectionProgramId,
+        name: requirement.name,
+        requirement_type: requirement.type as $Enums.requirement_type,
+        accepted_data_type: requirement.dataType as $Enums.accepted_data_type,
+        is_required: requirement.isRequired,
+        description: requirement.description,
+      };
     });
 
-    return result ? true : false;
+    const finalResult = await this.prisma.enrollment_requirement.createMany({
+      data: result,
+    });
+
+    return finalResult ? true : false;
   }
 }

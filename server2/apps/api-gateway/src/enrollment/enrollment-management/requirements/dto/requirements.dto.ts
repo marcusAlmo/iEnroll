@@ -37,13 +37,9 @@ export class AddRequirementDTO {
 }
 
 export class RequirementsDTO {
-  @IsArray()
-  @IsString({ each: true })
-  gradeLevelCodes!: string[];
-
-  @IsArray()
   @IsNumber()
-  sectionId!: number[];
+  @IsNotEmpty()
+  gradeSectionProgramId!: number;
 
   @IsArray()
   @ValidateNested({ each: true })

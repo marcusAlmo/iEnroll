@@ -21,13 +21,10 @@ export class RequirementsController {
   }
 
   @Post('process-received-requirements')
-  async processReceivedData(
-    @User('school_id') schoolId: number,
-    @Body() receivedData: RequirementsDTO,
-  ) {
+  async processReceivedData(@Body() receivedData: RequirementsDTO) {
+    console.log(receivedData);
     return this.requirementsService.processReceivedData({
-      schoolId,
-      receivedData,
+      data: receivedData,
     });
   }
 
