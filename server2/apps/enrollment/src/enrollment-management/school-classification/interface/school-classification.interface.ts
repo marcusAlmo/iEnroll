@@ -79,4 +79,9 @@ export interface SchoolClassification {
     grades: string[];
     ids: number[];
   };
+
+  gradeLevelFromAcademicLevel: {
+    gradeLevelCode: string;
+    gradeLevel: string;
+  }[];
 }

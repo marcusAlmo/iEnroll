@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { MicroserviceUtilityService } from '@lib/microservice-utility/microservice-utility.service';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 import { SchoolClassification } from './interface/school-classification.interface';
+import { Prisma } from '@prisma/client';
 import { school_type } from '@prisma/client';
 
 @Injectable()
@@ -16,46 +17,68 @@ export class SchoolClassificationService {
     schoolData: SchoolClassification['schoolInfoParam'],
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    const result1: SchoolClassification['deletableReturn'] | null =
-      await this.determineIfDeletable(schoolId, schoolData.gradeLevels);
+    console.log('schoolData: ', schoolData);
+    const result1: boolean = await this.allowModification(schoolId);
 
     // sends error message to client
-    if (result1.grades.length > 0)
+    if (!result1)
       return this.microserviceUtility.conflictExceptionReturn(
-        'The following academic levels are currently in use: ' +
-          result1.grades.join(', '),
+        'Enrollment is ongoing. Modifications are no longer allowed.',
       );
 
-    // delete the existing records that not match to the new records
-    if (!(await this.deleteOfferedGradesRecord(result1.ids)))
-      return this.microserviceUtility.internalServerErrorReturn(
-        'Failed to update records',
-      );
+    try {
+      const result = await this.prisma.$transaction(async (prisma) => {
+        // delete the existing records that not match to the new records
+        if (
+          !(await this.deactivateOfferedGradeLevels(
+            schoolId,
+            schoolData.gradeLevels,
+            schoolData.acadLevels,
+            prisma,
+          ))
+        )
+          return this.microserviceUtility.internalServerErrorReturn(
+            'Failed to update records',
+          );
 
-    const result2 = await this.saveGradeLevels(
-      schoolId,
-      schoolData.gradeLevels,
-    );
-    const result3 = await this.saveSchoolInfo(schoolData, schoolId);
-    console.log('result2: ', result2, 'result3: ', result3);
+        const result2 = await this.saveGradeLevels(
+          schoolId,
+          schoolData.gradeLevels,
+          schoolData.acadLevels,
+          prisma,
+        );
 
-    if (!result2.success || !result3)
+        const result3 = await this.saveSchoolInfo(schoolData, schoolId);
+
+        if (!result2.success || !result3)
+          return this.microserviceUtility.internalServerErrorReturn(
+            'Failed to save changes',
+          );
+
+        return {
+          message: 'Updates applied successfully',
+        };
+      });
+
+      return this.microserviceUtility.returnSuccess(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        return this.microserviceUtility.internalServerErrorReturn(
+          error.message,
+        );
+      }
+
       return this.microserviceUtility.internalServerErrorReturn(
         'Failed to save changes',
       );
-
-    return this.microserviceUtility.returnSuccess({
-      message: 'Updates applied successfully',
-    });
+    }
   }
 
   public async getAllGradesLavels(
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log(schoolId);
     const acadCodes: SchoolClassification['getDataReturnType'] =
       await this.getData(schoolId);
-    console.log(acadCodes);
 
     const finalData: SchoolClassification['finalOutput'] =
       await this.getCompleteAcadAndGradeLevels(
@@ -72,90 +95,48 @@ export class SchoolClassificationService {
   // === for saving updates or creating ===
 
   // step 1
-  private async determineIfDeletable(
+  private async allowModification(schoolId: number): Promise<boolean> {
+    // get the count of students application
+    const result = await this.prisma.enrollment_application.count({
+      where: {
+        grade_section_program: {
+          grade_level_offered: {
+            school_id: schoolId,
+          },
+        },
+      },
+    });
+
+    return result > 0 ? false : true;
+  }
+
+  // step 2
+  private async deactivateOfferedGradeLevels(
     schoolId: number,
     gradeLevelArr: string[],
-  ): Promise<SchoolClassification['deletableReturn']> {
-    // get all the grade levels that are offered by the schools
-    const result = await this.prisma.grade_level_offered.findMany({
+    academicLevel: string[],
+    prisma: Prisma.TransactionClient,
+  ): Promise<boolean> {
+    const result = await prisma.grade_level_offered.updateMany({
       where: {
         school_id: schoolId,
-        is_active: true,
         grade_level: {
           grade_level: {
             notIn: gradeLevelArr,
           },
-        },
-      },
-      select: {
-        grade_level_offered_id: true,
-        grade_level: { select: { grade_level: true } },
-        enrollment_schedule: this.getSelectClause(),
-        grade_section_program: this.getSelectClause(),
-        enrollment_application: this.getSelectClause(),
-      },
-    });
-
-    // determine if there are present offered grade levels
-    if (!result || result.length == 0)
-      return {
-        grades: [],
-        ids: [],
-      };
-
-    let enSched: number = 0;
-    let gradSecProf: number = 0;
-    let enApp: number = 0;
-
-    const importantOfferedGradeLevels: string[] = [];
-    const idArr: number[] = [];
-
-    // get all the ones that has been referenced by other tables
-    for (const gradeLevel of result) {
-      enSched = gradeLevel.enrollment_schedule.length;
-      gradSecProf = gradeLevel.grade_section_program.length;
-      enApp = gradeLevel.enrollment_application.length;
-
-      if (enSched > 0 || gradSecProf > 0 || enApp > 0)
-        importantOfferedGradeLevels.push(gradeLevel.grade_level.grade_level);
-
-      idArr.push(gradeLevel.grade_level_offered_id);
-    }
-
-    const ttoBeReturnedValues: SchoolClassification['deletableReturn'] = {
-      grades: importantOfferedGradeLevels,
-      ids: idArr,
-    };
-
-    return ttoBeReturnedValues;
-  }
-
-  // step 1.1 (select clause base)
-  private getSelectClause() {
-    return {
-      select: {
-        grade_level_offered: {
-          select: {
-            grade_level: {
-              select: {
-                grade_level: true,
-              },
+          academic_level: {
+            academic_level: {
+              notIn: academicLevel,
             },
           },
         },
       },
-    };
-  }
-
-  // step 2
-  private async deleteOfferedGradesRecord(idArr: number[]): Promise<boolean> {
-    const result = await this.prisma.grade_level_offered.deleteMany({
-      where: {
-        grade_level_offered_id: {
-          in: idArr,
-        },
+      data: {
+        is_active: false,
       },
     });
+
+    console.log(result);
 
     return result ? true : false;
   }
@@ -164,32 +145,36 @@ export class SchoolClassificationService {
   private async saveGradeLevels(
     schoolId: number,
     newGradeLevelsArr: string[],
+    academicLevels: string[],
+    prisma: Prisma.TransactionClient,
   ): Promise<SchoolClassification['savingGradeLevelsStatus']> {
-    // filter the existing ones
-    const toBeSaved: string[] = await this.filterExistingOnes(
+    console.log('newGradeLevelsArr: ', newGradeLevelsArr);
+    console.log('academicLevels: ', academicLevels);
+
+    const toBeCreateGradeLevels: string[] =
+      await this.filterOutExistingGradeLevels(schoolId, academicLevels, prisma);
+
+    console.log('toBeCreateGradeLevels: ', toBeCreateGradeLevels);
+
+    const creationResult: boolean = await this.createGradeLevelOffered(
       schoolId,
-      newGradeLevelsArr,
+      toBeCreateGradeLevels,
+      prisma,
     );
 
-    if (toBeSaved.length == 0)
-      return {
-        success: true,
-        message: 'No new grade levels to save',
-      };
+    console.log('creationResult: ', creationResult);
 
-    const result = await this.prisma.grade_level_offered.createMany({
-      data: toBeSaved.map((gradeLevel) => ({
-        school_id: schoolId,
-        grade_level_code: gradeLevel,
-        is_active: true,
-      })),
-    });
+    if (!creationResult) throw new Error('Failed saving grades');
 
-    if (!result)
-      return {
-        success: false,
-        message: 'Failed to save grade levels',
-      };
+    const activationResult: boolean = await this.activateInputGradeLevels(
+      schoolId,
+      newGradeLevelsArr,
+      prisma,
+    );
+
+    console.log('activationResult: ', activationResult);
+
+    if (!activationResult) throw new Error('Failed activating grades');
 
     return {
       success: true,
@@ -198,16 +183,51 @@ export class SchoolClassificationService {
   }
 
   // step 3.1
-  private async filterExistingOnes(
+  private async getGradeLevelsFromAcademicLevels(
+    academicLevels: string[],
+    prisma: Prisma.TransactionClient,
+  ): Promise<SchoolClassification['gradeLevelFromAcademicLevel']> {
+    const result = await prisma.grade_level.findMany({
+      where: {
+        academic_level: {
+          academic_level: {
+            in: academicLevels,
+          },
+        },
+      },
+      select: {
+        grade_level_code: true,
+        grade_level: true,
+      },
+    });
+
+    return result.map((item) => ({
+      gradeLevelCode: item.grade_level_code,
+      gradeLevel: item.grade_level,
+    }));
+  }
+
+  // step 3.2
+  private async filterOutExistingGradeLevels(
     schoolId: number,
-    newGradeLevelsArr: string[],
+    academicLevels: string[],
+    prisma: Prisma.TransactionClient,
   ): Promise<string[]> {
-    const sameGradeLevel = await this.prisma.grade_level_offered.findMany({
+    console.log('academicLevels: ', academicLevels);
+    const gradeLevelsFromAcademicLevels: SchoolClassification['gradeLevelFromAcademicLevel'] =
+      await this.getGradeLevelsFromAcademicLevels(academicLevels, prisma);
+
+    // eslint-disable-next-line
+    console.log('gradeLevelsFromAcademicLevels: ', gradeLevelsFromAcademicLevels);
+
+    const result = await prisma.grade_level_offered.findMany({
       where: {
         school_id: schoolId,
         grade_level: {
-          grade_level: {
-            in: newGradeLevelsArr,
+          academic_level: {
+            academic_level: {
+              in: academicLevels,
+            },
           },
         },
       },
@@ -217,30 +237,60 @@ export class SchoolClassificationService {
             grade_level: true,
           },
         },
-        grade_level_code: true,
       },
     });
 
-    const gradeLevelArr: string[] = newGradeLevelsArr.filter(
-      (gradeLevel) =>
-        !sameGradeLevel.some(
-          (item) => item.grade_level.grade_level === gradeLevel,
-        ),
-    );
+    console.log('result: ', result);
 
-    const newGradeLevelCode: { grade_level_code: string }[] =
-      await this.prisma.grade_level.findMany({
-        where: {
+    // eslint-disable-next-line
+    return gradeLevelsFromAcademicLevels.filter((item) => {
+        return !result.some(
+          (grade) => grade.grade_level.grade_level == item.gradeLevel,
+        );
+      })
+      .map((item) => item.gradeLevelCode);
+  }
+
+  private async createGradeLevelOffered(
+    schoolId: number,
+    gradeLevelCode: string[],
+    prisma: Prisma.TransactionClient,
+  ) {
+    const result = await prisma.grade_level_offered.createMany({
+      data: gradeLevelCode.map((gradeLevel) => ({
+        school_id: schoolId,
+        grade_level_code: gradeLevel,
+        is_active: false,
+        can_choose_section: false,
+      })),
+    });
+
+    return result ? true : false;
+  }
+
+  private async activateInputGradeLevels(
+    schoolId: number,
+    gradeLevelArr: string[],
+    prisma: Prisma.TransactionClient,
+  ) {
+    console.log('gradeLevelArr: ', gradeLevelArr);
+    const result = await prisma.grade_level_offered.updateMany({
+      where: {
+        school_id: schoolId,
+        grade_level: {
           grade_level: {
             in: gradeLevelArr,
           },
         },
-        select: {
-          grade_level_code: true,
-        },
-      });
+      },
+      data: {
+        is_active: true,
+      },
+    });
 
-    return newGradeLevelCode.map((gradeLevel) => gradeLevel.grade_level_code);
+    console.log('result: ', result);
+
+    return result ? true : false;
   }
 
   // step 4
@@ -316,11 +366,6 @@ export class SchoolClassificationService {
       },
     });
 
-    console.log(data);
-
-    console.log('data: ', data);
-    console.log('acadLevels: ', acadLevels);
-
     if (!data)
       return {
         schoolType,
@@ -330,10 +375,6 @@ export class SchoolClassificationService {
 
     const academicLevels: string[] = await this.getAllAcademicLevels();
     const gradeLevels: string[] = await this.getOfferedGradeLevels(schoolId);
-
-    console.log('academicLevelOffered: ', acadLevels);
-    console.log('academicLevels: ', academicLevels);
-    console.log('gradeLevels: ', gradeLevels);
 
     return {
       schoolType,
