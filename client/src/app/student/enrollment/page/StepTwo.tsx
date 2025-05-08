@@ -128,7 +128,7 @@ const StepTwo = () => {
       mutateEnroll(formData, {
         onSuccess: (data) => {
           console.log(data);
-          alert("Account created successfully!");
+          alert("Enrollment application success!");
           navigate("/student/dashboard");
         },
         onError: (error) => {

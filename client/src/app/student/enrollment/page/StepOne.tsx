@@ -461,7 +461,7 @@ const StepOne = () => {
                   type="submit"
                   className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
                 >
-                  "Enroll Now"
+                  Enroll Now
                 </Button>
               </div>
             )}
