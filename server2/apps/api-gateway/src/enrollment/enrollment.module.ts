@@ -8,6 +8,7 @@ import { mapModulesToBasePath } from '@lib/utils/router.utils';
 import { EnrollmentManagementModule } from './enrollment-management/enrollment-management.module';
 import { AnnouncementsModule } from './enrollment-management/announcements/announcements.module';
 import { ReviewModule } from './review/review.module';
+import { ReUploadModule } from './re-upload/re-upload.module';
 
 const BASE_PATH = 'enrollment';
 
@@ -28,6 +29,7 @@ const BASE_PATH = 'enrollment';
     ),
     EnrollmentManagementModule,
     ReviewModule,
+    ReUploadModule,
   ],
 })
 export class EnrollmentModule {}
