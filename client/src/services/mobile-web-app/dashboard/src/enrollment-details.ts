@@ -1,5 +1,5 @@
 import { instance } from "@/lib/axios";
-import { application_status } from "@/services/common/types/enums";
+import Enums, { application_status } from "@/services/common/types/enums";
 
 export const getEnrolleeDetails = async () => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
@@ -31,7 +31,7 @@ export const getEnrollmentStatus = async () => {
   else
     return {
       data: {
-        enrollmentStatus: "accepted",
+        enrollmentStatus: Enums.application_status.invalid,
         gradeLevel: "3",
         section: "A",
         program: "BS Electronics Engineering",
@@ -49,11 +49,22 @@ export const getEnrollmentStatus = async () => {
     };
 };
 export const getDocumentsForReupload = async () => {
-  return await instance.get<
-    {
-      requirementId: number;
-      applicationId: number;
-      requirementName: string;
-    }[]
-  >("/api/enrollment/dashboard/enrollment/documents/re-upload");
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
+    return await instance.get<
+      {
+        requirementId: number;
+        applicationId: number;
+        requirementName: string;
+      }[]
+    >("/api/enrollment/dashboard/enrollment/documents/re-upload");
+  else
+    return {
+      data: [
+        {
+          requirementId: 1,
+          applicationId: 1,
+          requirementName: "Birth Certificate",
+        },
+      ],
+    };
 };

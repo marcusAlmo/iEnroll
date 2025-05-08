@@ -47,12 +47,14 @@ import {
   getStudentFirstName,
 } from "@/services/mobile-web-app/dashboard";
 import { useAuth } from "@/contexts/useAuth";
+import Enums from "@/services/common/types/enums";
 
 enum AcceptedEnrollmentStatus {
   enrolled = "Enrolled",
   none = "None",
   pending = "Pending",
   denied = "Denied",
+  invalid = "Invalid",
 }
 
 const DashboardPage = () => {
@@ -80,16 +82,18 @@ const DashboardPage = () => {
       let interpretedStatus: AcceptedEnrollmentStatus;
 
       switch (enrollmentStatus) {
-        case "accepted":
+        case Enums.application_status.accepted:
           interpretedStatus = AcceptedEnrollmentStatus.enrolled;
           break;
-        case "pending":
+        case Enums.application_status.pending:
           interpretedStatus = AcceptedEnrollmentStatus.pending;
           break;
-        case "denied":
+        case Enums.application_status.denied:
           interpretedStatus = AcceptedEnrollmentStatus.denied;
           break;
-        // TODO: Make logic for denied and invalid enrollment
+        case Enums.application_status.invalid:
+          interpretedStatus = AcceptedEnrollmentStatus.invalid;
+          break;
         default:
           interpretedStatus = AcceptedEnrollmentStatus.none;
       }
@@ -107,8 +111,9 @@ const DashboardPage = () => {
       data.map((d) => ({
         // TODO: Requirement and application ID can be used for reference
         documentName: d.requirementName,
-        action: () => navigate("/student/enroll/upload-documents"),
+        // action: () => navigate("/student/enroll/upload-documents"),
       })),
+    enabled: status?.enrollmentStatus === AcceptedEnrollmentStatus.invalid,
   });
 
   const { data: downloadables, isPending: isDownloadablesPending } = useQuery({
@@ -215,7 +220,7 @@ const DashboardPage = () => {
 
         {/* Show this if enrollment status is "Pending" */}
         {status.enrollmentStatus === "Pending" ||
-          (status.enrollmentStatus === "Denied" && (
+          (status.enrollmentStatus === "Invalid" && (
             <>
               <div className="text-primary mt-6 text-lg font-semibold">
                 Documents
@@ -223,52 +228,61 @@ const DashboardPage = () => {
               {(!isReuploadsPending && reuploads && reuploads.length && (
                 <div className="bg-background mt-2.5 flex flex-col justify-center rounded-[10px] px-6 py-4">
                   <div className="text-primary text-lg font-semibold">
-                    Re-upload documents
+                    Re-upload requirements
                   </div>
                   <div>
                     <p className="text-primary mt-6 text-sm">
-                      Please re-upload the following documents:
+                      Please re-upload the following requirements:
                     </p>
-                    <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
+                    <ul className="text-accent mt-2 ml-6 list-disc text-sm">
                       {reuploads.map((doc, index) => (
-                        <li key={index} onClick={doc.action} className="mt-1">
-                          {doc.documentName}
+                        <li
+                          key={index}
+                          className="mt-1 flex items-center justify-between"
+                        >
+                          <span>{doc.documentName}</span>
                         </li>
                       ))}
                     </ul>
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        className="hover:bg-secondary rounded-md bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-300 hover:shadow-lg"
+                        onClick={() =>
+                          navigate("/student/enroll/upload-documents")
+                        }
+                      >
+                        Re-upload Requirements
+                      </button>
+                    </div>
                   </div>
                 </div>
               )) || <></>}
-              {!isDownloadablesPending && downloadables && (
-                <div className="bg-background mt-6 flex flex-col justify-center rounded-[10px] px-6 py-4">
-                  <div className="text-primary text-lg font-semibold">
-                    Download documents
-                  </div>
-                  <div>
-                    <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
-                      {downloadables.map((downloadable) => (
-                        <li className="mt-1">
-                          // ! This may not work, better to use axios
-                          <a href={downloadable.fileUrl}>
-                            {downloadable.fileName}
-                          </a>
-                        </li>
-                      ))}
-                      <li className="mt-1">Student Handbook</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-              <div className="bg-border-1 my-6 flex flex-col items-center justify-center rounded-[10px] px-6 py-4">
-                <div className="text-text-2 text-lg font-semibold">
-                  Request Document
-                </div>
-                <div className="text-text-2 mt-1.5 text-center text-sm font-semibold">
-                  This feature is coming soon in the next update.
-                </div>
-              </div>
             </>
           ))}
+        {!isDownloadablesPending && downloadables && (
+          <div className="bg-background mt-6 flex flex-col justify-center rounded-[10px] px-6 py-4">
+            <div className="text-primary text-lg font-semibold">
+              Download documents
+            </div>
+            <div>
+              <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
+                {downloadables.map((downloadable) => (
+                  <li className="mt-1">
+                    <a href={downloadable.fileUrl}>{downloadable.fileName}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        <div className="bg-border-1 my-6 flex flex-col items-center justify-center rounded-[10px] px-6 py-4">
+          <div className="text-text-2 text-lg font-semibold">
+            Request Document
+          </div>
+          <div className="text-text-2 mt-1.5 text-center text-sm font-semibold">
+            This feature is coming soon in the next update.
+          </div>
+        </div>
       </section>
     )
   );
