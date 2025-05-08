@@ -159,130 +159,156 @@ const ReuploadPage = () => {
     <section className="bg-container-1 flex w-screen flex-col items-center justify-center p-12">
       <div className="space-y-1.5 text-center">
         <h1 className="text-accent text-3xl font-semibold">
-          {isMutateResubmitSuccess ? "Nice, uploaded na ulit!" : "Uy, requirements ulit!"}
+          {isMutateResubmitSuccess
+            ? "Nice, uploaded na ulit!"
+            : "Uy, requirements ulit!"}
         </h1>
         <p className="text-text-2 text-sm font-semibold">
-          Please resubmit the needed requirements
+          {requirements?.length
+            ? "Please resubmit the needed requirements"
+            : "You have no invalid requirements. You are good to go!"}
         </p>
       </div>
 
-      <div className="bg-accent mt-6 space-x-1 rounded-[10px] px-2.5 py-0.5">
-        <span className="text-sm font-semibold">
-          Need help? Just tap the{" "}
-          <FontAwesomeIcon icon={faInfoCircle} className="text-primary" /> icon!
-        </span>
-      </div>
+      {requirements?.length ? (
+        <>
+          <div className="bg-accent mt-6 space-x-1 rounded-[10px] px-2.5 py-0.5">
+            <span className="text-sm font-semibold">
+              Need help? Just tap the{" "}
+              <FontAwesomeIcon icon={faInfoCircle} className="text-primary" />{" "}
+              icon!
+            </span>
+          </div>
 
-      <div className="mt-8 w-screen px-14">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="w-full">
-              <div className="relative mb-4 inline-block">
-                <span className="text-primary text-base font-semibold">
-                  Requirements
-                  <FontAwesomeIcon
-                    icon={faInfoCircle}
-                    className="text-text-2/40 ml-2"
-                    onClick={() => setShowRequirementsTooltip((prev) => !prev)}
-                  />
-                </span>
-                {showRequirementsTooltip && (
-                  <div className="absolute top-[5%] right-[-105%] z-10 w-32 rounded-[10px] bg-slate-300 p-2 text-xs">
-                    Please upload the documentary requirements for enrollment.
-                    Allow necessary permissions during upload
-                  </div>
-                )}
-              </div>
-              {requirements?.map((requirement, index) => {
-                const fieldName = requirement.requirementId.toString();
-                const error = form.formState.errors[fieldName];
-
-                return (
-                  <div key={index} className="mb-6">
-                    {/* Render UploadBox for image/document requirements */}
-                    {requirement.requirementType === "image" ||
-                    requirement.requirementType === "document" ? (
-                      <UploadBox
-                        control={form.control}
-                        name={fieldName}
-                        label={requirement.name}
-                        requirementType={requirement.requirementType}
-                      />
-                    ) : (
-                      // Render CustomInput for text requirements
-                      <CustomInput
-                        control={form.control}
-                        name={fieldName}
-                        label={requirement.name}
-                        placeholder={`Enter ${requirement.name}`}
-                        inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                        labelStyle="text-sm text-text-2"
-                        type={
-                          requirement.acceptedDataTypes === "string"
-                            ? "text"
-                            : (requirement.acceptedDataTypes as
-                                | "password"
-                                | "date"
-                                | undefined)
+          <div className="mt-8 w-screen px-14">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                <div className="w-full">
+                  <div className="relative mb-4 inline-block">
+                    <span className="text-primary text-base font-semibold">
+                      Requirements
+                      <FontAwesomeIcon
+                        icon={faInfoCircle}
+                        className="text-text-2/40 ml-2"
+                        onClick={() =>
+                          setShowRequirementsTooltip((prev) => !prev)
                         }
                       />
-                    )}
-
-                    {/* Dynamic error handling */}
-                    {error && (
-                      <span className="text-danger text-sm">
-                        {requirement.requirementType === "image" ||
-                        requirement.requirementType === "document"
-                          ? "Please upload a file"
-                          : "This field is required"}
-                      </span>
+                    </span>
+                    {showRequirementsTooltip && (
+                      <div className="absolute top-[5%] right-[-105%] z-10 w-32 rounded-[10px] bg-slate-300 p-2 text-xs">
+                        Please upload the documentary requirements for
+                        enrollment. Allow necessary permissions during upload
+                      </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
+                  {requirements?.map((requirement, index) => {
+                    const fieldName = requirement.requirementId.toString();
+                    const error = form.formState.errors[fieldName];
 
-            <div className="flex flex-col items-center gap-y-2">
-              {!isMutateResubmitSuccess ? (
-                <>
-                  <Button
-                    type="submit"
-                    disabled={isMutateResubmitPending}
-                    className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
-                  >
-                    {isMutateResubmitPending
-                      ? "Submitting"
-                      : "Resubmit Requirements"}
-                  </Button>
+                    return (
+                      <div key={index} className="mb-6">
+                        {/* Render UploadBox for image/document requirements */}
+                        {requirement.requirementType === "image" ||
+                        requirement.requirementType === "document" ? (
+                          <UploadBox
+                            control={form.control}
+                            name={fieldName}
+                            label={requirement.name}
+                            requirementType={requirement.requirementType}
+                          />
+                        ) : (
+                          // Render CustomInput for text requirements
+                          <CustomInput
+                            control={form.control}
+                            name={fieldName}
+                            label={requirement.name}
+                            placeholder={`Enter ${requirement.name}`}
+                            inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                            labelStyle="text-sm text-text-2"
+                            type={
+                              requirement.acceptedDataTypes === "string"
+                                ? "text"
+                                : (requirement.acceptedDataTypes as
+                                    | "password"
+                                    | "date"
+                                    | undefined)
+                            }
+                          />
+                        )}
 
-                  {/* Only display when the form is partially filled */}
-                  {form.formState.isDirty && (
-                    <>
-                      <span className="text-text-2 text-sm">or</span>
-                      <Button
-                        onClick={() => alert("Save as draft not yet working!")}
-                        className="bg-success/10 border-success text-success w-full rounded-[10px] border py-6 text-sm font-semibold"
-                      >
-                        Save as Draft
-                      </Button>
-                    </>
-                  )}
-                </>
-              ) : (
-                <div className="bg-success text-background w-full rounded-[10px] py-3 text-center font-semibold">
-                  Uploaded successfully
+                        {/* Dynamic error handling */}
+                        {error && (
+                          <span className="text-danger text-sm">
+                            {requirement.requirementType === "image" ||
+                            requirement.requirementType === "document"
+                              ? "Please upload a file"
+                              : "This field is required"}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-          </form>
-        </Form>
-      </div>
 
-      {/* Display if upload failed */}
-      {isMutateResubmitError && (
-        <div className="text-danger mt-4 text-center text-sm font-semibold">
-          An error occured. Please try again.
-        </div>
+                <div className="flex flex-col items-center gap-y-2">
+                  {!isMutateResubmitSuccess ? (
+                    <>
+                      <Button
+                        type="submit"
+                        disabled={isMutateResubmitPending}
+                        className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
+                      >
+                        {isMutateResubmitPending
+                          ? "Submitting"
+                          : "Resubmit Requirements"}
+                      </Button>
+
+                      {/* Only display when the form is partially filled */}
+                      {form.formState.isDirty && (
+                        <>
+                          <span className="text-text-2 text-sm">or</span>
+                          <Button
+                            onClick={() =>
+                              alert("Save as draft not yet working!")
+                            }
+                            className="bg-success/10 border-success text-success w-full rounded-[10px] border py-6 text-sm font-semibold"
+                          >
+                            Save as Draft
+                          </Button>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <div className="bg-success text-background w-full rounded-[10px] py-3 text-center font-semibold">
+                      Uploaded successfully
+                    </div>
+                  )}
+                </div>
+              </form>
+            </Form>
+          </div>
+
+          {/* Display if upload failed */}
+          {isMutateResubmitError && (
+            <div className="text-danger mt-4 text-center text-sm font-semibold">
+              An error occured. Please try again.
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <Button
+            type="button"
+            onClick={() => navigate("/student/dashboard")}
+            className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
+          >
+            Go Back
+          </Button>
+        </>
       )}
     </section>
   );
