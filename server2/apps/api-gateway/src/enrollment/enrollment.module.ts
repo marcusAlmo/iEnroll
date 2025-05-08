@@ -25,6 +25,7 @@ const BASE_PATH = 'enrollment';
         DashboardModule,
         EnrollModule,
         LandingModule,
+        ReUploadModule,
       ]),
     ),
     EnrollmentManagementModule,
