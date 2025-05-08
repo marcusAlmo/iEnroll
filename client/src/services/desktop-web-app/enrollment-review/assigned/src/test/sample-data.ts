@@ -74,14 +74,14 @@ export const data: Gra[] = [
                 middleName: "Nepomuceno",
                 lastName: "Pangilinan",
                 suffix: null,
-                enrollmentStatus: Enums.application_status.accepted,
+                enrollmentStatus: Enums.application_status.pending,
                 requirements: [
                   {
                     applicationId: 2,
                     requirementId: 1,
                     requirementName: "Birth Certificate",
                     requirementType: Enums.attachment_type.image,
-                    requirementStatus: Enums.attachment_status.accepted,
+                    requirementStatus: Enums.attachment_status.pending,
                     fileUrl:
                       "https://imgv2-1-f.scribdassets.com/img/document/471922303/original/280703d8e2/1?v=1",
                     fileName: "birth_certificate.jpg",
@@ -305,11 +305,11 @@ export const data: Gra[] = [
                 applicationId: 7,
                 requirementId: 2,
                 requirementName: "Good Moral Certificate",
-                requirementType: Enums.attachment_type.image,
+                requirementType: Enums.attachment_type.document,
                 requirementStatus: Enums.attachment_status.accepted,
                 fileUrl:
-                  "https://imgv2-1-f.scribdassets.com/img/document/413678275/original/1aafbd1eaa/1?v=1",
-                fileName: "good_moral_certificate.jpg",
+                  "https://drive.google.com/file/d/16itUJcP8VvHskMDcahJNC097YcYDgK55/view?usp=sharing",
+                fileName: "pdfile.pdf",
                 userInput: null,
                 remarks: null,
               },

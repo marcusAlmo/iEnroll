@@ -1,8 +1,10 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { EnrolledService } from './enrolled.service';
 import { User } from '@lib/decorators/user.decorator';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
 
 @Controller('enrolled')
+@UseGuards(JwtAuthGuard)
 export class EnrolledController {
   constructor(private readonly enrolledService: EnrolledService) {}
 

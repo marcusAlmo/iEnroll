@@ -1,5 +1,6 @@
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class EnrolledService {
@@ -52,6 +53,12 @@ export class EnrolledService {
   }
 
   async getAllGradeLevelsBySchool(schoolId: number) {
+    if (schoolId === undefined)
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_INVALID_SCHOOL_ID',
+      });
+
     const result = await this.prisma.grade_level_offered.findMany({
       where: {
         is_active: true,
@@ -142,7 +149,6 @@ export class EnrolledService {
     const result = await this.fetchStudentEnrollments({
       grade_section_id: sectionId,
     });
-
     return this.filterAndSortStudents(
       result.filter(
         (entry): entry is typeof entry & { enrollment_datetime: Date } =>

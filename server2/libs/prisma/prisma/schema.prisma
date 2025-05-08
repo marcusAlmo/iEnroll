@@ -100,7 +100,6 @@ model enrollment_application {
   aux_schedule_slot        aux_schedule_slot        @relation(fields: [schedule_id], references: [schedule_id], map: "fk_enrollment_application_schedule_id")
   student                  student                  @relation(fields: [application_id], references: [student_id], map: "fk_enrollment_application_student_id")
   student_enrollment       student_enrollment?
-
   @@index([status], map: "idx_enrollment_application_status")
   @@schema("enrollment")
 }

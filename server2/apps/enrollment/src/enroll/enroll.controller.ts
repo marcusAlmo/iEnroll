@@ -22,10 +22,11 @@ export class EnrollController {
 
   @MessagePattern({ cmd: 'get_grade_levels_by_academic_level' })
   async getGradeLevelsByAcademicLevel(
-    @Payload() payload: { academicLevelCode: string },
+    @Payload() payload: { academicLevelCode: string; schoolId: number },
   ) {
     return await this.enrollService.getGradeLevelsByAcademicLevel(
       payload.academicLevelCode,
+      payload.schoolId,
     );
   }
 

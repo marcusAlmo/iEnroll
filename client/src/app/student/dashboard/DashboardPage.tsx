@@ -52,6 +52,7 @@ enum AcceptedEnrollmentStatus {
   enrolled = "Enrolled",
   none = "None",
   pending = "Pending",
+  denied = "Denied",
 }
 
 const DashboardPage = () => {
@@ -84,6 +85,9 @@ const DashboardPage = () => {
           break;
         case "pending":
           interpretedStatus = AcceptedEnrollmentStatus.pending;
+          break;
+        case "denied":
+          interpretedStatus = AcceptedEnrollmentStatus.denied;
           break;
         // TODO: Make logic for denied and invalid enrollment
         default:
@@ -210,61 +214,61 @@ const DashboardPage = () => {
         />
 
         {/* Show this if enrollment status is "Pending" */}
-        {status.enrollmentStatus === "Pending" && (
-          <>
-            <div className="text-primary mt-6 text-lg font-semibold">
-              Documents
-            </div>
-            {(!isReuploadsPending && reuploads && reuploads.length && (
-              <div className="bg-background mt-2.5 flex flex-col justify-center rounded-[10px] px-6 py-4">
-                <div className="text-primary text-lg font-semibold">
-                  Re-upload documents
+        {status.enrollmentStatus === "Pending" ||
+          (status.enrollmentStatus === "Denied" && (
+            <>
+              <div className="text-primary mt-6 text-lg font-semibold">
+                Documents
+              </div>
+              {(!isReuploadsPending && reuploads && reuploads.length && (
+                <div className="bg-background mt-2.5 flex flex-col justify-center rounded-[10px] px-6 py-4">
+                  <div className="text-primary text-lg font-semibold">
+                    Re-upload documents
+                  </div>
+                  <div>
+                    <p className="text-primary mt-6 text-sm">
+                      Please re-upload the following documents:
+                    </p>
+                    <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
+                      {reuploads.map((doc, index) => (
+                        <li key={index} onClick={doc.action} className="mt-1">
+                          {doc.documentName}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-primary mt-6 text-sm">
-                    Please re-upload the following documents:
-                  </p>
-                  <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
-                    {reuploads.map((doc, index) => (
-                      <li key={index} onClick={doc.action} className="mt-1">
-                        {doc.documentName}
-                      </li>
-                    ))}
-                  </ul>
+              )) || <></>}
+              {!isDownloadablesPending && downloadables && (
+                <div className="bg-background mt-6 flex flex-col justify-center rounded-[10px] px-6 py-4">
+                  <div className="text-primary text-lg font-semibold">
+                    Download documents
+                  </div>
+                  <div>
+                    <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
+                      {downloadables.map((downloadable) => (
+                        <li className="mt-1">
+                          // ! This may not work, better to use axios
+                          <a href={downloadable.fileUrl}>
+                            {downloadable.fileName}
+                          </a>
+                        </li>
+                      ))}
+                      <li className="mt-1">Student Handbook</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+              <div className="bg-border-1 my-6 flex flex-col items-center justify-center rounded-[10px] px-6 py-4">
+                <div className="text-text-2 text-lg font-semibold">
+                  Request Document
+                </div>
+                <div className="text-text-2 mt-1.5 text-center text-sm font-semibold">
+                  This feature is coming soon in the next update.
                 </div>
               </div>
-            )) || <></>}
-            {!isDownloadablesPending && downloadables && (
-              <div className="bg-background mt-6 flex flex-col justify-center rounded-[10px] px-6 py-4">
-                <div className="text-primary text-lg font-semibold">
-                  Download documents
-                </div>
-                <div>
-                  <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
-                    {downloadables.map((downloadable) => (
-                      <li className="mt-1">
-
-                        // ! This may not work, better to use axios
-                        <a href={downloadable.fileUrl}>
-                          {downloadable.fileName}
-                        </a>
-                      </li>
-                    ))}
-                    <li className="mt-1">Student Handbook</li>
-                  </ul>
-                </div>
-              </div>
-            )}
-            <div className="bg-border-1 my-6 flex flex-col items-center justify-center rounded-[10px] px-6 py-4">
-              <div className="text-text-2 text-lg font-semibold">
-                Request Document
-              </div>
-              <div className="text-text-2 mt-1.5 text-center text-sm font-semibold">
-                This feature is coming soon in the next update.
-              </div>
-            </div>
-          </>
-        )}
+            </>
+          ))}
       </section>
     )
   );

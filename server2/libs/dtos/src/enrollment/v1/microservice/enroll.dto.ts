@@ -2,10 +2,11 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
+  isString,
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { $Enums } from '@prisma/client';
 
 export class RequirementTextDto {
@@ -151,35 +152,82 @@ export class EnrollmentApplicationDto {
   payment!: PaymentDto;
 }
 
+// export class EnrollmentApplicationDtoHttp {
+//   @Transform(
+//     ({ value }) => {
+//       if (typeof value === 'string') {
+//         try {
+//           return JSON.parse(value) as DetailsDtoHttp;
+//         } catch {
+//           return {};
+//         }
+//       }
+//       return value as DetailsDtoHttp;
+//     },
+//     // { toClassOnly: true },
+//   )
+//   @Type(() => DetailsDtoHttp)
+//   @ValidateNested()
+//   details!: DetailsDtoHttp;
+
+//   @Transform(
+//     ({ value }) => {
+//       if (typeof value === 'string') {
+//         try {
+//           return JSON.parse(value) as (
+//             | RequirementTextDtoHttp
+//             | RequirementFileDtoHttp
+//           )[];
+//         } catch {
+//           return [];
+//         }
+//       }
+//       return value as (RequirementTextDtoHttp | RequirementFileDtoHttp)[];
+//     },
+//     // { toClassOnly: true },
+//   )
+//   @Type(() => Object, {
+//     discriminator: {
+//       property: 'attachmentType',
+//       subTypes: [
+//         { value: RequirementTextDtoHttp, name: $Enums.attachment_type.text },
+//         { value: RequirementFileDtoHttp, name: $Enums.attachment_type.image },
+//         {
+//           value: RequirementFileDtoHttp,
+//           name: $Enums.attachment_type.document,
+//         },
+//       ],
+//     },
+//     keepDiscriminatorProperty: true,
+//   })
+//   @ValidateNested({ each: true })
+//   requirements!: (RequirementTextDtoHttp | RequirementFileDtoHttp)[];
+
+//   @Transform(
+//     ({ value }) => {
+//       if (typeof value === 'string') {
+//         try {
+//           return JSON.parse(value) as PaymentDtoHttp;
+//         } catch {
+//           return {};
+//         }
+//       }
+//       return value as PaymentDtoHttp;
+//     },
+//     // { toClassOnly: true },
+//   )
+//   @Type(() => PaymentDtoHttp)
+//   @ValidateNested()
+//   payment!: PaymentDtoHttp;
+// }
+
 export class EnrollmentApplicationDtoHttp {
-  @ValidateNested()
-  @Type(() => DetailsDtoHttp)
-  details!: DetailsDtoHttp;
+  @IsString()
+  details!: string;
 
-  @ValidateNested({ each: true })
-  @Type(() => Object, {
-    discriminator: {
-      property: 'attachmentType',
-      subTypes: [
-        {
-          value: RequirementTextDtoHttp,
-          name: $Enums.attachment_type.text,
-        },
-        {
-          value: RequirementFileDtoHttp,
-          name: $Enums.attachment_type.image,
-        },
-        {
-          value: RequirementFileDtoHttp,
-          name: $Enums.attachment_type.document,
-        },
-      ],
-    },
-    keepDiscriminatorProperty: true,
-  })
-  requirements!: (RequirementTextDtoHttp | RequirementFileDtoHttp)[];
+  @IsString()
+  requirements!: string;
 
-  @ValidateNested()
-  @Type(() => PaymentDtoHttp)
-  payment!: PaymentDtoHttp;
+  @IsString()
+  payment!: string;
 }

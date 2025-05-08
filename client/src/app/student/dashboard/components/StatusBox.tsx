@@ -25,6 +25,11 @@ const StatusBox = ({ status, description }: EnrollmentStatus) => {
       statusLabel: "Enrolled",
       statusLabelColor: "bg-success",
       description: description
+    },
+    Denied: {
+      statusLabel: "Denied",
+      statusLabelColor: "bg-warning",
+      description: "Your enrollment is denied due to invalid documents."
     }
   }
 

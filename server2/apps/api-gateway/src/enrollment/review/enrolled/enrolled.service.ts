@@ -47,7 +47,6 @@ export class EnrolledService {
     return result;
   }
 
-  // TODO: Implement keyword filtering in the service on the next iterations
   async getAllStudentsEnrolledByGradeLevel(
     gradeLevelId: number,
     keyword?: string,
@@ -63,7 +62,6 @@ export class EnrolledService {
     return result;
   }
 
-  // TODO: Implement keyword filtering in the service on the next iterations
   async getAllStudentsEnrolledBySchool(schoolId: number, keyword?: string) {
     const result: StudentsEnrolledBySchoolReturn = await lastValueFrom(
       this.client.send(

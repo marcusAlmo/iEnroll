@@ -1,5 +1,6 @@
 import {
   AcademicLevelResponse,
+  GradeLevelResponse,
   ScheduleResponse,
   SectionResponse,
 } from "../../types";
@@ -18,7 +19,7 @@ export const getMockAcademicLevelsBySchool = (): AcademicLevelResponse => {
 
 export const getMockGradeLevelsByAcademicLevel = (
   academicLevelCode: string,
-) => {
+): GradeLevelResponse => {
   const level = academicLevels.find(
     (level) => level.code === academicLevelCode,
   );
@@ -27,6 +28,7 @@ export const getMockGradeLevelsByAcademicLevel = (
   return level.gradeLevels.map((grade) => ({
     gradeLevelCode: grade.code,
     gradeLevel: grade.name,
+    canChooseSection: true,
   }));
 };
 
@@ -38,6 +40,7 @@ export const getMockSchedulesByGradeLevel = (
     if (grade) {
       return (
         grade.schedule?.map((sched) => ({
+          scheduleId: sched.scheduleId,
           dateStart: sched.startDatetime,
           dateEnd: sched.endDatetime,
           slotsLeft: sched.slotsLeft ?? undefined,
@@ -56,7 +59,7 @@ export const getMockSectionsByGradeLevel = (
     if (!grade) continue;
 
     const programs = grade.gradeSectionType.map((program, index) => ({
-      programId: program.id.toString(),
+      programId: program.id,
       programName: program.type,
       // just mock, tinamad na ako maglagay haha
       gradeSectionProgramId: index + 1,

@@ -17,7 +17,7 @@ export function generateSchemaFromRequirements(requirements: Requirement[]) {
   const shape: Record<string, z.ZodTypeAny> = {};
 
   requirements.forEach((req) => {
-    const fieldName = sanitizeName(req.name);
+    const fieldName = req.requirementId;
     let schema: z.ZodTypeAny = z.any(); // Default initialization
 
     // Handle file-based requirements

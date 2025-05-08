@@ -1,18 +1,16 @@
 import { z } from "zod";
 
 export const stepOneSchema = z.object({
-  level: z.string().min(1, {
+  levelCode: z.string().min(1, {
     message: "Please select a level",
   }),
-  gradeLevel: z.string().min(1, {
+  gradeLevelCode: z.string().min(1, {
     message: "Please select a grade level",
   }),
-  program: z.string().min(1, {
+  programId: z.string().min(1, {
     message: "Please select a program",
   }),
-  section: z.string().min(1, {
-    message: "Please select a section",
-  }),
+  sectionId: z.string().optional(),
   enrollmentDate: z
     .preprocess(
       (val) =>
@@ -20,7 +18,7 @@ export const stepOneSchema = z.object({
       z.date(),
     )
     .default(new Date()),
-  enrollmentTime: z.number().min(1, {
-    message: "Please choose a time",
+  scheduleId: z.string().min(1, {
+    message: "Please select a schedule",
   }),
 });
