@@ -7,6 +7,7 @@ import { LandingModule } from './landing/landing.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { EnrollmentManagementModule } from './enrollment-management/enrollment-management.module';
 import { ReviewModule } from './review/review.module';
+import { ReUploadModule } from './re-upload/re-upload.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -22,6 +23,7 @@ import configuration from './config/configuration';
     DashboardModule,
     EnrollmentManagementModule,
     ReviewModule,
+    ReUploadModule,
   ],
   providers: [],
 })
