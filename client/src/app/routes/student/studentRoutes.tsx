@@ -2,12 +2,13 @@ import DashboardPage from "@/app/student/dashboard/DashboardPage";
 import EnrollmentRoute from "@/app/student/enrollment/EnrollmentRoute";
 import StepOne from "@/app/student/enrollment/page/StepOne";
 import StepTwo from "@/app/student/enrollment/page/StepTwo";
+import ReuploadPage from "@/app/student/re-upload/page/ReUploadPage";
 import { RouteObject } from "react-router";
 
 export const studentRoutes: RouteObject[] = [
   {
     path: "dashboard",
-    element: <DashboardPage />
+    element: <DashboardPage />,
   },
   {
     path: "enroll",
@@ -19,8 +20,12 @@ export const studentRoutes: RouteObject[] = [
       },
       {
         path: "step-2",
-        element: <StepTwo />
-      }
-    ]
-  }
-]
+        element: <StepTwo />,
+      },
+    ],
+  },
+  {
+    path: "re-upload",
+    element: <ReuploadPage />,
+  },
+];

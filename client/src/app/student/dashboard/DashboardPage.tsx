@@ -209,7 +209,8 @@ const DashboardPage = () => {
           status={status.enrollmentStatus}
           description={{
             programName: status.program ?? "None",
-            year: parseInt(status.gradeLevel),
+            year: status.gradeLevel,
+            section: status.section ?? "Unassigned",
             paymentStatus: status.isPaid
               ? "Payment Complete"
               : (status.dueDate ??
@@ -247,9 +248,7 @@ const DashboardPage = () => {
                     <div className="mt-4 flex justify-center">
                       <button
                         className="hover:bg-secondary rounded-md bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-300 hover:shadow-lg"
-                        onClick={() =>
-                          navigate("/student/enroll/upload-documents")
-                        }
+                        onClick={() => navigate("/student/re-upload")}
                       >
                         Re-upload Requirements
                       </button>
@@ -265,13 +264,19 @@ const DashboardPage = () => {
               Download documents
             </div>
             <div>
-              <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
-                {downloadables.map((downloadable) => (
-                  <li className="mt-1">
-                    <a href={downloadable.fileUrl}>{downloadable.fileName}</a>
-                  </li>
-                ))}
-              </ul>
+              {!downloadables.length ? (
+                <p className="mt-2 list-disc text-center text-sm">
+                  No downloadable documents available
+                </p>
+              ) : (
+                <ul className="text-accent mt-2 ml-6 list-disc text-sm underline">
+                  {downloadables.map((downloadable) => (
+                    <li className="mt-1">
+                      <a href={downloadable.fileUrl}>{downloadable.fileName}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         )}

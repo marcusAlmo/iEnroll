@@ -66,6 +66,10 @@ const StatusBox = ({ status, description }: EnrollmentStatus) => {
               {description?.year}
             </div>
             <div>
+              <span className="font-semibold">Section: </span>
+              {description?.section}
+            </div>
+            <div>
               <span className="font-semibold">
                 {typeof description?.paymentStatus === "string"
                   ? "Payment Status: "
