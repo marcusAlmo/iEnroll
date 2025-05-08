@@ -16,4 +16,23 @@ export class ReUploadController {
       payload.studentId,
     );
   }
+
+  @MessagePattern({
+    cmd: 'reupload_enrollment:resubmit_invalid_requirements',
+  })
+  async resubmitInvalidRequirements(
+    @Payload()
+    payload: {
+      details: {
+        studentId: number;
+      };
+      requirements: {
+        requirementId: number;
+        textContent?: string;
+        fileId?: number;
+      }[];
+    },
+  ) {
+    return await this.reUploadService.resubmitInvalidRequirements(payload);
+  }
 }
