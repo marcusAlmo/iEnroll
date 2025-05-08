@@ -73,11 +73,14 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = "" }) => {
             lastName: student.lastName,
             suffix: student.suffix,
             applicationStatus: "Enrolled",
-            enrollmentDate: student.enrollmentDate.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }),
+            enrollmentDate: new Date(student.enrollmentDate).toLocaleDateString(
+              "en-US",
+              {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              },
+            ),
             gradeLevel: student.gradeLevel,
             section: student.sectionName,
           })),
@@ -107,7 +110,7 @@ const PrintButton: React.FC<PrintButtonProps> = ({ className = "" }) => {
           lastName: student.lastName,
           suffix: student.suffix,
           applicationStatus: "Enrolled",
-          enrollmentDate: student.enrollmentDate.toLocaleDateString("en-US", {
+          enrollmentDate: new Date(student.enrollmentDate).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
             day: "numeric",

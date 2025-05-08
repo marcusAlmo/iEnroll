@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { AssignedService } from './assigned.service';
 import { ApproveOrDenyDto } from './dtos/requirement.dto';
@@ -16,8 +17,10 @@ import {
   ReassignDto,
   UpdateEnrollmentDto,
 } from './dtos/enrollment.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
 
 @Controller('assigned')
+@UseGuards(JwtAuthGuard)
 export class AssignedController {
   constructor(private readonly assignedService: AssignedService) {}
 
@@ -91,6 +94,8 @@ export class AssignedController {
     @Body() enrollDto: EnrollDto,
     @User('user_id') approverId: number,
   ) {
+    console.log('APPROVER', approverId);
+
     return await this.assignedService.enrollStudent({
       ...enrollDto,
       approverId,

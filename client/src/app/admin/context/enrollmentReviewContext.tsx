@@ -165,7 +165,8 @@ export const EnrollmentReviewProvider: React.FC<{
     select: (data): Section[] => {
       const raw = data.data;
       const gradeSectionPrograms = new Set<number>();
-
+      console.log("RESUL", raw);
+      
       const result: Section[] = raw.map((section) => {
         gradeSectionPrograms.add(section.gradeSectionProgramId);
         return {
@@ -208,8 +209,10 @@ export const EnrollmentReviewProvider: React.FC<{
             selectedSection!.gradeSectionProgramId as number[],
           )
         : getAllStudentsAssignedBySection(selectedSection!.sectionId),
-    select: (data): Student[] =>
-      data.data.map((student) => ({
+    select: (data): Student[] => {
+      console.log("DATA", data);
+      
+      return data.data.map((student) => ({
         studentId: student.studentId,
         studentName: [
           student.firstName,
@@ -224,7 +227,8 @@ export const EnrollmentReviewProvider: React.FC<{
         suffix: student.suffix,
         lastName: student.lastName,
         applicationStatus: student.enrollmentStatus,
-      })),
+      }));
+    },
     enabled: selectedSection?.sectionId !== null,
   });
 

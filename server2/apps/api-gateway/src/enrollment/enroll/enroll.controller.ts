@@ -11,6 +11,7 @@ import {
   Query,
   Req,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -26,6 +27,10 @@ import {
   EnrollmentApplicationDtoHttp,
   RequirementTextDto,
   RequirementFileDto,
+  DetailsDtoHttp,
+  RequirementFileDtoHttp,
+  RequirementTextDtoHttp,
+  PaymentDtoHttp,
 } from '@lib/dtos/src/enrollment/v1/microservice/enroll.dto';
 import { Request } from 'express';
 
@@ -44,9 +49,7 @@ export class EnrollController {
   }
 
   @Get('selection/academic-levels')
-  async getAcademicLevelsBySchool(
-    @Query('school_id', ParseIntPipe) schoolId: number,
-  ) {
+  async getAcademicLevelsBySchool(@User('school_id') schoolId: number) {
     return await this.enrollService.getAcademicLevelsBySchool({
       schoolId,
     });
@@ -55,9 +58,11 @@ export class EnrollController {
   @Get('selection/grade-levels/:academicLevelCode')
   async getGradeLevelsByAcademicLevel(
     @Param('academicLevelCode') academicLevelCode: string,
+    @User('school_id') schoolId: number,
   ) {
     return await this.enrollService.getGradeLevelsByAcademicLevel({
       academicLevelCode,
+      schoolId,
     });
   }
 
@@ -159,11 +164,10 @@ export class EnrollController {
   async enrollStudent(
     @Req() req: Request,
     @Body() body: EnrollmentApplicationDtoHttp,
+    @UploadedFiles() files: Express.Multer.File[],
     @User('user_id') studentId: number,
     @User('school_id') schoolId: number,
   ) {
-    const files = req.files as Express.Multer.File[] | undefined;
-
     if (!files?.length) {
       throw new BadRequestException('ERR_FILES_NOT_FOUND');
     }
@@ -179,7 +183,24 @@ export class EnrollController {
       throw new InternalServerErrorException('ERR_FILE_UPLOAD_UNSUCCESSFUL');
     }
 
-    const { details, requirements, payment } = body;
+    console.log('UPLOADED');
+
+    const {
+      details: detailsRaw,
+      requirements: requirementsRaw,
+      payment: paymentRaw,
+    } = body;
+
+    const details = JSON.parse(detailsRaw) as DetailsDtoHttp;
+    const requirements = JSON.parse(requirementsRaw) as (
+      | RequirementTextDtoHttp
+      | RequirementFileDtoHttp
+    )[];
+    const payment = JSON.parse(paymentRaw) as PaymentDtoHttp;
+
+    console.log({ details, requirements, payment });
+
+    // console.log('UPLOADED_FILES', uploadedFiles);
 
     const mappedRequirements = requirements.map((requirement, i) => {
       return requirement.textContent
@@ -193,6 +214,9 @@ export class EnrollController {
             fileId: uploadedFiles[i]?.document?.id,
           } as RequirementFileDto);
     });
+
+    // console.log('mappedreq', mappedRequirements);
+    // console.log('pay', uploadedFiles.at(-1)!.document?.id);
 
     return this.enrollService.makeStudentEnrollmentApplication({
       details: { ...details, studentId, schoolId },

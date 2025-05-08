@@ -10,6 +10,7 @@ export const academicLevels: SchoolLevelAndScheduleResponse = [
         code: "G1",
         schedule: [
           {
+            scheduleId: 1,
             startDatetime: new Date("2025-06-03T08:00:00"),
             endDatetime: new Date("2025-06-03T10:00:00"),
             slotsLeft: 10,
@@ -50,6 +51,7 @@ export const academicLevels: SchoolLevelAndScheduleResponse = [
         code: "G7",
         schedule: [
           {
+            scheduleId: 2,
             startDatetime: new Date("2025-06-05T13:00:00"),
             endDatetime: new Date("2025-06-05T15:00:00"),
             slotsLeft: 5,
@@ -71,6 +73,7 @@ export const academicLevels: SchoolLevelAndScheduleResponse = [
         code: "G10",
         schedule: [
           {
+            scheduleId: 3,
             startDatetime: new Date("2025-06-06T09:00:00"),
             endDatetime: new Date("2025-06-06T11:00:00"),
             slotsLeft: null,
@@ -95,6 +98,7 @@ export const academicLevels: SchoolLevelAndScheduleResponse = [
         code: "G11",
         schedule: [
           {
+            scheduleId: 4,
             startDatetime: new Date("2025-06-07T08:30:00"),
             endDatetime: new Date("2025-06-07T11:30:00"),
             slotsLeft: 12,
@@ -128,6 +132,7 @@ export const academicLevels: SchoolLevelAndScheduleResponse = [
         code: "Y1",
         schedule: [
           {
+            scheduleId: 5,
             startDatetime: new Date("2025-08-01T10:00:00"),
             endDatetime: new Date("2025-08-01T12:00:00"),
             slotsLeft: 20,

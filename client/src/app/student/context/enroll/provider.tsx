@@ -11,7 +11,11 @@ import React, {
 import { useForm, UseFormReturn, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
+import {
+  UseMutateFunction,
+  useMutation,
+  useQuery,
+} from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 
 import { EnrollContext } from "./context";
@@ -28,12 +32,13 @@ import {
 import { generateSchemaFromRequirements } from "../../enrollment/schema/RequirementsSchema";
 import { stepOneSchema } from "../../enrollment/schema/StepOneSchema";
 import { stepTwoSchema } from "../../enrollment/schema/StepTwoSchema";
-import { sanitizeName } from "@/utils/stringUtils";
 import { ScheduleResponse } from "@/services/mobile-web-app/enrollment/step-one/types";
 import {
   accepted_data_type,
   requirement_type,
 } from "@/services/common/types/enums";
+import { EnrollmentDetails } from "@/services/mobile-web-app/enrollment/common/types";
+import { makeStudentApplication } from "@/services/mobile-web-app/enrollment/common";
 
 // Interfaces and Types
 interface Requirement {
@@ -50,6 +55,7 @@ interface PaymentMethod {
   methodType: string;
   accountNumber: string;
   ownerName: string;
+  additionalFee: number;
 }
 
 interface FeeBreakdown {
@@ -69,8 +75,8 @@ interface Option<T> {
 }
 
 type LevelOption = Option<string>;
-type GradeLevelOption = Option<string>;
-type ProgramOption = Option<string>;
+type GradeLevelOption = Option<string> & { _canChooseSection: boolean };
+type ProgramOption = Option<number>;
 type SectionOption = Option<number>;
 type StepOneSchema = z.infer<typeof stepOneSchema>;
 
@@ -89,6 +95,20 @@ export interface EnrollContextProps {
   fees: Fee[] | undefined;
   setCurrentStep: Dispatch<SetStateAction<1 | 2 | undefined>>;
   setIsStepOneFinished: Dispatch<SetStateAction<boolean | undefined>>;
+  canChooseSection: boolean | undefined;
+  setEnrollmentDetailsPayload: React.Dispatch<
+    React.SetStateAction<EnrollmentDetails | undefined>
+  >;
+  mutateEnroll: UseMutateFunction<
+    Awaited<ReturnType<typeof makeStudentApplication>>,
+    Error,
+    FormData,
+    unknown
+  >;
+  enrollmentDetailsPayload: EnrollmentDetails | undefined;
+  isMutateEnrollPending: boolean;
+  isMutateEnrollError: boolean;
+  isMutateEnrollSuccess: boolean;
 }
 
 // Component
@@ -107,6 +127,20 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
   const [requirementsDefaultValues, setRequirementsDefaultValues] = useState<
     Record<string, any>
   >({});
+
+  // State for server payload
+  const [enrollmentDetailsPayload, setEnrollmentDetailsPayload] =
+    useState<EnrollmentDetails>();
+
+  const {
+    mutate: mutateEnroll,
+    isPending: isMutateEnrollPending,
+    isError: isMutateEnrollError,
+    isSuccess: isMutateEnrollSuccess,
+  } = useMutation({
+    mutationKey: ["makeStudentApplication"],
+    mutationFn: makeStudentApplication,
+  });
 
   // Navigation
   useEffect(() => {
@@ -128,17 +162,17 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
   const stepOneForm = useForm<StepOneSchema>({
     resolver: zodResolver(stepOneSchema),
     defaultValues: {
-      level: "",
-      gradeLevel: "",
-      program: "",
-      section: "",
+      levelCode: "",
+      gradeLevelCode: "",
+      programId: undefined,
+      sectionId: undefined,
       enrollmentDate: undefined,
-      enrollmentTime: undefined,
+      scheduleId: undefined,
     },
   });
 
   // Queries and Data Fetching
-  const { data: levels } = useQuery({
+  const { data: levels, error: levelsError } = useQuery({
     queryKey: ["studentEnrollmentLevelSelection"],
     queryFn: getAcademicLevelsBySchool,
     select: (data): LevelOption[] =>
@@ -148,15 +182,25 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
       })),
   });
 
+  useEffect(() => {
+    if (levelsError) console.log(levelsError);
+  }, [levelsError]);
+
   const selectedLevelId = useWatch({
     control: stepOneForm.control,
-    name: "level",
+    name: "levelCode",
   });
 
   useEffect(() => {
-    stepOneForm.setValue("gradeLevel", "");
-    stepOneForm.setValue("program", "");
-    stepOneForm.setValue("section", "");
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("gradeLevelCode", undefined);
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("programId", undefined);
+    stepOneForm.setValue("sectionId", undefined);
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("scheduleId", undefined);
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("enrollmentDate", undefined);
     setShowSubmitStep1(false);
   }, [stepOneForm, selectedLevelId]);
 
@@ -167,18 +211,33 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
       data.data.map((level) => ({
         id: level.gradeLevelCode,
         label: level.gradeLevel,
+        _canChooseSection: level.canChooseSection,
       })),
     enabled: Boolean(selectedLevelId),
   });
 
   const selectedGradeLevelId = useWatch({
     control: stepOneForm.control,
-    name: "gradeLevel",
+    name: "gradeLevelCode",
   });
 
+  const canChooseSection = useMemo(
+    () =>
+      selectedGradeLevelId
+        ? gradeLevels?.find((level) => level.id === selectedGradeLevelId)
+            ?._canChooseSection
+        : undefined,
+    [gradeLevels, selectedGradeLevelId],
+  );
+
   useEffect(() => {
-    stepOneForm.setValue("program", "");
-    stepOneForm.setValue("section", "");
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("programId", undefined);
+    stepOneForm.setValue("sectionId", undefined);
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("scheduleId", undefined);
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("enrollmentDate", undefined);
     setShowSubmitStep1(false);
   }, [stepOneForm, selectedGradeLevelId]);
 
@@ -194,30 +253,36 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const programs = useMemo(() => {
     return programSections?.map<ProgramOption>((p) => ({
-      id: p.programId,
+      id: p.gradeSectionProgramId,
       label: p.programName,
     }));
   }, [programSections]);
 
   const selectedProgramId = useWatch({
     control: stepOneForm.control,
-    name: "program",
+    name: "programId",
   });
 
   useEffect(() => {
-    stepOneForm.setValue("section", "");
+    stepOneForm.setValue("sectionId", undefined);
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("scheduleId", undefined);
+    // @ts-expect-error ignore undefined
+    stepOneForm.setValue("enrollmentDate", undefined);
     setShowSubmitStep1(false);
   }, [stepOneForm, selectedProgramId]);
 
   const sections = useMemo(() => {
+    if (!canChooseSection) return undefined;
     const program = programSections?.find(
-      (p) => p.programId === selectedProgramId,
+      //! Retain this into two equal comparison, if its three, it will not work properly
+      (p) => p.gradeSectionProgramId == +selectedProgramId,
     );
     return program?.sections.map<SectionOption>((s) => ({
       id: s.gradeSectionId,
       label: s.sectionName,
     }));
-  }, [programSections, selectedProgramId]);
+  }, [canChooseSection, programSections, selectedProgramId]);
 
   const { data: schedules } = useQuery({
     queryKey: [
@@ -230,13 +295,12 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   const gradeSectionProgramId = useMemo(() => {
-    return programSections?.find((p) => p.programId === selectedProgramId)
-      ?.gradeSectionProgramId;
-  }, [programSections, selectedProgramId]);
+    return selectedProgramId;
+  }, [selectedProgramId]);
 
   const { data: requirements, isPending: isRequirementsPending } = useQuery({
     queryKey: ["studentEnrollmentRequirements", gradeSectionProgramId],
-    queryFn: () => getAllGradeSectionTypeRequirements(gradeSectionProgramId!),
+    queryFn: () => getAllGradeSectionTypeRequirements(+gradeSectionProgramId!),
     select: (data) => {
       const sortOrder = { text: 0, image: 1, document: 2 } as Record<
         requirement_type,
@@ -263,7 +327,7 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
       setRequirementsSchema(dynamicSchema);
       setRequirementsDefaultValues(
         Object.fromEntries(
-          requirements.map((r) => [sanitizeName(r.name), undefined]),
+          requirements.map((r) => [r.requirementId, undefined]),
         ),
       );
     }
@@ -271,7 +335,7 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const { data: paymentData } = useQuery({
     queryKey: ["studentEnrollmentPaymentMethods", gradeSectionProgramId],
-    queryFn: () => getPaymentMethodDetails(gradeSectionProgramId!),
+    queryFn: () => getPaymentMethodDetails(+gradeSectionProgramId!),
     select: (data) => data.data,
     enabled: Boolean(gradeSectionProgramId),
   });
@@ -284,6 +348,7 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
         methodType: "N/A",
         accountNumber: method.accountNumber,
         ownerName: method.accountName,
+        additionalFee: method.additionalFee ?? 0,
       })),
     [paymentData?.paymentOptions],
   );
@@ -320,6 +385,13 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
       fees,
       setCurrentStep,
       setIsStepOneFinished,
+      canChooseSection,
+      setEnrollmentDetailsPayload,
+      mutateEnroll,
+      enrollmentDetailsPayload,
+      isMutateEnrollError,
+      isMutateEnrollPending,
+      isMutateEnrollSuccess,
     }),
     [
       showSubmitStep1,
@@ -333,6 +405,12 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
       requirements,
       paymentMethods,
       fees,
+      canChooseSection,
+      mutateEnroll,
+      enrollmentDetailsPayload,
+      isMutateEnrollError,
+      isMutateEnrollPending,
+      isMutateEnrollSuccess,
     ],
   );
 

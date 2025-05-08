@@ -12,6 +12,12 @@ export class AssignedService {
   ) {}
 
   async getAllGradeLevelsBySchool(schoolId: number) {
+    if (schoolId === undefined)
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_INVALID_SCHOOL_ID',
+      });
+
     const result = await this.prisma.grade_level_offered.findMany({
       where: {
         is_active: true,
@@ -78,7 +84,6 @@ export class AssignedService {
     return refined;
   }
 
-  //TODO: All students must be returned regardless of their status
   // This can include unenrolled ones
   async getAllStudentsAssigned(sectionId: number) {
     const result = await this.prisma.enrollment_application.findMany({
@@ -126,12 +131,11 @@ export class AssignedService {
     }));
   }
 
-  //TODO: Make sure that this will filter the sections that have not preferred
   // Since enrollment application now linked to grade_section_program_id, it will now be used
   async getAllStudentsUnassigned(gradeSectionProgramId: number | number[]) {
     if (
-      typeof gradeSectionProgramId !== 'number' ||
-      !Array.isArray(gradeSectionProgramId)
+      !Array.isArray(gradeSectionProgramId) &&
+      typeof gradeSectionProgramId !== 'number'
     )
       throw new RpcException({
         statusCode: 400,
@@ -154,7 +158,7 @@ export class AssignedService {
           typeof gradeSectionProgramId === 'number'
             ? gradeSectionProgramId
             : {
-                in: gradeSectionProgramId as number[],
+                in: gradeSectionProgramId,
               },
         // Makes sure that all included are all unassigned
         grade_section_id: null,

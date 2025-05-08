@@ -5,6 +5,7 @@ interface ASection {
 }
 
 interface ASchedule {
+  scheduleId: number;
   startDatetime: Date;
   endDatetime: Date;
   slotsLeft: number | null;
@@ -42,11 +43,13 @@ export type AcademicLevelResponse = AcademicLevel[];
 export interface GradeLevel {
   gradeLevelCode: string;
   gradeLevel: string;
+  canChooseSection: boolean;
 }
 
 export type GradeLevelResponse = GradeLevel[];
 
 export interface Schedule {
+  scheduleId: number;
   dateStart: Date;
   dateEnd: Date;
   slotsLeft: number | undefined;
@@ -68,7 +71,7 @@ interface Section {
 }
 
 interface Program {
-  programId: string;
+  programId: number;
   programName: string;
   gradeSectionProgramId: number;
   sections: Section[];

@@ -26,6 +26,7 @@ interface PaymentOption {
   accountNumber: string;
   provider: string;
   instruction: string | null;
+  additionalFee: number;
 }
 
 export type PaymentMethodDetailsResponse = {

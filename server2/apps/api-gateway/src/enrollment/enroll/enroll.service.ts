@@ -78,7 +78,10 @@ export class EnrollService {
     return result;
   }
 
-  async getGradeLevelsByAcademicLevel(payload: { academicLevelCode: string }) {
+  async getGradeLevelsByAcademicLevel(payload: {
+    academicLevelCode: string;
+    schoolId: number;
+  }) {
     const result: GradeLevelsReturn = await lastValueFrom(
       this.client.send(
         {

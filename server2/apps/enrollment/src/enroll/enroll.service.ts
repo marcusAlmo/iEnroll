@@ -160,62 +160,62 @@ export class EnrollService {
   }
 
   async getAcademicLevelsBySchool(schoolId: number) {
-    const result = await this.prisma.grade_level_offered.findMany({
+    const result = await this.prisma.academic_level.findMany({
       where: {
-        is_active: true,
-        school_id: schoolId,
+        is_supported: true,
         grade_level: {
-          academic_level: {
-            is_supported: true,
-          },
-        },
-      },
-      select: {
-        grade_level: {
-          select: {
-            academic_level: {
-              select: {
-                academic_level: true,
-                academic_level_code: true,
+          some: {
+            grade_level_offered: {
+              some: {
+                school_id: schoolId,
+                is_active: true,
               },
             },
           },
         },
       },
-      distinct: ['grade_level_code', 'grade_level_offered_id'],
-      // distinct: ['grade_level.academic_level.academic_level_code'],
+      select: {
+        academic_level: true,
+        academic_level_code: true,
+      },
     });
-
-    return result.map(
-      ({
-        grade_level: {
-          academic_level: { academic_level, academic_level_code },
-        },
-      }) => ({
-        academicLeveLCode: academic_level_code,
-        academicLevel: academic_level,
-      }),
-    );
+    return result.map((level) => ({
+      academicLeveLCode: level.academic_level_code,
+      academicLevel: level.academic_level,
+    }));
   }
 
-  async getGradeLevelsByAcademicLevel(academicLevelCode: string) {
-    const result = await this.prisma.grade_level.findMany({
+  async getGradeLevelsByAcademicLevel(
+    academicLevelCode: string,
+    schoolId: number,
+  ) {
+    const result = await this.prisma.grade_level_offered.findMany({
       where: {
-        academic_level_code: academicLevelCode,
-        is_supported: true,
+        school_id: schoolId,
+        grade_level: {
+          academic_level_code: academicLevelCode,
+        },
       },
       select: {
-        grade_level_code: true,
-        grade_level: true,
+        can_choose_section: true,
+        grade_level: {
+          select: {
+            grade_level_code: true,
+            grade_level: true,
+          },
+        },
       },
       orderBy: {
-        order_position: 'asc',
+        grade_level: {
+          order_position: 'asc',
+        },
       },
     });
 
     return result.map((data) => ({
-      gradeLevelCode: data.grade_level_code,
-      gradeLevel: data.grade_level,
+      gradeLevelCode: data.grade_level.grade_level_code,
+      gradeLevel: data.grade_level.grade_level,
+      canChooseSection: data.can_choose_section,
     }));
   }
 
@@ -230,8 +230,13 @@ export class EnrollService {
         grade_level_offered: {
           grade_level_code: gradeLevelCode,
         },
+        is_paused: false,
+        aux_schedule_slot: {
+          is_closed: false,
+        },
       },
       select: {
+        schedule_id: true,
         start_datetime: true,
         end_datetime: true,
         aux_schedule_slot: {
@@ -243,6 +248,7 @@ export class EnrollService {
     });
 
     return result.map((data) => ({
+      scheduleId: data.schedule_id,
       dateStart: data.start_datetime,
       dateEnd: data.end_datetime,
       // if slots left is undefined, it still didnt accepting slots.
@@ -327,7 +333,7 @@ export class EnrollService {
     // Restructure to desired output format
     return Object.entries(groupByKey(mapped, 'programId')).map(
       ([programId, sections]) => ({
-        programId,
+        programId: +programId,
         programName: sections[0].programName,
         gradeSectionProgramId: sections[0].gradeSectionProgramId,
         sections: sections.map(({ gradeSectionId, sectionName, maxSlot }) => ({
@@ -408,6 +414,7 @@ export class EnrollService {
                     account_name: true,
                     account_number: true,
                     instruction: true,
+                    additional_fee: true,
                   },
                 },
               },
@@ -438,6 +445,7 @@ export class EnrollService {
             accountNumber: p.account_number,
             provider: p.provider,
             instruction: p.instruction,
+            additionalFee: p.additional_fee.toNumber(),
           }),
         ) ?? null,
     };
@@ -539,6 +547,7 @@ export class EnrollService {
       studentId: number;
       schoolId: number;
       // gradeLevelCode: string;
+      // this is just program id
       gradeSectionProgramId: number;
       // Optional, if student has already selected section
       gradeSectionId?: number;
@@ -596,6 +605,18 @@ export class EnrollService {
     }
 
     // Step 4 & 5 - Fetch schedule and its grade level in one query.
+    console.log('STEP%', {
+      schedule_id: details.scheduleId,
+      grade_level_offered: {
+        school_id: details.schoolId,
+        grade_section_program: {
+          // some: {
+            grade_section_program_id: details.gradeSectionProgramId,
+          // },
+        },
+      },
+    });
+
     const schedule = await this.prisma.aux_schedule_slot.findFirst({
       where: {
         schedule_id: details.scheduleId,
@@ -604,6 +625,7 @@ export class EnrollService {
           grade_section_program: {
             some: {
               grade_section_program_id: details.gradeSectionProgramId,
+              // program_id: details.gradeSectionProgramId,
             },
           },
         },
