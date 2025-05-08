@@ -546,8 +546,6 @@ export class EnrollService {
     details: {
       studentId: number;
       schoolId: number;
-      // gradeLevelCode: string;
-      // this is just program id
       gradeSectionProgramId: number;
       // Optional, if student has already selected section
       gradeSectionId?: number;
