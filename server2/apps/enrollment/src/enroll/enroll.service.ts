@@ -728,7 +728,7 @@ export class EnrollService {
                   text_content: r.textContent ?? null,
                   attachment_type: r.attachmentType,
                   file_id: r.fileId ?? null,
-                  status: 'pending',
+                  status: $Enums.attachment_status.pending,
                 })),
               },
             },
