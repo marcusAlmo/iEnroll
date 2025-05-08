@@ -2,11 +2,10 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
-  isString,
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { $Enums } from '@prisma/client';
 
 export class RequirementTextDto {
