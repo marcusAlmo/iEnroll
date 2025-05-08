@@ -603,17 +603,6 @@ export class EnrollService {
     }
 
     // Step 4 & 5 - Fetch schedule and its grade level in one query.
-    console.log('STEP%', {
-      schedule_id: details.scheduleId,
-      grade_level_offered: {
-        school_id: details.schoolId,
-        grade_section_program: {
-          // some: {
-            grade_section_program_id: details.gradeSectionProgramId,
-          // },
-        },
-      },
-    });
 
     const schedule = await this.prisma.aux_schedule_slot.findFirst({
       where: {
@@ -628,11 +617,6 @@ export class EnrollService {
           },
         },
       },
-      // include: {
-      //   grade_level_offered: {
-      //     select: { grade_level_offered_id: true },
-      //   },
-      // },
     });
 
     if (!schedule) {
