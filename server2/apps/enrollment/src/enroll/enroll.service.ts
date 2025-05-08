@@ -546,8 +546,6 @@ export class EnrollService {
     details: {
       studentId: number;
       schoolId: number;
-      // gradeLevelCode: string;
-      // this is just program id
       gradeSectionProgramId: number;
       // Optional, if student has already selected section
       gradeSectionId?: number;
@@ -584,7 +582,7 @@ export class EnrollService {
     if (!student) {
       throw new RpcException({
         statusCode: 404,
-        message: '`ERR_STUDENT_NOT_FOUND`',
+        message: 'ERR_STUDENT_NOT_FOUND',
       });
     }
 
@@ -592,7 +590,7 @@ export class EnrollService {
     if (student.enrollment_application) {
       throw new RpcException({
         statusCode: 409,
-        message: '`ERR_ALREADY_APPLIED`',
+        message: 'ERR_ALREADY_APPLIED',
       });
     }
 
@@ -600,22 +598,11 @@ export class EnrollService {
     if (student.enrollment_fee_payment) {
       throw new RpcException({
         statusCode: 409,
-        message: '`ERR_ALREADY_PAID`',
+        message: 'ERR_ALREADY_PAID',
       });
     }
 
     // Step 4 & 5 - Fetch schedule and its grade level in one query.
-    console.log('STEP%', {
-      schedule_id: details.scheduleId,
-      grade_level_offered: {
-        school_id: details.schoolId,
-        grade_section_program: {
-          // some: {
-            grade_section_program_id: details.gradeSectionProgramId,
-          // },
-        },
-      },
-    });
 
     const schedule = await this.prisma.aux_schedule_slot.findFirst({
       where: {
@@ -630,17 +617,12 @@ export class EnrollService {
           },
         },
       },
-      // include: {
-      //   grade_level_offered: {
-      //     select: { grade_level_offered_id: true },
-      //   },
-      // },
     });
 
     if (!schedule) {
       throw new RpcException({
         statusCode: 404,
-        message: '`ERR_SCHEDULE_OR_GRADE_LEVEL_NOT_FOUND`',
+        message: 'ERR_SCHEDULE_OR_GRADE_LEVEL_NOT_FOUND',
       });
     }
 
@@ -648,7 +630,7 @@ export class EnrollService {
     if (schedule.application_slot_left === 0) {
       throw new RpcException({
         statusCode: 400,
-        message: '`ERR_SCHEDULE_SLOT_FULL`',
+        message: 'ERR_SCHEDULE_SLOT_FULL',
       });
     }
 
@@ -656,7 +638,7 @@ export class EnrollService {
     if (schedule.is_closed) {
       throw new RpcException({
         statusCode: 400,
-        message: '`ERR_SCHEDULE_ALREADY_CLOSED`',
+        message: 'ERR_SCHEDULE_ALREADY_CLOSED',
       });
     }
 
@@ -676,7 +658,7 @@ export class EnrollService {
     if (files.length !== fileIds.length) {
       throw new RpcException({
         statusCode: 500,
-        message: '`ERR_INVALID_FILE_IDS`',
+        message: 'ERR_INVALID_FILE_IDS',
       });
     }
 
@@ -692,14 +674,14 @@ export class EnrollService {
     if (!paymentOption) {
       throw new RpcException({
         statusCode: 404,
-        message: '`ERR_PAYMENT_OPTION_NOT_FOUND`',
+        message: 'ERR_PAYMENT_OPTION_NOT_FOUND',
       });
     }
 
     if (!paymentOption.is_available) {
       throw new RpcException({
         statusCode: 400,
-        message: '`ERR_PAYMENT_OPTION_NOT_AVAILABLE`',
+        message: 'ERR_PAYMENT_OPTION_NOT_AVAILABLE',
       });
     }
 
@@ -717,7 +699,7 @@ export class EnrollService {
       if (!section) {
         throw new RpcException({
           statusCode: 404,
-          message: '`ERR_SECTION_NOT_FOUND`',
+          message: 'ERR_SECTION_NOT_FOUND',
         });
       }
     }
@@ -746,7 +728,7 @@ export class EnrollService {
                   text_content: r.textContent ?? null,
                   attachment_type: r.attachmentType,
                   file_id: r.fileId ?? null,
-                  status: 'pending',
+                  status: $Enums.attachment_status.pending,
                 })),
               },
             },
@@ -759,7 +741,7 @@ export class EnrollService {
       console.error(error);
       throw new RpcException({
         statusCode: 500,
-        message: '`ERR_ENROLL_APPLICATION_FAILED`',
+        message: 'ERR_ENROLL_APPLICATION_FAILED',
       });
     }
   }

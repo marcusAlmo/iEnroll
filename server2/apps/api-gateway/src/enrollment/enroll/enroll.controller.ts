@@ -9,7 +9,6 @@ import {
   ParseIntPipe,
   Post,
   Query,
-  Req,
   UploadedFile,
   UploadedFiles,
   UseGuards,
@@ -32,7 +31,6 @@ import {
   RequirementTextDtoHttp,
   PaymentDtoHttp,
 } from '@lib/dtos/src/enrollment/v1/microservice/enroll.dto';
-import { Request } from 'express';
 
 @Controller('enroll')
 @UseGuards(JwtAuthGuard)
@@ -162,7 +160,6 @@ export class EnrollController {
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
   async enrollStudent(
-    @Req() req: Request,
     @Body() body: EnrollmentApplicationDtoHttp,
     @UploadedFiles() files: Express.Multer.File[],
     @User('user_id') studentId: number,
@@ -183,8 +180,6 @@ export class EnrollController {
       throw new InternalServerErrorException('ERR_FILE_UPLOAD_UNSUCCESSFUL');
     }
 
-    console.log('UPLOADED');
-
     const {
       details: detailsRaw,
       requirements: requirementsRaw,
@@ -198,10 +193,6 @@ export class EnrollController {
     )[];
     const payment = JSON.parse(paymentRaw) as PaymentDtoHttp;
 
-    console.log({ details, requirements, payment });
-
-    // console.log('UPLOADED_FILES', uploadedFiles);
-
     const mappedRequirements = requirements.map((requirement, i) => {
       return requirement.textContent
         ? ({
@@ -214,9 +205,6 @@ export class EnrollController {
             fileId: uploadedFiles[i]?.document?.id,
           } as RequirementFileDto);
     });
-
-    // console.log('mappedreq', mappedRequirements);
-    // console.log('pay', uploadedFiles.at(-1)!.document?.id);
 
     return this.enrollService.makeStudentEnrollmentApplication({
       details: { ...details, studentId, schoolId },

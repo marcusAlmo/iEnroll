@@ -6,18 +6,19 @@ export type EnrollmentStatus = {
 export type StatusContent = {
   statusLabel: string;
   statusLabelColor: string; // Color of the badge
-  description?: string | Description;  // Description below the status badge
+  description?: string | Description; // Description below the status badge
   actionText?: string; // "Click here to see required documents", "Click here to apply"
   action?: () => void; // For navigation, etc.
 };
 
 export type Description = {
   programName: string;
-  year: number;
+  year: string;
+  section: string;
   paymentStatus: string | Date;
 };
 
 export type ReuploadDocuments = {
   documentName: string;
   action: () => void;
-}
+};

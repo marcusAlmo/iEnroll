@@ -2,7 +2,6 @@ import Enums, {
   accepted_data_type,
   requirement_type,
 } from "@/services/common/types/enums";
-import { sanitizeName } from "@/utils/stringUtils";
 import { z } from "zod";
 
 interface Requirement {
@@ -43,13 +42,12 @@ export function generateSchemaFromRequirements(requirements: Requirement[]) {
           .refine((n) => !isNaN(n), `${req.name} is required`),
       );
     } else if (req.acceptedDataTypes === Enums.accepted_data_type.date) {
-      schema = z.preprocess(
-        (val) => (val instanceof Date ? val : new Date(val as string)),
-        z.date({
-          required_error: `${req.name} is required`,
-          invalid_type_error: `${req.name} must be a valid date`,
-        }),
-      );
+      schema = z
+        .string()
+        .transform((val) => new Date(val))
+        .refine((date) => date instanceof Date && !isNaN(date.getTime()), {
+          message: `${req.name} has an nvalid date format.`,
+        });
     }
 
     // Optional field wrapping

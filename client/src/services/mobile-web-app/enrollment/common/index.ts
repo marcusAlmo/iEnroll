@@ -11,7 +11,7 @@ import { instance } from "@/lib/axios";
 
 export const makeStudentApplication = async (formData: FormData) => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
-    return instance.post(`/api/enrollment/enroll`, formData, {
+    return await instance.post(`/api/enrollment/enroll`, formData, {
       headers: {
          'Content-Type': 'multipart/form-data' 
       },

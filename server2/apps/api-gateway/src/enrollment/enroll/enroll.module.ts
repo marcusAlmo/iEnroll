@@ -17,5 +17,6 @@ import { PrismaService } from '@lib/prisma/src/prisma.service';
   ],
   controllers: [EnrollController],
   providers: [EnrollService, FileService, PrismaService],
+  exports: [EnrollModule],
 })
 export class EnrollModule {}
