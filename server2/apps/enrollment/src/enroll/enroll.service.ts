@@ -582,7 +582,7 @@ export class EnrollService {
     if (!student) {
       throw new RpcException({
         statusCode: 404,
-        message: '`ERR_STUDENT_NOT_FOUND`',
+        message: 'ERR_STUDENT_NOT_FOUND',
       });
     }
 
@@ -590,7 +590,7 @@ export class EnrollService {
     if (student.enrollment_application) {
       throw new RpcException({
         statusCode: 409,
-        message: '`ERR_ALREADY_APPLIED`',
+        message: 'ERR_ALREADY_APPLIED',
       });
     }
 
@@ -598,7 +598,7 @@ export class EnrollService {
     if (student.enrollment_fee_payment) {
       throw new RpcException({
         statusCode: 409,
-        message: '`ERR_ALREADY_PAID`',
+        message: 'ERR_ALREADY_PAID',
       });
     }
 
@@ -622,7 +622,7 @@ export class EnrollService {
     if (!schedule) {
       throw new RpcException({
         statusCode: 404,
-        message: '`ERR_SCHEDULE_OR_GRADE_LEVEL_NOT_FOUND`',
+        message: 'ERR_SCHEDULE_OR_GRADE_LEVEL_NOT_FOUND',
       });
     }
 
@@ -630,7 +630,7 @@ export class EnrollService {
     if (schedule.application_slot_left === 0) {
       throw new RpcException({
         statusCode: 400,
-        message: '`ERR_SCHEDULE_SLOT_FULL`',
+        message: 'ERR_SCHEDULE_SLOT_FULL',
       });
     }
 
@@ -638,7 +638,7 @@ export class EnrollService {
     if (schedule.is_closed) {
       throw new RpcException({
         statusCode: 400,
-        message: '`ERR_SCHEDULE_ALREADY_CLOSED`',
+        message: 'ERR_SCHEDULE_ALREADY_CLOSED',
       });
     }
 
@@ -658,7 +658,7 @@ export class EnrollService {
     if (files.length !== fileIds.length) {
       throw new RpcException({
         statusCode: 500,
-        message: '`ERR_INVALID_FILE_IDS`',
+        message: 'ERR_INVALID_FILE_IDS',
       });
     }
 
@@ -674,14 +674,14 @@ export class EnrollService {
     if (!paymentOption) {
       throw new RpcException({
         statusCode: 404,
-        message: '`ERR_PAYMENT_OPTION_NOT_FOUND`',
+        message: 'ERR_PAYMENT_OPTION_NOT_FOUND',
       });
     }
 
     if (!paymentOption.is_available) {
       throw new RpcException({
         statusCode: 400,
-        message: '`ERR_PAYMENT_OPTION_NOT_AVAILABLE`',
+        message: 'ERR_PAYMENT_OPTION_NOT_AVAILABLE',
       });
     }
 
@@ -699,7 +699,7 @@ export class EnrollService {
       if (!section) {
         throw new RpcException({
           statusCode: 404,
-          message: '`ERR_SECTION_NOT_FOUND`',
+          message: 'ERR_SECTION_NOT_FOUND',
         });
       }
     }
@@ -741,7 +741,7 @@ export class EnrollService {
       console.error(error);
       throw new RpcException({
         statusCode: 500,
-        message: '`ERR_ENROLL_APPLICATION_FAILED`',
+        message: 'ERR_ENROLL_APPLICATION_FAILED',
       });
     }
   }
