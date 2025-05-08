@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReUploadController } from './re-upload.controller';
 import { ReUploadService } from './re-upload.service';
+import { PrismaService } from '@lib/prisma/src/prisma.service';
 
 describe('ReUploadController', () => {
   let controller: ReUploadController;
@@ -8,7 +9,7 @@ describe('ReUploadController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ReUploadController],
-      providers: [ReUploadService],
+      providers: [ReUploadService, PrismaService],
     }).compile();
 
     controller = module.get<ReUploadController>(ReUploadController);
