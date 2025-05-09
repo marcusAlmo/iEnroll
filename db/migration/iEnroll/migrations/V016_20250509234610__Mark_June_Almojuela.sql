@@ -1,0 +1,33 @@
+-- Grade Section Program
+ALTER TABLE enrollment.grade_section_program RENAME TO grade_level_program;
+
+ALTER TABLE enrollment.grade_level_program 
+RENAME COLUMN grade_section_program_id TO grade_level_program_id;
+
+-- Grade Section
+ALTER TABLE enrollment.grade_section
+RENAME COLUMN grade_section_program_id TO grade_level_program_id;
+
+ALTER TABLE enrollment.grade_section
+RENAME CONSTRAINT fk_grade_section_grade_section_program_id TO fk_grade_section_grade_level_program_id;
+
+-- Enrollment Requirement
+ALTER TABLE enrollment.enrollment_requirement
+RENAME COLUMN grade_section_program_id TO grade_level_program_id;
+
+ALTER TABLE enrollment.enrollment_requirement
+RENAME CONSTRAINT fk_enrollment_requirement_grade_section_program_id TO fk_enrollment_requirement_grade_level_program_id;
+
+-- Enrollment Fee
+ALTER TABLE enrollment.enrollment_fee
+RENAME COLUMN grade_section_program_id TO grade_level_program_id;
+
+ALTER TABLE enrollment.enrollment_fee
+RENAME CONSTRAINT fk_enrollment_fee_grade_section_program_id TO fk_enrollment_fee_grade_level_program_id;
+
+-- Enrollment Application
+ALTER TABLE enrollment.enrollment_application
+RENAME COLUMN grade_section_program_id TO grade_level_program_id;
+
+ALTER TABLE enrollment.enrollment_application
+RENAME CONSTRAINT fk_enrollment_application_grade_section_program_id TO fk_enrollment_application_grade_level_program_id;
