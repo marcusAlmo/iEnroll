@@ -101,7 +101,13 @@ export const EnrolledStudentsProvider: React.FC<{
   const { data: sections, isPending: isSectionsPending } = useQuery({
     queryKey: ["enrolledSections", selectedGradeLevel],
     queryFn: () => getAllSectionsByGradeLevel(selectedGradeLevel!),
-    select: (data) => data.data,
+    select: (data) => {
+      const raw = data.data;
+      return raw.map((section) => ({
+        ...section,
+        sectionName: `${section.programName} | ${section.sectionName}`,
+      }));
+    },
     enabled: selectedGradeLevel !== null,
   });
 
@@ -128,8 +134,9 @@ export const EnrolledStudentsProvider: React.FC<{
         selectedSection!,
         searchTerm.trim() === "" ? undefined : searchTerm,
       ),
-    select: (data) =>
-      data.data.map((student) => ({
+    select: (data) => {
+      const raw = data.data;
+      const stud = raw.map((student) => ({
         studentId: student.studentId,
         studentName: [
           student.firstName,
@@ -144,16 +151,25 @@ export const EnrolledStudentsProvider: React.FC<{
         lastName: student.lastName,
         suffix: student.suffix,
         applicationStatus: "Enrolled",
-        enrollmentDate: student.enrollmentDate.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
+        enrollmentDate: new Date(student.enrollmentDate).toLocaleDateString(
+          "en-US",
+          {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          },
+        ),
         gradeLevel: student.gradeLevel,
         section: student.sectionName,
-      })),
+      }));
+      return stud;
+    },
     enabled: selectedSection !== null,
   });
+
+  useEffect(() => {
+    if (students) console.log(students);
+  }, [students]);
 
   const [selectedStudent, setSelectedStudent] =
     useState<EnrolledStudent | null>(null);

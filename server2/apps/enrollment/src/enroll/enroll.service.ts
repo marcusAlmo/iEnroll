@@ -1,7 +1,7 @@
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { $Enums } from '@prisma/client';
+import { $Enums, attachment_type } from '@prisma/client';
 
 @Injectable()
 export class EnrollService {
@@ -160,59 +160,62 @@ export class EnrollService {
   }
 
   async getAcademicLevelsBySchool(schoolId: number) {
-    const result = await this.prisma.grade_level_offered.findMany({
+    const result = await this.prisma.academic_level.findMany({
       where: {
-        is_active: true,
-        school_id: schoolId,
+        is_supported: true,
         grade_level: {
-          academic_level: {
-            is_supported: true,
-          },
-        },
-      },
-      select: {
-        grade_level: {
-          select: {
-            academic_level: {
-              select: {
-                academic_level: true,
-                academic_level_code: true,
+          some: {
+            grade_level_offered: {
+              some: {
+                school_id: schoolId,
+                is_active: true,
               },
             },
           },
         },
       },
-      distinct: ['grade_level_code', 'grade_level_offered_id'],
-      // distinct: ['grade_level.academic_level.academic_level_code'],
+      select: {
+        academic_level: true,
+        academic_level_code: true,
+      },
     });
-
-    return result.map(
-      ({
-        grade_level: {
-          academic_level: { academic_level, academic_level_code },
-        },
-      }) => ({
-        academicLeveLCode: academic_level_code,
-        academicLevel: academic_level,
-      }),
-    );
+    return result.map((level) => ({
+      academicLeveLCode: level.academic_level_code,
+      academicLevel: level.academic_level,
+    }));
   }
 
-  async getGradeLevelsByAcademicLevel(academicLevelCode: string) {
-    const result = await this.prisma.grade_level.findMany({
+  async getGradeLevelsByAcademicLevel(
+    academicLevelCode: string,
+    schoolId: number,
+  ) {
+    const result = await this.prisma.grade_level_offered.findMany({
       where: {
-        academic_level_code: academicLevelCode,
-        is_supported: true,
+        school_id: schoolId,
+        grade_level: {
+          academic_level_code: academicLevelCode,
+        },
       },
       select: {
-        grade_level_code: true,
-        grade_level: true,
+        can_choose_section: true,
+        grade_level: {
+          select: {
+            grade_level_code: true,
+            grade_level: true,
+          },
+        },
+      },
+      orderBy: {
+        grade_level: {
+          order_position: 'asc',
+        },
       },
     });
 
     return result.map((data) => ({
-      gradeLevelCode: data.grade_level_code,
-      gradeLevel: data.grade_level,
+      gradeLevelCode: data.grade_level.grade_level_code,
+      gradeLevel: data.grade_level.grade_level,
+      canChooseSection: data.can_choose_section,
     }));
   }
 
@@ -227,8 +230,13 @@ export class EnrollService {
         grade_level_offered: {
           grade_level_code: gradeLevelCode,
         },
+        is_paused: false,
+        aux_schedule_slot: {
+          is_closed: false,
+        },
       },
       select: {
+        schedule_id: true,
         start_datetime: true,
         end_datetime: true,
         aux_schedule_slot: {
@@ -240,6 +248,7 @@ export class EnrollService {
     });
 
     return result.map((data) => ({
+      scheduleId: data.schedule_id,
       dateStart: data.start_datetime,
       dateEnd: data.end_datetime,
       // if slots left is undefined, it still didnt accepting slots.
@@ -324,7 +333,7 @@ export class EnrollService {
     // Restructure to desired output format
     return Object.entries(groupByKey(mapped, 'programId')).map(
       ([programId, sections]) => ({
-        programId,
+        programId: +programId,
         programName: sections[0].programName,
         gradeSectionProgramId: sections[0].gradeSectionProgramId,
         sections: sections.map(({ gradeSectionId, sectionName, maxSlot }) => ({
@@ -405,6 +414,7 @@ export class EnrollService {
                     account_name: true,
                     account_number: true,
                     instruction: true,
+                    additional_fee: true,
                   },
                 },
               },
@@ -435,6 +445,7 @@ export class EnrollService {
             accountNumber: p.account_number,
             provider: p.provider,
             instruction: p.instruction,
+            additionalFee: p.additional_fee.toNumber(),
           }),
         ) ?? null,
     };
@@ -529,5 +540,209 @@ export class EnrollService {
 
     const foundIds = new Set(found.map((req) => req.requirement_id));
     return requirementIds.every((id) => foundIds.has(id));
+  }
+
+  async makeStudentEnrollmentApplication(payload: {
+    details: {
+      studentId: number;
+      schoolId: number;
+      gradeSectionProgramId: number;
+      // Optional, if student has already selected section
+      gradeSectionId?: number;
+      scheduleId: number;
+      remarks?: string;
+    };
+    requirements: {
+      requirementId: number;
+      textContent?: string;
+      attachmentType: attachment_type;
+      fileId?: number;
+    }[];
+    payment: {
+      fileId: number;
+      paymentOptionId: number;
+    };
+  }) {
+    const { details, requirements, payment } = payload;
+
+    // Step 1 - Ensure the student exists and hasn't already applied or paid.
+    const student = await this.prisma.student.findUnique({
+      where: { student_id: details.studentId },
+      select: {
+        student_id: true,
+        enrollment_application: {
+          select: { application_id: true },
+        },
+        enrollment_fee_payment: {
+          select: { student_id: true },
+        },
+      },
+    });
+
+    if (!student) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_STUDENT_NOT_FOUND',
+      });
+    }
+
+    // Step 2 - Check if student has already applied.
+    if (student.enrollment_application) {
+      throw new RpcException({
+        statusCode: 409,
+        message: 'ERR_ALREADY_APPLIED',
+      });
+    }
+
+    // Step 3 - Check if student has already made a payment.
+    if (student.enrollment_fee_payment) {
+      throw new RpcException({
+        statusCode: 409,
+        message: 'ERR_ALREADY_PAID',
+      });
+    }
+
+    // Step 4 & 5 - Fetch schedule and its grade level in one query.
+
+    const schedule = await this.prisma.aux_schedule_slot.findFirst({
+      where: {
+        schedule_id: details.scheduleId,
+        grade_level_offered: {
+          school_id: details.schoolId,
+          grade_section_program: {
+            some: {
+              grade_section_program_id: details.gradeSectionProgramId,
+              // program_id: details.gradeSectionProgramId,
+            },
+          },
+        },
+      },
+    });
+
+    if (!schedule) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_SCHEDULE_OR_GRADE_LEVEL_NOT_FOUND',
+      });
+    }
+
+    // Step 6 - Check for available slots.
+    if (schedule.application_slot_left === 0) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_SCHEDULE_SLOT_FULL',
+      });
+    }
+
+    // Step 7 - Check if schedule is closed.
+    if (schedule.is_closed) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_SCHEDULE_ALREADY_CLOSED',
+      });
+    }
+
+    // Step 8 - Validate all file IDs exist.
+    const fileIds = Array.from(
+      new Set([
+        ...requirements.map((r) => r.fileId).filter(Boolean),
+        payment.fileId,
+      ]),
+    ) as number[];
+
+    const files = await this.prisma.file.findMany({
+      where: { file_id: { in: fileIds } },
+      select: { file_id: true },
+    });
+
+    if (files.length !== fileIds.length) {
+      throw new RpcException({
+        statusCode: 500,
+        message: 'ERR_INVALID_FILE_IDS',
+      });
+    }
+
+    // Step 9 - Check if payment option is valid and available.
+    const paymentOption = await this.prisma.school_payment_option.findFirst({
+      where: {
+        payment_option_id: payment.paymentOptionId,
+        school_id: details.schoolId,
+      },
+      select: { is_available: true },
+    });
+
+    if (!paymentOption) {
+      throw new RpcException({
+        statusCode: 404,
+        message: 'ERR_PAYMENT_OPTION_NOT_FOUND',
+      });
+    }
+
+    if (!paymentOption.is_available) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_PAYMENT_OPTION_NOT_AVAILABLE',
+      });
+    }
+
+    if (details.gradeSectionId) {
+      // Extra step - Check if section id exists
+      const section = await this.prisma.grade_section.findFirst({
+        where: {
+          grade_section_id: details.gradeSectionId,
+        },
+        select: {
+          grade_section_id: true,
+        },
+      });
+
+      if (!section) {
+        throw new RpcException({
+          statusCode: 404,
+          message: 'ERR_SECTION_NOT_FOUND',
+        });
+      }
+    }
+
+    // Step 10 - Perform transactional creation.
+    try {
+      await this.prisma.$transaction([
+        this.prisma.enrollment_fee_payment.create({
+          data: {
+            student_id: details.studentId,
+            file_id: payment.fileId,
+            payment_option_id: payment.paymentOptionId,
+          },
+        }),
+        this.prisma.enrollment_application.create({
+          data: {
+            application_id: details.studentId,
+            grade_section_program_id: details.gradeSectionProgramId,
+            grade_section_id: details.gradeSectionId,
+            schedule_id: details.scheduleId,
+            remarks: details.remarks,
+            application_attachment: {
+              createMany: {
+                data: requirements.map((r) => ({
+                  requirement_id: r.requirementId,
+                  text_content: r.textContent ?? null,
+                  attachment_type: r.attachmentType,
+                  file_id: r.fileId ?? null,
+                  status: $Enums.attachment_status.pending,
+                })),
+              },
+            },
+          },
+        }),
+      ]);
+
+      return { success: true };
+    } catch (error) {
+      console.error(error);
+      throw new RpcException({
+        statusCode: 500,
+        message: 'ERR_ENROLL_APPLICATION_FAILED',
+      });
+    }
   }
 }

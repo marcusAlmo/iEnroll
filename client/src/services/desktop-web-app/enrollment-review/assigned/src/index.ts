@@ -18,7 +18,7 @@ import {
   getRequirementsByStudentId,
   getSectionsByGradeId,
   getAssignedStudentsBySectionId,
-  getUnasssignedStudentsByGradeId,
+  getUnassignedStudentsByGradeSectionProgramId,
   approveOrDenyMockRequirement,
   enrollMockStudent,
   reassignMockStudentIntoDifferentSection,
@@ -42,20 +42,48 @@ export const getAllSectionsByGradeLevel = async (gradeLevelId: number) => {
 };
 
 export const getAllStudentsAssignedBySection = async (sectionId: number) => {
-  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
+  console.log("GETTING SECTON", sectionId);
+
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true") {
     return instance.get<StudentResponse>(
-      `/api/enrollment/review/students/assigned/${sectionId}`,
+      `/api/enrollment/review/assigned/students/assigned/${sectionId}`,
     );
-  else return { data: getAssignedStudentsBySectionId(sectionId) };
+  } else return { data: getAssignedStudentsBySectionId(sectionId) };
 };
 
-export const getAllStudentsUnassignedByGradeLevel = async (gradeId: number) => {
-  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
-    return instance.get<StudentResponse>(
-      `/api/enrollment/review//students/unassigned/${gradeId}`,
-    );
-  else return { data: getUnasssignedStudentsByGradeId(gradeId) };
+export const getAllStudentsUnassignedByGradeSectionProgram = async (
+  gradeSectionProgramId: number[],
+) => {
+  // Handle environment conditions
+  const baseUrl = `/api/enrollment/review/assigned/students/unassigned/`;
+
+  const id =
+    gradeSectionProgramId.length === 1
+      ? gradeSectionProgramId[0]
+      : gradeSectionProgramId;
+
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true") {
+    // If id is an array, join it as a comma-separated string
+    const url = Array.isArray(id)
+      ? `${baseUrl}${id.join(",")}`
+      : `${baseUrl}${id}`;
+    // Make the request using axios
+    return instance.get<StudentResponse>(url);
+  } else {
+    // Fallback to local data retrieval for non-production environments
+    return {
+      data: getUnassignedStudentsByGradeSectionProgramId(id),
+    };
+  }
 };
+
+// export const getAllStudentsUnassignedByGradeLevel = async (gradeId: number) => {
+//   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
+//     return instance.get<StudentResponse>(
+//       `/api/enrollment/review//students/unassigned/${gradeId}`,
+//     );
+//   else return { data: getUnasssignedStudentsByGradeId(gradeId) };
+// };
 
 export const getAllRequirementsByStudentId = async (studentId: number) => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")

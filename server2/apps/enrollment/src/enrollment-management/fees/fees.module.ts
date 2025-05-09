@@ -6,6 +6,6 @@ import { MicroserviceUtilityService } from '@lib/microservice-utility/microservi
 
 @Module({
   providers: [FeesService, PrismaService, MicroserviceUtilityService],
-  controllers: [FeesController]
+  controllers: [FeesController],
 })
 export class FeesModule {}

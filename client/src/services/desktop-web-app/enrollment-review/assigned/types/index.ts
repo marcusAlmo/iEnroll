@@ -12,6 +12,8 @@ export interface GradeLevel {
 export type GradeLevelResponse = GradeLevel[];
 
 export interface Section {
+  gradeSectionProgramId: number;
+  programName: string;
   sectionId: number;
   sectionName: string;
 }

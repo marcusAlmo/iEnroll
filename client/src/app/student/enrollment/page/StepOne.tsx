@@ -15,17 +15,13 @@ import {
 import CustomDropdown from "@/components/CustomDropdown";
 // import { gradeLevels, levels, schools, sections } from "../dropdownOptions";
 import { Calendar } from "primereact/calendar";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Schedule } from "@/services/mobile-web-app/enrollment/step-one/types";
 import { useEnroll } from "../../context/enroll/hook";
 import { useNavigate } from "react-router";
 
 const StepOne = () => {
-  const navigate = useNavigate()
-  const [displaySlots, setDisplaySlots] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
   const {
     showSubmitStep1: showSubmit,
     setShowSubmitStep1: setShowSubmit,
@@ -34,8 +30,20 @@ const StepOne = () => {
     programs,
     sections,
     schedules,
-    form,
+    stepOneForm: form,
+    setCurrentStep,
+    setIsStepOneFinished,
+    canChooseSection,
+    setEnrollmentDetailsPayload,
   } = useEnroll();
+
+  useEffect(() => {
+    setCurrentStep(1);
+  }, [setCurrentStep]);
+
+  const navigate = useNavigate();
+  const [displaySlots, setDisplaySlots] = useState<boolean>(false);
+  // const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const normalizeDate = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -48,7 +56,7 @@ const StepOne = () => {
     const groupedByDate = new Map<string, Schedule[]>();
 
     schedules.forEach((schedule) => {
-      const key = normalizeDate(schedule.dateStart).toISOString(); // e.g., '2025-05-05T00:00:00.000Z'
+      const key = normalizeDate(new Date(schedule.dateStart)).toISOString(); // e.g., '2025-05-05T00:00:00.000Z'
       if (!groupedByDate.has(key)) {
         groupedByDate.set(key, []);
       }
@@ -66,6 +74,7 @@ const StepOne = () => {
         id: dateIndex + 1,
         date: new Date(dateKey),
         timeslots: schedules.map((sched, timeslotIndex) => ({
+          scheduleId: sched.scheduleId,
           timeslotId: timeslotIndex + 1,
           timeStart: format(sched.dateStart, "h:mm a"),
           timeEnd: format(sched.dateEnd, "h:mm a"),
@@ -128,8 +137,13 @@ const StepOne = () => {
   // Check if level, grade level, and section are ALL changed
   useEffect(() => {
     const subscription = form.watch((value) => {
-      const { level, gradeLevel, section } = value;
-      if (level && gradeLevel && section) {
+      const {
+        levelCode: level,
+        gradeLevelCode: gradeLevel,
+        programId: program,
+        sectionId: section,
+      } = value;
+      if (level && gradeLevel && program && (!canChooseSection || section)) {
         setDisplaySlots(true); // Display available slots
       } else {
         setDisplaySlots(false); // Hide slots if any field is empty
@@ -137,27 +151,34 @@ const StepOne = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [canChooseSection, form]);
 
   const enrollmentDate = useWatch({
     control: form.control,
     name: "enrollmentDate",
   });
-  const enrollmentTime = useWatch({
+  const scheduleId = useWatch({
     control: form.control,
-    name: "enrollmentTime",
+    name: "scheduleId",
   });
 
   useEffect(() => {
     const isDateDirty = form.formState.dirtyFields.enrollmentDate;
-    const isTimeDirty = form.formState.dirtyFields.enrollmentTime;
-    const isSectionDirty = form.formState.dirtyFields.section;
-    const isProgramDirty = form.formState.dirtyFields.program;
-    const isGradeLevelDirty = form.formState.dirtyFields.gradeLevel;
-    const isLevelDirty = form.formState.dirtyFields.level;
-    // program
-    // gradelevel
-    // level
+    const isTimeDirty = form.formState.dirtyFields.scheduleId;
+    const isSectionDirty =
+      !canChooseSection || form.formState.dirtyFields.sectionId;
+    const isProgramDirty = form.formState.dirtyFields.programId;
+    const isGradeLevelDirty = form.formState.dirtyFields.gradeLevelCode;
+    const isLevelDirty = form.formState.dirtyFields.levelCode;
+
+    // console.log("---------------");
+
+    // console.log("IS_DATE_DIRTY", isDateDirty);
+    // console.log("IS_TIME_DIRTY", isTimeDirty);
+    // console.log("IS_SECTION_DIRTY", isSectionDirty);
+    // console.log("IS_PROGRAM_DIRTY", isProgramDirty);
+    // console.log("IS_GRADE_LEVEL_DIRTY", isGradeLevelDirty);
+    // console.log("IS_LEVEL_DIRTY", isLevelDirty);
 
     if (
       isDateDirty &&
@@ -167,14 +188,14 @@ const StepOne = () => {
       isGradeLevelDirty &&
       isLevelDirty
     ) {
-      console.log("Both fields are dirty:", isDateDirty, isTimeDirty);
       setShowSubmit(true);
     } else {
       setShowSubmit(false);
     }
   }, [
+    canChooseSection,
     enrollmentDate,
-    enrollmentTime,
+    scheduleId,
     form.formState.dirtyFields,
     setShowSubmit,
   ]);
@@ -196,9 +217,27 @@ const StepOne = () => {
     );
   }, [selectedDate, timeAndSlots]);
 
-  const onSubmit = (data: z.infer<typeof stepOneSchema>) => {
-    console.log(data);
-  };
+  const onSubmit = useCallback(
+    (data: z.infer<typeof stepOneSchema>) => {
+      console.log("SUBMITTING FORM", data);
+
+      setEnrollmentDetailsPayload({
+        gradeSectionProgramId: +data.programId,
+        scheduleId: +data.scheduleId,
+        gradeSectionId: data.sectionId ? +data.sectionId : undefined,
+      });
+      setIsStepOneFinished(true);
+      navigate("/student/enroll/step-2");
+    },
+    [navigate, setEnrollmentDetailsPayload, setIsStepOneFinished],
+  );
+
+  // const sortedAllowedDates = [...allowedDates].sort(
+  //   (a, b) => a.getTime() - b.getTime(),
+  // );
+
+  // const minDate = sortedAllowedDates[0];
+  // const maxDate = sortedAllowedDates[sortedAllowedDates.length - 1];
 
   return (
     <section className="flex flex-col items-center justify-center py-12">
@@ -211,12 +250,20 @@ const StepOne = () => {
 
       <div className="mt-8 w-screen">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              // console.log("Raw submit triggered");
+              // console.log("Form values:", form.getValues());
+              // console.log("Form errors:", form.formState.errors);
+              form.handleSubmit(onSubmit)(e);
+            }}
+          >
             <div className="space-y-6 px-14">
               {levels && (
                 <CustomDropdown
                   control={form.control}
-                  name="level"
+                  name="levelCode"
                   values={levels}
                   buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
                   menuClassName="w-full rounded-[10px] bg-white"
@@ -228,7 +275,7 @@ const StepOne = () => {
               {gradeLevels && (
                 <CustomDropdown
                   control={form.control}
-                  name="gradeLevel"
+                  name="gradeLevelCode"
                   values={gradeLevels}
                   buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
                   menuClassName="w-full rounded-[10px] bg-white"
@@ -240,7 +287,7 @@ const StepOne = () => {
               {programs && (
                 <CustomDropdown
                   control={form.control}
-                  name="program"
+                  name="programId"
                   values={programs}
                   buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
                   menuClassName="w-full rounded-[10px] bg-white"
@@ -252,7 +299,7 @@ const StepOne = () => {
               {sections && (
                 <CustomDropdown
                   control={form.control}
-                  name="section"
+                  name="sectionId"
                   values={sections}
                   buttonClassName="w-full rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
                   menuClassName="w-full rounded-[10px] bg-white"
@@ -283,7 +330,8 @@ const StepOne = () => {
                           value={field.value ? new Date(field.value) : null}
                           onChange={(e) => {
                             field.onChange(e.value);
-                            form.setValue("enrollmentTime", undefined); // reset timeslot
+                            // @ts-expect-error allow undefined
+                            form.setValue("scheduleId", undefined); // reset schedule id
                           }}
                           disabledDates={disabledDates}
                           dateTemplate={(date) => {
@@ -338,7 +386,7 @@ const StepOne = () => {
                 <div className="flex flex-row flex-wrap justify-center gap-4 px-14">
                   <FormField
                     control={form.control}
-                    name="enrollmentTime"
+                    name="scheduleId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-text-2 my-4 flex flex-col items-center">
@@ -348,26 +396,46 @@ const StepOne = () => {
                           <div>
                             {filteredTimeAndSlots.map((slot) => (
                               <div key={slot.id} className="space-y-4">
-                                {slot.timeslots.map((timeslot) => (
-                                  <div
-                                    key={timeslot.timeslotId}
-                                    className={` ${form.watch("enrollmentTime") === timeslot.timeslotId ? "bg-success text-background" : "text-text-2"} flex flex-col items-center rounded-lg border p-4 shadow-sm`}
-                                    onClick={() => {
-                                      field.onChange(timeslot.timeslotId);
-                                      console.log(
-                                        "timeslot selected: ",
-                                        timeslot.timeslotId,
-                                      );
-                                    }}
-                                  >
-                                    <div className="font-semibold">
-                                      {timeslot.timeStart} - {timeslot.timeEnd}
+                                {slot.timeslots.map((timeslot) => {
+                                  const selectedTimeScheduleId =
+                                    form.watch("scheduleId");
+                                  const isSelected =
+                                    +selectedTimeScheduleId ===
+                                    timeslot.scheduleId;
+                                  const isDisabled = timeslot.slots === 0;
+
+                                  return (
+                                    <div key={timeslot.timeslotId}>
+                                      <div
+                                        className={`flex flex-col items-center rounded-lg border p-4 shadow-sm ${isSelected ? "bg-success text-background" : "text-text-2"} ${isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-primary/10 cursor-pointer"} `}
+                                        onClick={() => {
+                                          if (isDisabled) return;
+                                          field.onChange(
+                                            timeslot.scheduleId.toString(),
+                                          );
+                                        }}
+                                      >
+                                        <div className="font-semibold">
+                                          {timeslot.timeStart} -{" "}
+                                          {timeslot.timeEnd}
+                                        </div>
+                                        <div className="text-sm">
+                                          Slots Available: {timeslot.slots}
+                                        </div>
+                                      </div>
+
+                                      {/* ❗ Warning if selected timeslot has 0 slots */}
+                                      {
+                                        // timeslot.slots === 0 && (
+                                        //   <p className="mt-1 w-full text-center text-sm text-red-500">
+                                        //     ⚠️ The selected time has no available
+                                        //     slots.
+                                        //   </p>
+                                        // )
+                                      }
                                     </div>
-                                    <div className="text-sm">
-                                      Slots Available: {timeslot.slots}
-                                    </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             ))}
                           </div>
@@ -382,13 +450,18 @@ const StepOne = () => {
 
             {showSubmit && (
               <div className="mx-14 my-12">
-                <Button
+                {/* <Button
                   type="submit"
                   disabled={isLoading}
                   className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
-                  onClick={() => navigate('/student/enroll/step-2')}
                 >
                   {isLoading ? "Submitting" : "Enroll Now"}
+                </Button> */}
+                <Button
+                  type="submit"
+                  className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
+                >
+                  Enroll Now
                 </Button>
               </div>
             )}

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import UploadBox from "../components/UploadBox";
 import { Form } from "@/components/ui/form";
 import CustomInput from "@/components/CustomInput";
@@ -12,26 +13,52 @@ import { Button } from "@/components/ui/button";
 // import requirements from "@/test/data/requirements.json";
 // import fees from "@/test/data/fees.json";
 // import paymentMethods from "@/test/data/payment-methods.json";
-import { sanitizeName } from "@/utils/stringUtils";
 import { useEnroll } from "../../context/enroll/hook";
+import { useWatch } from "react-hook-form";
+import Enums from "@/services/common/types/enums";
+import { useNavigate } from "react-router";
 
 const StepTwo = () => {
-  const [isUploaded, setIsUploaded] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isErrorUploading, setIsErrorUploading] = useState<boolean>(false);
+  const {
+    stepTwoForm: form,
+    requirements,
+    paymentMethods,
+    fees,
+    setCurrentStep,
+    enrollmentDetailsPayload,
+    mutateEnroll,
+    isMutateEnrollError,
+    isMutateEnrollPending,
+    isMutateEnrollSuccess,
+  } = useEnroll();
 
-  // Show tooltips
-  const [showFatherDetailsTooltip, setShowFatherDetailsTooltip] =
-    useState<boolean>(false);
-  const [showMotherDetailsTooltip, setShowMotherDetailsTooltip] =
-    useState<boolean>(false);
+  const navigate = useNavigate();
+
+  const selectedPaymentMethodId = useWatch({
+    control: form.control,
+    name: "paymentMethodName",
+  });
+
+  const selectedPaymentMethod = useMemo(
+    () =>
+      selectedPaymentMethodId
+        ? paymentMethods?.find(
+            (method) => method.id === selectedPaymentMethodId,
+          )
+        : undefined,
+    [paymentMethods, selectedPaymentMethodId],
+  );
+
+  useEffect(() => {
+    setCurrentStep(2);
+  }, [setCurrentStep]);
+
   const [showRequirementsTooltip, setShowRequirementsTooltip] =
     useState<boolean>(false);
   const [showFeesTooltip, setShowFeesTooltip] = useState<boolean>(false);
-  const { form, requirements, paymentMethods, fees } = useEnroll();
 
   // Calculate fees
-  const calculateTotalFees = () => {
+  const calculateTotalFees = useCallback(() => {
     return (
       fees?.reduce(
         (total, fee) =>
@@ -41,70 +68,90 @@ const StepTwo = () => {
             0,
           ),
         0,
-      ) ?? 0
+      ) ?? 0 + (selectedPaymentMethod?.additionalFee ?? 0)
     );
-  };
+  }, [fees, selectedPaymentMethod?.additionalFee]);
 
-  // // Generate dynamic schema for the requirements
-  // const requirementsSchema = useMemo(
-  //   () =>
-  //     requirements ? generateSchemaFromRequirements(requirements) : undefined,
-  //   [requirements],
-  // );
+  const onSubmit = useCallback(
+    (data: any) => {
+      console.log(data);
+      const paymentProofFile = data.paymentProof;
+      const paymentMethodId = data.paymentMethodName;
 
-  // // Generate default values for the requirementsSchema
-  // const requirementsDefaultValues = useMemo(
-  //   () =>
-  //     requirements
-  //       ? Object.fromEntries(
-  //           requirements.map((req) => [sanitizeName(req.name), undefined]),
-  //         )
-  //       : undefined,
-  //   [requirements],
-  // );
+      const requirementsWithPayload = Object.entries(data)
+        .filter(([key]) => /^\d+$/.test(key)) // keep only numeric string keys
+        .sort(([a], [b]) => Number(a) - Number(b)) // sort keys numerically
+        .reduce(
+          (acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          },
+          {} as Record<string, any>,
+        );
 
-  // Merge stepTwoSchema and requirementsSchema
-  // const finalSchema = stepTwoSchema.merge(requirementsSchema);
+      const files: any[] = [];
 
-  // const form = useForm<z.infer<typeof finalSchema>>({
-  //   resolver: zodResolver(finalSchema),
-  //   defaultValues: {
-  //     fatherFN: "",
-  //     fatherMN: "",
-  //     fatherLN: "",
-  //     maidenMotherFN: "",
-  //     maidenMotherMN: "",
-  //     maidenMotherLN: "",
-  //     paymentMethodName: "",
-  //     isAgree: undefined,
-  //     paymentProof: undefined,
-  //     ...requirementsDefaultValues,
-  //   },
-  // });
+      const paymentPayloads = {
+        paymentOptionId: +paymentMethodId,
+      };
+      const requirementPayloads = Object.entries(
+        requirementsWithPayload,
+      ).flatMap(([key, value]) => {
+        const r = requirements?.find((req) => req.requirementId === +key);
 
-  const onSubmit = (data: any) => {
-    console.log(data);
-  };
+        if (r) {
+          if (
+            r.requirementType === Enums.requirement_type.document ||
+            r.requirementType === Enums.requirement_type.image
+          )
+            files.push(value);
+          return [
+            {
+              requirementId: r.requirementId,
+              attachmentType: r.requirementType,
+              textContent:
+                r.requirementType === Enums.attachment_type.text
+                  ? value
+                  : undefined,
+            },
+          ];
+        } else return [];
+      });
 
-  // For watching if the selected payment method name changed
-  const selectedPaymentMethod = form.watch("paymentMethodName");
+      const formData = new FormData();
+      files.forEach((file) => formData.append("files", file));
+      formData.append("files", paymentProofFile);
+      formData.append("details", JSON.stringify(enrollmentDetailsPayload));
+      formData.append("requirements", JSON.stringify(requirementPayloads));
+      formData.append("payment", JSON.stringify(paymentPayloads));
+
+      mutateEnroll(formData, {
+        onSuccess: (data) => {
+          console.log(data);
+          alert("Enrollment application success!");
+          navigate("/student/dashboard");
+        },
+        onError: (error) => {
+          console.log(error);
+          alert("Something went wrong, try again.");
+        },
+      });
+    },
+    [enrollmentDetailsPayload, mutateEnroll, navigate, requirements],
+  );
 
   // For dynamically displaying account number and name upon selecting a method
-  const selectedPaymentDetails = useMemo(
-    () =>
-      paymentMethods
-        ? paymentMethods.find(
-            (method) => method.id === parseInt(selectedPaymentMethod),
-          )
-        : undefined,
-    [paymentMethods, selectedPaymentMethod],
-  );
+  const selectedPaymentDetails = useMemo(() => {
+    return paymentMethods
+      ? paymentMethods.find((method) => method.id == selectedPaymentMethodId)
+      : undefined;
+  }, [paymentMethods, selectedPaymentMethodId]);
 
   return (
     <section className="bg-container-1 flex w-screen flex-col items-center justify-center p-12">
       <div className="space-y-1.5 text-center">
         <h1 className="text-accent text-3xl font-semibold">
-          {isUploaded ? "Nice, uploaded na!" : "Uy, requirements!"}
+          {isMutateEnrollSuccess ? "Nice, uploaded na!" : "Uy, requirements!"}
         </h1>
         <p className="text-text-2 text-sm font-semibold">
           Please submit the needed requirements
@@ -121,96 +168,6 @@ const StepTwo = () => {
       <div className="mt-8 w-screen px-14">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="mb-10 flex flex-col gap-y-5">
-              <div className="relative inline-block">
-                <span className="text-primary text-base font-semibold">
-                  Father's Details
-                  <FontAwesomeIcon
-                    icon={faInfoCircle}
-                    className="text-text-2/40 ml-2"
-                    onClick={() => setShowFatherDetailsTooltip((prev) => !prev)}
-                  />
-                </span>
-                {showFatherDetailsTooltip && (
-                  <div className="absolute top-0 left-38 z-10 w-32 rounded-[10px] bg-slate-300 p-2 text-xs">
-                    Please provide the full name of the student's father. Middle
-                    name is optional.
-                  </div>
-                )}
-              </div>
-              <CustomInput
-                control={form.control}
-                name="fatherFN"
-                label="Father's First Name"
-                placeholder="ex. Juan"
-                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                labelStyle="text-sm text-text-2"
-              />
-
-              <CustomInput
-                control={form.control}
-                name="fatherMN"
-                label="Father's Middle Name (optional)"
-                placeholder="ex. Santos"
-                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                labelStyle="text-sm text-text-2"
-              />
-
-              <CustomInput
-                control={form.control}
-                name="fatherLN"
-                label="Father's Last Name"
-                placeholder="ex. Dela Cruz"
-                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                labelStyle="text-sm text-text-2"
-              />
-            </div>
-
-            <div className="mb-10 flex flex-col gap-y-5">
-              <div className="relative inline-block">
-                <span className="text-primary text-base font-semibold">
-                  Mother's Details
-                  <FontAwesomeIcon
-                    icon={faInfoCircle}
-                    className="text-text-2/40 ml-2"
-                    onClick={() => setShowMotherDetailsTooltip((prev) => !prev)}
-                  />
-                </span>
-                {showMotherDetailsTooltip && (
-                  <div className="absolute top-0 left-40 z-10 w-32 rounded-[10px] bg-slate-300 p-2 text-xs">
-                    Please provide the full MAIDEN name of the student's mother.
-                    Middle name is optional.
-                  </div>
-                )}
-              </div>
-              <CustomInput
-                control={form.control}
-                name="maidenMotherFN"
-                label="Mother's First Name"
-                placeholder="ex. Jane"
-                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                labelStyle="text-sm text-text-2"
-              />
-
-              <CustomInput
-                control={form.control}
-                name="maidenMotherMN"
-                label="Mother's Maiden Middle Name (optional)"
-                placeholder="ex. Dimaano"
-                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                labelStyle="text-sm text-text-2"
-              />
-
-              <CustomInput
-                control={form.control}
-                name="maidenMotherLN"
-                label="Mother's Maiden Last Name"
-                placeholder="ex. Sanchez"
-                inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
-                labelStyle="text-sm text-text-2"
-              />
-            </div>
-
             <div className="w-full">
               <div className="relative mb-4 inline-block">
                 <span className="text-primary text-base font-semibold">
@@ -228,21 +185,53 @@ const StepTwo = () => {
                   </div>
                 )}
               </div>
-              {requirements?.map((requirement, index) => (
-                <div key={index} className="mb-6">
-                  <UploadBox
-                    control={form.control}
-                    name={sanitizeName(requirement.name)}
-                    label={requirement.name}
-                    requirementType={requirement.requirementType}
-                  />
-                  {form.formState.errors[sanitizeName(requirement.name)] && (
-                    <span className="text-danger text-sm">
-                      Please upload a file
-                    </span>
-                  )}
-                </div>
-              ))}
+              {requirements?.map((requirement, index) => {
+                const fieldName = requirement.requirementId.toString();
+                const error = form.formState.errors[fieldName];
+
+                return (
+                  <div key={index} className="mb-6">
+                    {/* Render UploadBox for image/document requirements */}
+                    {requirement.requirementType === "image" ||
+                    requirement.requirementType === "document" ? (
+                      <UploadBox
+                        control={form.control}
+                        name={fieldName}
+                        label={requirement.name}
+                        requirementType={requirement.requirementType}
+                      />
+                    ) : (
+                      // Render CustomInput for text requirements
+                      <CustomInput
+                        control={form.control}
+                        name={fieldName}
+                        label={requirement.name}
+                        placeholder={`Enter ${requirement.name}`}
+                        inputStyle="rounded-[10px] bg-background border border-border-1 text-sm py-3 px-4 text-text placeholder:text-text-2"
+                        labelStyle="text-sm text-text-2"
+                        type={
+                          requirement.acceptedDataTypes === "string"
+                            ? "text"
+                            : (requirement.acceptedDataTypes as
+                                | "password"
+                                | "date"
+                                | undefined)
+                        }
+                      />
+                    )}
+
+                    {/* Dynamic error handling */}
+                    {error && (
+                      <span className="text-danger text-sm">
+                        {requirement.requirementType === "image" ||
+                        requirement.requirementType === "document"
+                          ? "Please upload a file"
+                          : "This field is required"}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="w-full">
@@ -279,6 +268,10 @@ const StepTwo = () => {
                   PHP {calculateTotalFees()}
                 </span>
               </div>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Additional charges may apply depending on selected services or
+                requirements.
+              </p>
             </div>
 
             <div className="flex flex-col gap-y-2">
@@ -292,7 +285,7 @@ const StepTwo = () => {
                 values={
                   paymentMethods?.map((method) => ({
                     label: method.methodName,
-                    ...method,
+                    id: method.id,
                   })) ?? []
                 }
                 buttonClassName="rounded-[10px] bg-background px-4 py-2 text-sm transition-all ease-in-out hover:text-secondary"
@@ -302,7 +295,7 @@ const StepTwo = () => {
                 labelClassName="text-sm text-text-2"
                 placeholder="Select payment method"
               />
-              {selectedPaymentMethod && (
+              {selectedPaymentMethodId && (
                 <>
                   <div className="bg-accent/20 flex w-full justify-center rounded-[10px] py-2">
                     <div className="text-primary text-sm font-semibold">
@@ -331,7 +324,7 @@ const StepTwo = () => {
                 label=""
                 control={form.control}
                 name="paymentProof"
-                requirementType=".pdf"
+                requirementType="image"
               />
               {/* NOTE -> if passing image, pass "image/*" */}
               {form.formState.errors.paymentProof && (
@@ -362,14 +355,16 @@ const StepTwo = () => {
             </div>
 
             <div className="flex flex-col items-center gap-y-2">
-              {!isUploaded ? (
+              {!isMutateEnrollSuccess ? (
                 <>
                   <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isMutateEnrollPending}
                     className={`text-background bg-accent w-full rounded-[10px] py-6 font-semibold`}
                   >
-                    {isLoading ? "Submitting" : "Submit Requirements"}
+                    {isMutateEnrollPending
+                      ? "Submitting"
+                      : "Submit Requirements"}
                   </Button>
 
                   {/* Only display when the form is partially filled */}
@@ -377,7 +372,7 @@ const StepTwo = () => {
                     <>
                       <span className="text-text-2 text-sm">or</span>
                       <Button
-                        // onclick
+                        onClick={() => alert("Save as draft not yet working!")}
                         className="bg-success/10 border-success text-success w-full rounded-[10px] border py-6 text-sm font-semibold"
                       >
                         Save as Draft
@@ -396,9 +391,9 @@ const StepTwo = () => {
       </div>
 
       {/* Display if upload failed */}
-      {isErrorUploading && (
+      {isMutateEnrollError && (
         <div className="text-danger mt-4 text-center text-sm font-semibold">
-          Upload failed. Please make sure you have a strong internet connection.
+          An error occured. Please try again.
         </div>
       )}
     </section>

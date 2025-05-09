@@ -88,8 +88,6 @@ export default function AssignSectionModal() {
           queryKey: ["enrolledRequirements", selectedStudent.studentId],
         });
       }
-
-      closeModal();
     },
     onError: (error) => {
       console.log(error);
@@ -98,18 +96,24 @@ export default function AssignSectionModal() {
 
   // Filter out the "Unassigned" section from the available sections
   const availableSections = useMemo(
-    () => sections?.filter((section) => !section._unassigned),
-    [sections],
+    () =>
+      sections?.filter(
+        (section) =>
+          !section._unassigned &&
+          selectedSection?.gradeSectionProgramId ===
+            section.gradeSectionProgramId,
+      ),
+    [sections, selectedSection?.gradeSectionProgramId],
   );
 
   /**
    * Closes the modal and resets the form state
    */
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsSectionModalOpen(false);
     setSelectedNewSection(null);
     setQuery("");
-  };
+  }, [setIsSectionModalOpen]);
 
   /**
    * Handles the confirmation of section assignment
@@ -123,12 +127,15 @@ export default function AssignSectionModal() {
       );
       // alert("Not yet working! Might finish later.");
       // closeModal();
+
+      closeModal();
+
       mutateEnroll({
         studentId: selectedStudent.studentId,
         sectionId: selectedNewSection.sectionId,
       });
     }
-  }, [mutateEnroll, selectedNewSection, selectedStudent]);
+  }, [closeModal, mutateEnroll, selectedNewSection, selectedStudent]);
 
   // useEffect(() => {
   //   console.log("ASSIGN",!selectedNewSection || !canAssign)

@@ -14,7 +14,7 @@ export class SchoolClassificationController {
     @User('school_id') schoolId: number,
     @Body() schoolData: SchoolClassification,
   ) {
-    schoolId = 686042;
+    schoolId = 0;
     console.log(schoolData);
     return await this.schoolClassification.saveSchoolClassification({
       schoolData,
@@ -24,7 +24,7 @@ export class SchoolClassificationController {
 
   @Get('retrieve-all-grade-levels')
   async getAllGradesLavels(@User('school_id') schoolId: number) {
-    schoolId = 686042;
+    schoolId = 0;
     return await this.schoolClassification.getAllGradesLavels({
       schoolId,
     });

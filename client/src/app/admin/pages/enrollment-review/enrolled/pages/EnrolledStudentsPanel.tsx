@@ -80,13 +80,15 @@ const EnrolledStudentsPanel: React.FC = () => {
       <div className="flex w-full flex-col text-sm">
         {isStudentsPending ? (
           <div className="text-text-2 py-4 text-center">Loading...</div>
-        ) : !students || students.length === 0 ? (
+        ) : 
+        !students || students.length === 0 ? (
           <div className="text-text-2 py-4 text-center">
             {searchTerm
               ? "No students found matching your search."
               : "Select a grade level and section to view enrolled students, or use the search bar to find students."}
           </div>
-        ) : (
+        ) : 
+        (
           <ul className="w-full">
             {students.map((student) => (
               <li

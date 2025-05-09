@@ -29,6 +29,7 @@ export const mockPaymentMethodDetails: PaymentMethodDetailsResponse = {
       accountNumber: "1234-5678-9012",
       provider: "BPI",
       instruction: "Use your student ID as the reference number.",
+      additionalFee: 0,
     },
     {
       id: 2,
@@ -37,6 +38,7 @@ export const mockPaymentMethodDetails: PaymentMethodDetailsResponse = {
       provider: "GCash",
       instruction:
         "Send screenshot to accounting@abcuniv.edu.ph after payment.",
+      additionalFee: 10,
     },
     {
       id: 3,
@@ -44,6 +46,7 @@ export const mockPaymentMethodDetails: PaymentMethodDetailsResponse = {
       accountNumber: "ACC-2025-0001",
       provider: "PayMaya",
       instruction: null,
+      additionalFee: 5,
     },
   ],
 };

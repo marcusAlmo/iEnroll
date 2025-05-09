@@ -1,7 +1,15 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Delete,
+  Put,
+} from '@nestjs/common';
 import { RequirementsService } from './requirements.service';
 import { User } from '@lib/decorators/user.decorator';
-import { RequirementsDTO, UpdateRequirementsDTO } from './dto/requirements.dto';
+import { RequirementsDTO, UpdateRequirementDto } from './dto/requirements.dto';
 
 @Controller('requirements')
 export class RequirementsController {
@@ -9,35 +17,31 @@ export class RequirementsController {
 
   @Get('retrieve')
   async getAllRequirements(@User('school_id') schoolId: number) {
+    schoolId = 0;
     return this.requirementsService.getAllRequirements({ schoolId });
   }
 
   @Post('process-received-requirements')
-  async processReceivedData(
-    @User('school_id') schoolId: number,
-    @Body() receivedData: RequirementsDTO,
-  ) {
+  async processReceivedData(@Body() receivedData: RequirementsDTO) {
+    console.log(receivedData);
     return this.requirementsService.processReceivedData({
-      schoolId,
-      receivedData,
+      data: receivedData,
     });
   }
 
-  @Post('delete/:requirementId')
+  @Delete('delete/:requirementId')
   async deleteRequirement(@Param('requirementId') requirementId: string) {
+    const requirementIdNumber = Number(requirementId);
     return this.requirementsService.deleteRequirement({
-      requirementId,
+      requirementId: requirementIdNumber,
     });
   }
 
-  @Post('update/:requirementId')
-  async updateRequirement(
-    @User('school_id') schoolId: number,
-    @Body() updateRequirementsDTO: UpdateRequirementsDTO,
-  ) {
+  @Put('update')
+  async updateRequirement(@Body() data: UpdateRequirementDto) {
+    console.log(data);
     return this.requirementsService.updateRequirement({
-      schoolId,
-      updateRequirementsDTO,
+      data: data.data,
     });
   }
 }

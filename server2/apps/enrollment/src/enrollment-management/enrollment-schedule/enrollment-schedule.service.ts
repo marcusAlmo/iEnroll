@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { EnrollmentSchedule } from './interface/enrollment-schedule.interface';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 import { DateTimeUtilityService } from '@lib/date-time-utility/date-time-utility.service';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal, JsonValue } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class EnrollmentScheduleService {
@@ -223,9 +223,28 @@ export class EnrollmentScheduleService {
   private async getGradeLevels(
     schoolId: number,
   ): Promise<EnrollmentSchedule['gradeLevelCollection'][]> {
+    const supportedAcademicLevels: { supported_acad_level: JsonValue } | null =
+      await this.prisma.school.findFirst({
+        where: {
+          school_id: schoolId,
+        },
+        select: {
+          supported_acad_level: true,
+        },
+      });
+
+    if (!supportedAcademicLevels) return [];
+
     const data = await this.prisma.grade_level_offered.findMany({
       where: {
         school_id: schoolId,
+        grade_level: {
+          academic_level: {
+            academic_level: {
+              in: supportedAcademicLevels.supported_acad_level as string[],
+            },
+          },
+        },
       },
       select: {
         can_choose_section: true,
@@ -427,10 +446,12 @@ export class EnrollmentScheduleService {
   ): Promise<Decimal> {
     const count = await this.prisma.enrollment_application.count({
       where: {
-        grade_level_offered: {
-          school_id: schoolId,
-          grade_level: {
-            grade_level: grade_level,
+        grade_section_program: {
+          grade_level_offered: {
+            school_id: schoolId,
+            grade_level: {
+              grade_level: grade_level,
+            },
           },
         },
       },

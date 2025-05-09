@@ -20,8 +20,13 @@ export default function CredentialsForm() {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
+    defaultValues: {
+      email: localStorage.getItem("email") ?? "",
+      password: localStorage.getItem("password") ?? "",
+    },
   });
 
   const location = useLocation();
@@ -32,30 +37,30 @@ export default function CredentialsForm() {
   const navigate = useNavigate();
 
   const onSubmit = async (data: FormData) => {
-    try{
+    try {
       console.log("Form submitted", data);
 
       localStorage.setItem("email", data.email);
       localStorage.setItem("password", data.password);
 
-      window.location.href = "http://localhost:3000/auth/google/callback";
-    }catch(error){
-      if(error instanceof Error) console.log(error.message);
+      window.location.href = "http://localhost:3000/api/auth/google/callback";
+    } catch (error) {
+      if (error instanceof Error) console.log(error.message);
       else console.log(error);
     }
   };
 
   const login = async () => {
     if (emailFromQuery && verifiedFromQuery) {
-      try{
+      try {
         const passwordFromQuery = localStorage.getItem("password");
         const emailEntered = localStorage.getItem("email");
 
-        if(!emailEntered) throw new Error("Email not found");
+        if (!emailEntered) throw new Error("Email not found");
 
-        if(!passwordFromQuery) throw new Error("Password not found");
+        if (!passwordFromQuery) throw new Error("Password not found");
 
-        if(verifiedFromQuery !== "true") throw new Error("Email not verified");
+        if (verifiedFromQuery !== "true") throw new Error("Email not verified");
 
         // eslint-disable-next-line
         const res = await requestData<any>({
@@ -68,17 +73,16 @@ export default function CredentialsForm() {
           }
         });
 
-        if(res){
+        if (res) {
           navigate("/admin");
         }
-      }catch(err) {
-        if(err instanceof Error) console.log(err.message);
+      } catch (err) {
+        if (err instanceof Error) console.log(err.message);
         else console.log(err);
       }
     }
   }
 
-  // determine if the user is logged in in google
   useEffect(() => {
     login();
   }, [emailFromQuery, verifiedFromQuery]);
@@ -96,10 +100,12 @@ export default function CredentialsForm() {
           {...register("email")}
           type="email"
           id="email"
-          value={localStorage.getItem("email")?? ''}
-          onChange={(e) => localStorage.setItem("email", e.target.value)}
           className="border-2 border-border_1 py-2 rounded-[8px] pl-2 bg-white"
           placeholder="Email"
+          onChange={(e) => {
+            setValue("email", e.target.value);
+            localStorage.setItem("email", e.target.value);
+          }}
         />
         {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email.message}</span>}
       </div>
@@ -112,10 +118,12 @@ export default function CredentialsForm() {
           {...register("password")}
           type="password"
           id="password"
-          value={localStorage.getItem("password")?? ''}
-          onChange={(e) => localStorage.setItem("password", e.target.value)}
           className="border-2 border-border_1 py-2 rounded-[8px] pl-2 bg-white"
           placeholder="Password"
+          onChange={(e) => {
+            setValue("password", e.target.value);
+            localStorage.setItem("password", e.target.value);
+          }}
         />
         {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password.message}</span>}
       </div>

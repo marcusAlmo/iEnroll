@@ -21,6 +21,8 @@ import {
   SchedulesReturn,
   GradeSectionTypesReturn,
   SectionsReturn,
+  MakeStudentEnrollmentReturn,
+  MakeStudentEnrollmentPayload,
 } from './enroll.types';
 import { FileService } from '../../file/file.service';
 import {
@@ -76,7 +78,10 @@ export class EnrollService {
     return result;
   }
 
-  async getGradeLevelsByAcademicLevel(payload: { academicLevelCode: string }) {
+  async getGradeLevelsByAcademicLevel(payload: {
+    academicLevelCode: string;
+    schoolId: number;
+  }) {
     const result: GradeLevelsReturn = await lastValueFrom(
       this.client.send(
         {
@@ -314,5 +319,29 @@ export class EnrollService {
       success: failedItems.length === 0,
       failedItems,
     };
+  }
+
+  async uploadFile(
+    file: Express.Multer.File,
+    studentId: number,
+    schoolId: number,
+  ) {
+    const modifiedFile = this.setFileName(file, studentId);
+    return await this.documentService.uploadFile(modifiedFile, schoolId);
+  }
+
+  async makeStudentEnrollmentApplication(
+    payload: MakeStudentEnrollmentPayload,
+  ) {
+    const result: MakeStudentEnrollmentReturn = await lastValueFrom(
+      this.client.send(
+        {
+          cmd: 'make_student_enrollment_application',
+        },
+        payload,
+      ),
+    );
+
+    return result;
   }
 }

@@ -1,5 +1,6 @@
 import { PrismaService } from '@lib/prisma/src/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class EnrolledService {
@@ -52,6 +53,12 @@ export class EnrolledService {
   }
 
   async getAllGradeLevelsBySchool(schoolId: number) {
+    if (schoolId === undefined)
+      throw new RpcException({
+        statusCode: 400,
+        message: 'ERR_INVALID_SCHOOL_ID',
+      });
+
     const result = await this.prisma.grade_level_offered.findMany({
       where: {
         is_active: true,
@@ -63,6 +70,11 @@ export class EnrolledService {
           select: {
             grade_level: true,
           },
+        },
+      },
+      orderBy: {
+        grade_level: {
+          order_position: 'asc',
         },
       },
     });
@@ -81,15 +93,30 @@ export class EnrolledService {
         },
       },
       select: {
+        grade_section_program: {
+          select: {
+            grade_section_program_id: true,
+            academic_program: {
+              select: {
+                program: true,
+              },
+            },
+          },
+        },
         grade_section_id: true,
         section_name: true,
       },
     });
 
-    return result.map((data) => ({
+    const refined = result.map((data) => ({
+      gradeSectionProgramId:
+        data.grade_section_program.grade_section_program_id,
+      programName: data.grade_section_program.academic_program.program,
       sectionId: data.grade_section_id,
       sectionName: data.section_name,
     }));
+
+    return refined;
   }
 
   private mapStudentEnrollmentData = (data: any) => {
@@ -122,7 +149,6 @@ export class EnrolledService {
     const result = await this.fetchStudentEnrollments({
       grade_section_id: sectionId,
     });
-
     return this.filterAndSortStudents(
       result.filter(
         (entry): entry is typeof entry & { enrollment_datetime: Date } =>
