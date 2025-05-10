@@ -16,11 +16,16 @@ export class RequirementsService {
   public async getAllRequirements(
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log(schoolId);
     const rawData: Requirements['retrieveRequirementsRaw'] =
       await this.getAllRequirementsRaw(schoolId);
 
+    console.log(rawData);
+
     const processedData: Requirements['processedRequirements'] =
       await this.processRetrieveData(rawData);
+
+    console.log(processedData);
 
     return this.microserviceUtility.returnSuccess(processedData);
   }
@@ -125,6 +130,8 @@ export class RequirementsService {
           supported_acad_level: true,
         },
       });
+
+    console.log(supportedAcademicLevels);
 
     if (!supportedAcademicLevels) return [];
 

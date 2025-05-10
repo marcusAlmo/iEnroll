@@ -17,7 +17,7 @@ export class RequirementsController {
 
   @Get('retrieve')
   async getAllRequirements(@User('school_id') schoolId: number) {
-    schoolId = 0;
+    schoolId = 686042;
     return this.requirementsService.getAllRequirements({ schoolId });
   }
 

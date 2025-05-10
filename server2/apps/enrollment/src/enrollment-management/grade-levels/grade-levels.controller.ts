@@ -6,7 +6,7 @@ import { MessagePattern } from '@nestjs/microservices';
 export class GradeLevelsController {
   constructor(private readonly gradeLevelsService: GradeLevelsService) {}
 
-  @MessagePattern({ cmd: 'get-grade-levels' })
+  @MessagePattern({ cmd: 'fetch-grade-levels-sections' })
   async getGradeLevels(payload: { schoolId: number }) {
     return await this.gradeLevelsService.getGradeLevels(payload.schoolId);
   }

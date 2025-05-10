@@ -16,7 +16,7 @@ export class GradeLevelsService {
     payload: object,
   ): Promise<GradeLevels['gradeLevels']> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
-      this.client.send({ cmd: 'get-grade-levels' }, payload),
+      this.client.send({ cmd: 'fetch-grade-levels-sections' }, payload),
     );
 
     await this.exceptionCheckerService.checker(result);
