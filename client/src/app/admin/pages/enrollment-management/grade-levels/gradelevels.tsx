@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import TestData from "./test/testData.json";
 import { toast } from 'react-toastify';
 import { requestData } from '@/lib/dataRequester';
-//import SectionAdviserData from "./test/sectionAdviser.json";
+import { FiTrash } from 'react-icons/fi';
 
 interface GradeLevelsInterface {
   gradeLevel: string;
@@ -24,15 +23,59 @@ interface GradeLevelsInterface {
   }[];
 };
 
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+}
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-background rounded-lg p-6 max-w-md w-full pointer-events-auto shadow-xl border-2 border-gray-300">
+        <h3 className="text-lg font-semibold text-text mb-2">{title}</h3>
+        <p className="text-text mb-6">{message}</p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-text-2 rounded-lg hover:bg-text-2/20 cursor-pointer button-transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 cursor-pointer button-transition"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const GradeLevels: React.FC = () => {
   // State for selected grade level and section
-  const [selectedGradeLevel, setSelectedGradeLevel] = React.useState<string | null>(null);
-  const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
-  const [isCustomProgram, setIsCustomProgram] = React.useState<boolean>(false);
-  const [isEditing, setIsEditing] = React.useState<boolean>(false);
+  const [selectedGradeLevel, setSelectedGradeLevel] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  
+  // State for deleting the section
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
   
   // State for section details
-  const [sectionDetails, setSectionDetails] = React.useState<{
+  const [sectionDetails, setSectionDetails] = useState<{
     sectionName: string;
     sectionAdviser: string;
     sectionCapacity: number;
@@ -42,7 +85,7 @@ const GradeLevels: React.FC = () => {
   } | null>(null);
 
   // State for managing new section creation
-  const [isNewSection, setIsNewSection] = React.useState<boolean>(false);
+  const [isNewSection, setIsNewSection] = useState<boolean>(false);
   const [data, setData] = useState<GradeLevelsInterface[]>([]);
 
   // Handle grade level selection
@@ -80,11 +123,38 @@ const GradeLevels: React.FC = () => {
             ? sectionInfo.programDetails
             : undefined,
         });
-        setIsCustomProgram(sectionInfo.isCustomProgram);
       }
     }
 
     setIsNewSection(false); // Reset new section state
+  };
+
+  // handle delete section
+  const handleDeleteSection = (sectionName: string) => {
+    if (!selectedGradeLevel || !sectionName) return;
+    
+    setSectionToDelete(sectionName);
+    setIsDeleteModalOpen(true);
+  };
+
+  // confirms deletion of section
+  const confirmDelete = () => {
+    if (!selectedGradeLevel || !sectionToDelete) return;
+    
+    console.log(`Deleting section: ${sectionToDelete} in grade level: ${selectedGradeLevel}`);
+    alert(`Section "${sectionToDelete}" deleted successfully!`);
+    
+    // Reset states after deletion
+    setSelectedSection(null);
+    setSectionDetails(null);
+    setIsDeleteModalOpen(false);
+    setSectionToDelete(null);
+  };
+
+  // cancels deletion of section
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSectionToDelete(null);
   };
 
   // Handle "Edit Section" button click
@@ -103,13 +173,11 @@ const GradeLevels: React.FC = () => {
       customProgramDetails: undefined,
     });
   
-    setIsCustomProgram(false); // Reset the checkbox state
     setIsNewSection(true); // Enable new section creation mode
     setIsEditing(false); // Ensure editing mode is off
   };
 
   // Handle input changes for section details
-  // eslint-disable-next-line
   const handleInputChange = (field: string, value: any) => {
     if (sectionDetails && (isNewSection || isEditing)) {
       setSectionDetails({
@@ -189,16 +257,15 @@ const GradeLevels: React.FC = () => {
 
   // Toggle custom program checkbox
   const handleToggleCustomProgram = (checked: boolean) => {
-    setIsCustomProgram(checked);
-    if (sectionDetails) {
-      setSectionDetails({
-        ...sectionDetails,
-        isCustomProgram: checked,
-        customProgramDetails: checked 
-          ? (sectionDetails.customProgramDetails || { program: "", description: "" })
-          : undefined
-      });
-    }
+    if (!sectionDetails) return;
+  
+    setSectionDetails({
+      ...sectionDetails,
+      isCustomProgram: checked,
+      customProgramDetails: checked
+        ? sectionDetails.customProgramDetails || { program: "", description: "" }
+        : undefined,
+    });
   };
 
   // retrieve collections of grade levels from server
@@ -220,6 +287,7 @@ const GradeLevels: React.FC = () => {
     }
   }
 
+  // execute retrieval
   useEffect(() => {
     retrieveGradeLevels()
   }, [])
@@ -360,9 +428,9 @@ const GradeLevels: React.FC = () => {
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={isCustomProgram}
+                    checked={sectionDetails.isCustomProgram}
                     onChange={(e) => handleToggleCustomProgram(e.target.checked)}
-                    className="form-checkbox button-transition h-4 w-4 cursor-pointer rounded border-text-2 text-primary focus:ring-accent"
+                    className="form-checkbox h-4 w-4 cursor-pointer rounded border-text-2 text-primary focus:ring-accent"
                   />
                   <span className="text-text text-sm">Custom Program?</span>
                 </label>
@@ -370,7 +438,7 @@ const GradeLevels: React.FC = () => {
             )}
 
             {/* Show input fields for custom program when checkbox is checked during new section creation or editing */}
-            {(isNewSection || isEditing) && isCustomProgram && (
+            {(isNewSection || isEditing) && sectionDetails.isCustomProgram && (
               <div className="flex flex-col gap-2">
                 <h3 className="text-text font-semibold">Custom Program Details</h3>
                 <div>
@@ -379,7 +447,7 @@ const GradeLevels: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    value={sectionDetails?.customProgramDetails?.program || ""}
+                    value={sectionDetails.customProgramDetails?.program || ""}
                     onChange={(e) => handleCustomProgramChange("program", e.target.value)}
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
                   />
@@ -389,7 +457,7 @@ const GradeLevels: React.FC = () => {
                     Description
                   </label>
                   <textarea
-                    value={sectionDetails?.customProgramDetails?.description || ""}
+                    value={sectionDetails.customProgramDetails?.description || ""}
                     onChange={(e) => handleCustomProgramChange("description", e.target.value)}
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
                   />
@@ -460,9 +528,29 @@ const GradeLevels: React.FC = () => {
                 </button>
               </div>
             )}
+            
+            {/* Delete button */}
+            {!isNewSection && !isEditing && selectedSection && (
+              <div className="flex justify-center mt-6">
+                <button
+                  className="text-red-500 hover:text-red-700 transition-colors flex items-center gap-2"
+                  onClick={() => handleDeleteSection(sectionDetails.sectionName)}
+                >
+                  <FiTrash size={18} />
+                  <span>Delete Section</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        message={`Are you sure you want to delete the section "${sectionToDelete}" in ${selectedGradeLevel}?`}
+      />
     </div>
   );
 };
