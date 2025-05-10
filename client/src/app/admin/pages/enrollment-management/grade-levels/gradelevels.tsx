@@ -5,6 +5,7 @@ import { FiTrash } from 'react-icons/fi';
 
 interface GradeLevelsInterface {
   gradeLevel: string;
+  gradeSectionProgramId: number;
   gradeLevelOfferedId: number;
   sections: {
     gradeSectionProgramId: number;
@@ -22,6 +23,12 @@ interface GradeLevelsInterface {
       | undefined;
   }[];
 };
+
+interface ProgramInterface {
+  programName: string;
+  programId: number;
+  description: string;
+}
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -82,12 +89,19 @@ const GradeLevels: React.FC = () => {
     sectionCapacity: number;
     maximumApplication: number;
     isCustomProgram: boolean;
-    customProgramDetails?: { program: string; description: string };
+    customProgramDetails?: { 
+      program: string; 
+      programId: number;
+      description: string 
+    };
   } | null>(null);
 
   // State for managing new section creation
   const [isNewSection, setIsNewSection] = useState<boolean>(false);
   const [data, setData] = useState<GradeLevelsInterface[]>([]);
+  
+  // State for programs dropdown
+  const [programs, setPrograms] = useState<ProgramInterface[]>([]);
 
   // Handle grade level selection
   const handleGradeLevelClick = (gradeLevel: string) => {
@@ -114,6 +128,23 @@ const GradeLevels: React.FC = () => {
       );
 
       if (sectionInfo) {
+        // Find matching program in our programs list if it exists
+        let programId = 0;
+        let programDescription = '';
+        
+        // Safe way to find the matching program
+        console.log('programs',programs)
+        if (Array.isArray(programs)) {
+          const matchingProgram = programs.find(
+            p => p.programName === sectionInfo.programDetails?.program
+          );
+          
+          if (matchingProgram) {
+            programId = matchingProgram.programId;
+            programDescription = matchingProgram.description;
+          }
+        }
+        
         setSectionDetails({
           sectionName: sectionInfo.sectionName,
           sectionId: sectionInfo.sectionId,
@@ -122,7 +153,11 @@ const GradeLevels: React.FC = () => {
           maximumApplication: sectionInfo.maxApplicationSlot,
           isCustomProgram: sectionInfo.isCustomProgram,
           customProgramDetails: sectionInfo.isCustomProgram
-            ? sectionInfo.programDetails
+            ? {
+                program: sectionInfo.programDetails?.program || '',
+                programId: programId,
+                description: sectionInfo.programDetails?.description || programDescription
+              }
             : undefined,
         });
       }
@@ -130,7 +165,6 @@ const GradeLevels: React.FC = () => {
 
     setIsNewSection(false); // Reset new section state
   };
-
 
   // handle delete section
   const handleDeleteSection = (sectionId: number) => {
@@ -185,13 +219,21 @@ const GradeLevels: React.FC = () => {
 
   // Handle "Add New Section" button click
   const handleAddNewSection = () => {
+    // Use the first program from programsList for default values
+    const defaultProgram = programs[0];
+    
     setSectionDetails({
       sectionName: "",
+      sectionId: 0,
       sectionAdviser: "",
       sectionCapacity: 0,
       maximumApplication: 0,
       isCustomProgram: false,
-      customProgramDetails: undefined,
+      customProgramDetails: {
+        program: defaultProgram.programName,
+        programId: defaultProgram.programId,
+        description: defaultProgram.description
+      },
     });
   
     setIsNewSection(true); // Enable new section creation mode
@@ -199,6 +241,7 @@ const GradeLevels: React.FC = () => {
   };
 
   // Handle input changes for section details
+  // eslint-disable-next-line
   const handleInputChange = (field: string, value: any) => {
     if (sectionDetails && (isNewSection || isEditing)) {
       setSectionDetails({
@@ -208,52 +251,124 @@ const GradeLevels: React.FC = () => {
     }
   };
   
-  // Handle custom program details changes
-  const handleCustomProgramChange = (field: string, value: string) => {
+  // Handle program selection change
+  const handleProgramChange = (programId: number) => {
     if (sectionDetails && (isNewSection || isEditing)) {
-      setSectionDetails({
-        ...sectionDetails,
-        customProgramDetails: {
-          ...(sectionDetails.customProgramDetails || { program: "", description: "" }),
-          [field]: value
-        }
-      });
+      // Safely find the selected program
+      let selectedProgram: ProgramInterface | undefined;
+      
+      if (Array.isArray(programs) && programs.length > 0) {
+        selectedProgram = programs.find(p => p.programId === programId);
+      }
+      
+      // If not found in programs state, check the programsList
+      if (!selectedProgram) {
+        selectedProgram = programs.find(p => p.programId === programId);
+      }
+      
+      // If we found a matching program, update the section details
+      if (selectedProgram) {
+        setSectionDetails({
+          ...sectionDetails,
+          customProgramDetails: {
+            program: selectedProgram.programName,
+            programId: selectedProgram.programId,
+            description: selectedProgram.description
+          }
+        });
+      }
     }
   };
   
   // Handle create new section submission
-  const handleCreateSection = () => {
+  const handleCreateSection = async () => {
     if (!sectionDetails || !selectedGradeLevel) return;
-    // Please remove before deployment and replace with acutal API call
-    console.log("Creating new section:", {
-      gradeLevel: selectedGradeLevel,
-      section: sectionDetails
-    });
-    
-    // For demo purpose, we'll just reset the form
-    setIsNewSection(false);
-    setSelectedSection(sectionDetails.sectionName);
-    
-    alert(`Section ${sectionDetails.sectionName} created successfully!`);
+
+    try {
+      // Structure the data for API request
+      const requestBody = {
+        gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
+        sectionName: sectionDetails.sectionName,
+        adviser: sectionDetails.sectionAdviser,
+        admissionSlot: sectionDetails.sectionCapacity,
+        maxApplicationSlot: sectionDetails.maximumApplication,
+        isCustomProgram: sectionDetails.isCustomProgram,
+        programDetails: sectionDetails.isCustomProgram ? {
+          program: sectionDetails.customProgramDetails?.program,
+          description: sectionDetails.customProgramDetails?.description
+        } : undefined
+      };
+
+      // Actual API call would go here
+      console.log("Creating new section:", requestBody);
+      
+      toast.success(`Section ${sectionDetails.sectionName} created successfully!`);
+      
+      // Reset form and refresh data
+      await retrieveGradeLevels();
+      setIsNewSection(false);
+      setSelectedSection(sectionDetails.sectionName);
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+      console.error(error);
+    }
   };
 
   // Handle update section submission
-  const handleUpdateSection = () => {
+  const handleUpdateSection = async () => {
     if (!sectionDetails || !selectedGradeLevel || !selectedSection) return;
     
-    console.log("Updating section:", {
-      gradeLevel: selectedGradeLevel,
-      section: sectionDetails
-    });
-    
-    setIsEditing(false);
-    
-    // Update the selected section if section name changed
-    if (sectionDetails.sectionName !== selectedSection) {
-      setSelectedSection(sectionDetails.sectionName);
-    }
+    try {
+      console.log({
+        gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
+        sectionId: sectionDetails.sectionId,
+        programName: sectionDetails.customProgramDetails?.program,
+        programId: sectionDetails.customProgramDetails?.programId,
+        sectionName: sectionDetails.sectionName,
+        adviser: sectionDetails.sectionAdviser,
+        admissionSlot: sectionDetails.sectionCapacity,
+        maxApplicationSlot: sectionDetails.maximumApplication,
+        gradeSectionProgramId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeSectionProgramId,
+        isUpdate: true
+      });
 
-    alert(`Section ${sectionDetails.sectionName} updated successfully!`);
+      const response = await requestData<{ message: string}>({
+        url: 'http://localhost:3000/api/grade-levels/receive',
+        method: "POST",
+        body: {
+          gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
+          sectionId: sectionDetails.sectionId,
+          programName: sectionDetails.customProgramDetails?.program,
+          programId: sectionDetails.customProgramDetails?.programId,
+          sectionName: sectionDetails.sectionName,
+          adviser: sectionDetails.sectionAdviser,
+          admissionSlot: sectionDetails.sectionCapacity,
+          maxApplicationSlot: sectionDetails.maximumApplication,
+          gradeSectionProgramId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeSectionProgramId,
+          isUpdate: true
+        }
+      });
+      
+      if (response) {
+        toast.success(response.message);
+      
+        // Reset editing state
+        setIsEditing(false);
+
+        // Update the selected section if section name changed
+        if (sectionDetails.sectionName !== selectedSection) {
+          setSelectedSection(sectionDetails.sectionName);
+        }
+
+        // Refresh data from server
+        await retrieveGradeLevels();
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+      console.error(error);
+    }
   };
 
   // Handle cancel button click
@@ -279,12 +394,19 @@ const GradeLevels: React.FC = () => {
   // Toggle custom program checkbox
   const handleToggleCustomProgram = (checked: boolean) => {
     if (!sectionDetails) return;
+    
+    // Use the first program from programsList for default values
+    const defaultProgram = programs[0];
   
     setSectionDetails({
       ...sectionDetails,
       isCustomProgram: checked,
       customProgramDetails: checked
-        ? sectionDetails.customProgramDetails || { program: "", description: "" }
+        ? sectionDetails.customProgramDetails || { 
+            program: defaultProgram.programName, 
+            programId: defaultProgram.programId,
+            description: defaultProgram.description 
+          }
         : undefined,
     });
   };
@@ -308,9 +430,30 @@ const GradeLevels: React.FC = () => {
     }
   }
 
+  // retrieve programs from server (if you have an API for this)
+  const retrievePrograms = async () => {
+    try {
+      // Uncomment this when you have an actual API endpoint
+      const response = await requestData<{programList: ProgramInterface[]}>({
+        url: 'http://localhost:3000/api/grade-levels/retrieve-programs',
+        method: 'GET'
+      })
+
+      if (response) {
+        setPrograms(response.programList)
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+
+      console.error(error);
+    }
+  }
+
   // execute retrieval
   useEffect(() => {
-    retrieveGradeLevels()
+    retrieveGradeLevels();
+    retrievePrograms();
   }, [])
   
   return (
@@ -466,12 +609,17 @@ const GradeLevels: React.FC = () => {
                   <label className="block text-text text-sm font-medium mb-1">
                     Program Name
                   </label>
-                  <input
-                    type="text"
-                    value={sectionDetails.customProgramDetails?.program || ""}
-                    onChange={(e) => handleCustomProgramChange("program", e.target.value)}
+                  <select
+                    value={sectionDetails.customProgramDetails?.programId || programs[0].programId}
+                    onChange={(e) => handleProgramChange(parseInt(e.target.value))}
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
-                  />
+                  >
+                    {programs.map(program => (
+                      <option key={program.programId} value={program.programId}>
+                        {program.programName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-text text-sm font-medium mb-1">
@@ -479,8 +627,9 @@ const GradeLevels: React.FC = () => {
                   </label>
                   <textarea
                     value={sectionDetails.customProgramDetails?.description || ""}
-                    onChange={(e) => handleCustomProgramChange("description", e.target.value)}
+                    readOnly={true}
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
+                    rows={4}
                   />
                 </div>
               </div>
@@ -509,6 +658,7 @@ const GradeLevels: React.FC = () => {
                     value={sectionDetails.customProgramDetails.description}
                     readOnly
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 opacity-75"
+                    rows={4}
                   />
                 </div>
               </div>
@@ -570,7 +720,7 @@ const GradeLevels: React.FC = () => {
         onClose={cancelDelete}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
-        message={`Are you sure you want to delete the section "${sectionToDelete}" in ${selectedGradeLevel}?`}
+        message={`Are you sure you want to delete this section?`}
       />
     </div>
   );

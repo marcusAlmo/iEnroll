@@ -22,6 +22,7 @@ export interface GradeLevels {
 
   fixedFormat: {
     gradeLevel: string;
+    gradeSectionProgramId: number;
     gradeLevelOfferedId: number;
     sections: {
       gradeSectionProgramId: number;
@@ -43,5 +44,19 @@ export interface GradeLevels {
   programList: {
     programId: number;
     program: string;
+    description: string;
   }[];
+
+  receivedData: {
+    gradeLevelOfferedId: number;
+    sectionId: number;
+    programName: string | undefined;
+    programId: number | undefined;
+    sectionName: string;
+    adviser: string;
+    admissionSlot: number;
+    maxApplicationSlot: number;
+    gradeSectionProgramId: number;
+    isUpdate: boolean;
+  };
 }
