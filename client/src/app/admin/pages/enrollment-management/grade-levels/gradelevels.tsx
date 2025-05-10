@@ -72,11 +72,12 @@ const GradeLevels: React.FC = () => {
   
   // State for deleting the section
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
+  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
   
   // State for section details
   const [sectionDetails, setSectionDetails] = useState<{
     sectionName: string;
+    sectionId: number;
     sectionAdviser: string;
     sectionCapacity: number;
     maximumApplication: number;
@@ -115,6 +116,7 @@ const GradeLevels: React.FC = () => {
       if (sectionInfo) {
         setSectionDetails({
           sectionName: sectionInfo.sectionName,
+          sectionId: sectionInfo.sectionId,
           sectionAdviser: sectionInfo.adviser || '',
           sectionCapacity: sectionInfo.admissionSlot,
           maximumApplication: sectionInfo.maxApplicationSlot,
@@ -129,27 +131,46 @@ const GradeLevels: React.FC = () => {
     setIsNewSection(false); // Reset new section state
   };
 
+
   // handle delete section
-  const handleDeleteSection = (sectionName: string) => {
-    if (!selectedGradeLevel || !sectionName) return;
+  const handleDeleteSection = (sectionId: number) => {
+    if (!selectedGradeLevel || !sectionId) return;
     
-    setSectionToDelete(sectionName);
+    setSectionToDelete(sectionId);
     setIsDeleteModalOpen(true);
   };
 
   // confirms deletion of section
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!selectedGradeLevel || !sectionToDelete) return;
     
-    console.log(`Deleting section: ${sectionToDelete} in grade level: ${selectedGradeLevel}`);
-    alert(`Section "${sectionToDelete}" deleted successfully!`);
-    
+    await deleteSection(sectionToDelete);
+
     // Reset states after deletion
     setSelectedSection(null);
     setSectionDetails(null);
     setIsDeleteModalOpen(false);
     setSectionToDelete(null);
   };
+
+  const deleteSection = async (sectionId: number) => {
+    try {
+      const response = await requestData<{message: string}>({
+        url: `http://localhost:3000/api/grade-levels/delete/${sectionId}`,
+        method: 'DELETE',
+      });
+
+      if (response) {
+        toast.success('Section deleted successfully');
+        await retrieveGradeLevels();
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+
+      console.error(error);
+    }
+  }
 
   // cancels deletion of section
   const cancelDelete = () => {
@@ -534,7 +555,7 @@ const GradeLevels: React.FC = () => {
               <div className="flex justify-center mt-6">
                 <button
                   className="text-red-500 hover:text-red-700 transition-colors flex items-center gap-2"
-                  onClick={() => handleDeleteSection(sectionDetails.sectionName)}
+                  onClick={() => handleDeleteSection(sectionDetails.sectionId)}
                 >
                   <FiTrash size={18} />
                   <span>Delete Section</span>
