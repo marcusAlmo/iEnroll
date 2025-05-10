@@ -132,37 +132,49 @@ export class GradeLevelsService {
   private async retrievedata(
     schoolId: number,
   ): Promise<GradeLevels['fixedFormat'][]> {
+    // fetch supported academic levels
+    const supportedAcademicLevels: string[] =
+      await this.supportedAcademicLevels(schoolId);
+
+    console.log('supportedAcademicLevels: ', supportedAcademicLevels);
+
+    const gradeLevelsOnly = await this.retrieveGradeLevelsOnly(
+      supportedAcademicLevels,
+      schoolId,
+    );
+
+    console.log('gradeLevelsOnly: ', gradeLevelsOnly);
+
     const data: GradeLevels['gradeLevels'] =
-      await this.prisma.grade_section_program.findMany({
+      await this.prisma.grade_level_offered.findMany({
         where: {
-          grade_level_offered: {
-            school_id: schoolId,
-            is_active: true,
-          },
+          school_id: schoolId,
+          is_active: true,
         },
         select: {
-          grade_section_program_id: true,
-          grade_section: {
+          grade_level_offered_id: true,
+          grade_level_code: true,
+          grade_level: {
             select: {
-              grade_section_id: true,
-              section_name: true,
-              adviser: true,
-              admission_slot: true,
-              max_application_slot: true,
+              grade_level: true,
             },
           },
-          academic_program: {
+          grade_section_program: {
             select: {
-              program: true,
-              description: true,
-            },
-          },
-          grade_level_offered: {
-            select: {
-              grade_level_offered_id: true,
-              grade_level: {
+              grade_section_program_id: true, // Added this missing field
+              academic_program: {
                 select: {
-                  grade_level: true,
+                  program: true,
+                  description: true,
+                },
+              },
+              grade_section: {
+                select: {
+                  grade_section_id: true,
+                  section_name: true,
+                  adviser: true,
+                  admission_slot: true,
+                  max_application_slot: true,
                 },
               },
             },
@@ -170,49 +182,111 @@ export class GradeLevelsService {
         },
       });
 
-    if (!data || data.length == 0) return [];
+    console.log('data: ', data);
 
-    // Use a Map to consolidate grade levels by grade level name
-    const gradeLevelMap = new Map<string, GradeLevels['fixedFormat']>();
+    if (!gradeLevelsOnly || gradeLevelsOnly.length === 0) return [];
+
+    // Create a lookup map of data by grade level code
+    const dataByGradeLevelCode = new Map<
+      string,
+      GradeLevels['gradeLevels'][0]
+    >();
 
     data.forEach((item) => {
-      const gradeLevelName = item.grade_level_offered.grade_level.grade_level;
-      const sections = item.grade_section.map((section) => ({
-        gradeSectionProgramId: item.grade_section_program_id,
-        sectionId: section.grade_section_id,
-        sectionName: section.section_name,
-        adviser: section.adviser,
-        admissionSlot: section.admission_slot,
-        maxApplicationSlot: section.max_application_slot,
-        programDetails: item.academic_program
-          ? {
-              program: item.academic_program.program,
-              description: item.academic_program.description,
-            }
-          : undefined,
-        isCustomProgram: item.academic_program ? false : true,
-      }));
-
-      if (gradeLevelMap.has(gradeLevelName)) {
-        // If this grade level already exists in our map, add the sections to it
-        const existingGradeLevel = gradeLevelMap.get(gradeLevelName)!;
-        existingGradeLevel.sections = [
-          ...existingGradeLevel.sections,
-          ...sections,
-        ];
-      } else {
-        // Otherwise, create a new entry in the map
-        gradeLevelMap.set(gradeLevelName, {
-          gradeLevel: gradeLevelName,
-          gradeSectionProgramId: item.grade_section_program_id,
-          gradeLevelOfferedId: item.grade_level_offered.grade_level_offered_id,
-          sections: sections,
-        });
-      }
+      dataByGradeLevelCode.set(item.grade_level_code, item);
     });
 
-    // Convert the map values to an array for the final result
-    return Array.from(gradeLevelMap.values());
+    // Build the result by iterating through gradeLevelsOnly
+    const result: GradeLevels['fixedFormat'][] = [];
+
+    for (const gradeLevel of gradeLevelsOnly) {
+      const gradeData = dataByGradeLevelCode.get(gradeLevel.gradeLevelCode);
+
+      const sections = (gradeData?.grade_section_program || []).flatMap(
+        (program) =>
+          program.grade_section.map((section) => ({
+            gradeSectionProgramId: program.grade_section_program_id,
+            sectionId: section.grade_section_id,
+            sectionName: section.section_name,
+            adviser: section.adviser,
+            admissionSlot: section.admission_slot,
+            maxApplicationSlot: section.max_application_slot,
+            programDetails: program.academic_program
+              ? {
+                  program: program.academic_program.program,
+                  description: program.academic_program.description,
+                }
+              : undefined,
+            isCustomProgram: !program.academic_program,
+          })),
+      );
+      result.push({
+        gradeLevel: gradeLevel.gradeLevel,
+        gradeSectionProgramId:
+          gradeData?.grade_section_program[0]?.grade_section_program_id || 0,
+        gradeLevelOfferedId: gradeLevel.gradeLevelOfferedId,
+        sections: sections,
+      });
+    }
+
+    console.log('result: ', result);
+
+    return result;
+  }
+
+  private async supportedAcademicLevels(schoolId: number) {
+    const result = await this.prisma.school.findFirst({
+      where: {
+        school_id: schoolId,
+      },
+      select: {
+        supported_acad_level: true,
+      },
+    });
+
+    return result?.supported_acad_level
+      ? (result.supported_acad_level as string[])
+      : [];
+  }
+
+  private async retrieveGradeLevelsOnly(
+    academicLevels: string[],
+    schoolId: number,
+  ): Promise<GradeLevels['retrievedGradeLevels'][]> {
+    const data = await this.prisma.grade_level.findMany({
+      where: {
+        academic_level: {
+          academic_level: {
+            in: academicLevels,
+          },
+        },
+      },
+      select: {
+        grade_level: true,
+        grade_level_code: true,
+        grade_level_offered: {
+          where: {
+            school_id: schoolId,
+            is_active: true,
+          },
+          select: {
+            grade_level_offered_id: true,
+          },
+        },
+      },
+    });
+
+    if (!data || data.length == 0) return [];
+
+    const finalOutput: GradeLevels['retrievedGradeLevels'][] = data
+      .filter((item) => item.grade_level_offered.length > 0) // Only include grade levels with active offers
+      .map((item) => ({
+        gradeLevel: item.grade_level,
+        gradeLevelCode: item.grade_level_code,
+        gradeLevelOfferedId: item.grade_level_offered[0].grade_level_offered_id,
+      }));
+
+    return finalOutput;
   }
 
   // for storing the grade levels section

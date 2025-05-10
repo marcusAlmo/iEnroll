@@ -9,7 +9,7 @@ export class GradeLevelsController {
 
   @Get('fetch')
   async fetchGradeLevels(@User('school_id') schoolId: number) {
-    schoolId = 686042;
+    schoolId = 0;
     return await this.gradeLevelService.getGradeLevels({ schoolId });
   }
 
@@ -18,7 +18,7 @@ export class GradeLevelsController {
     @User('school_id') schoolId: number,
     @Body() payload: GradeLevelsDto,
   ) {
-    schoolId = 686042;
+    schoolId = 0;
     return await this.gradeLevelService.createAndUpdateGradeLevels({
       schoolId,
       payload,

@@ -25,7 +25,7 @@ interface GradeLevelsInterface {
 };
 
 interface ProgramInterface {
-  programName: string;
+  program: string;
   programId: number;
   description: string;
 }
@@ -128,22 +128,10 @@ const GradeLevels: React.FC = () => {
       );
 
       if (sectionInfo) {
-        // Find matching program in our programs list if it exists
-        let programId = 0;
-        let programDescription = '';
-        
-        // Safe way to find the matching program
-        console.log('programs',programs)
-        if (Array.isArray(programs)) {
-          const matchingProgram = programs.find(
-            p => p.programName === sectionInfo.programDetails?.program
-          );
-          
-          if (matchingProgram) {
-            programId = matchingProgram.programId;
-            programDescription = matchingProgram.description;
-          }
-        }
+        // Find matching program - make case insensitive comparison
+        const matchingProgram = programs.find(
+          p => p.program.toUpperCase() === sectionInfo.programDetails?.program?.toUpperCase()
+        );
         
         setSectionDetails({
           sectionName: sectionInfo.sectionName,
@@ -152,13 +140,11 @@ const GradeLevels: React.FC = () => {
           sectionCapacity: sectionInfo.admissionSlot,
           maximumApplication: sectionInfo.maxApplicationSlot,
           isCustomProgram: sectionInfo.isCustomProgram,
-          customProgramDetails: sectionInfo.isCustomProgram
-            ? {
-                program: sectionInfo.programDetails?.program || '',
-                programId: programId,
-                description: sectionInfo.programDetails?.description || programDescription
-              }
-            : undefined,
+          customProgramDetails: {
+            program: sectionInfo.programDetails?.program || '',
+            programId: matchingProgram?.programId || 0, // Make sure to set programId
+            description: sectionInfo.programDetails?.description || ''
+          }
         });
       }
     }
@@ -230,7 +216,7 @@ const GradeLevels: React.FC = () => {
       maximumApplication: 0,
       isCustomProgram: false,
       customProgramDetails: {
-        program: defaultProgram.programName,
+        program: defaultProgram.program,
         programId: defaultProgram.programId,
         description: defaultProgram.description
       },
@@ -254,24 +240,13 @@ const GradeLevels: React.FC = () => {
   // Handle program selection change
   const handleProgramChange = (programId: number) => {
     if (sectionDetails && (isNewSection || isEditing)) {
-      // Safely find the selected program
-      let selectedProgram: ProgramInterface | undefined;
+      const selectedProgram = programs.find(p => p.programId === programId);
       
-      if (Array.isArray(programs) && programs.length > 0) {
-        selectedProgram = programs.find(p => p.programId === programId);
-      }
-      
-      // If not found in programs state, check the programsList
-      if (!selectedProgram) {
-        selectedProgram = programs.find(p => p.programId === programId);
-      }
-      
-      // If we found a matching program, update the section details
       if (selectedProgram) {
         setSectionDetails({
           ...sectionDetails,
           customProgramDetails: {
-            program: selectedProgram.programName,
+            program: selectedProgram.program,
             programId: selectedProgram.programId,
             description: selectedProgram.description
           }
@@ -403,7 +378,7 @@ const GradeLevels: React.FC = () => {
       isCustomProgram: checked,
       customProgramDetails: checked
         ? sectionDetails.customProgramDetails || { 
-            program: defaultProgram.programName, 
+            program: defaultProgram.program, 
             programId: defaultProgram.programId,
             description: defaultProgram.description 
           }
@@ -592,7 +567,7 @@ const GradeLevels: React.FC = () => {
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={sectionDetails.isCustomProgram}
+                    checked={(!sectionDetails.isCustomProgram)}
                     onChange={(e) => handleToggleCustomProgram(e.target.checked)}
                     className="form-checkbox h-4 w-4 cursor-pointer rounded border-text-2 text-primary focus:ring-accent"
                   />
@@ -602,24 +577,28 @@ const GradeLevels: React.FC = () => {
             )}
 
             {/* Show input fields for custom program when checkbox is checked during new section creation or editing */}
-            {(isNewSection || isEditing) && sectionDetails.isCustomProgram && (
+            {(isNewSection || isEditing) && (!sectionDetails.isCustomProgram) && (
               <div className="flex flex-col gap-2">
                 <h3 className="text-text font-semibold">Custom Program Details</h3>
                 <div>
                   <label className="block text-text text-sm font-medium mb-1">
                     Program Name
                   </label>
-                  <select
-                    value={sectionDetails.customProgramDetails?.programId || programs[0].programId}
-                    onChange={(e) => handleProgramChange(parseInt(e.target.value))}
-                    className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
-                  >
-                    {programs.map(program => (
-                      <option key={program.programId} value={program.programId}>
-                        {program.programName}
-                      </option>
-                    ))}
-                  </select>
+                  {programs.length === 0 ? (
+                    <div className="text-text-2 text-sm">Loading programs...</div>
+                  ) : (
+                    <select
+                      value={sectionDetails.customProgramDetails?.programId || ''}
+                      onChange={(e) => handleProgramChange(parseInt(e.target.value))}
+                      className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
+                    >
+                      {programs.map(program => (
+                        <option key={program.programId} value={program.programId}>
+                          {program.program}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-text text-sm font-medium mb-1">
@@ -627,37 +606,8 @@ const GradeLevels: React.FC = () => {
                   </label>
                   <textarea
                     value={sectionDetails.customProgramDetails?.description || ""}
-                    readOnly={true}
+                    readOnly
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
-                    rows={4}
-                  />
-                </div>
-              </div>
-            )}
-            
-            {/* Show custom program details when viewing existing section with custom program */}
-            {!isNewSection && !isEditing && sectionDetails.isCustomProgram && sectionDetails.customProgramDetails && (
-              <div className="flex flex-col gap-2">
-                <h3 className="text-text font-semibold">Custom Program</h3>
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">
-                    Program Name
-                  </label>
-                  <input
-                    type="text"
-                    value={sectionDetails.customProgramDetails.program}
-                    readOnly
-                    className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 opacity-75"
-                  />
-                </div>
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={sectionDetails.customProgramDetails.description}
-                    readOnly
-                    className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 opacity-75"
                     rows={4}
                   />
                 </div>
