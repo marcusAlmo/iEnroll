@@ -1,6 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import TestData from "./test/testData.json";
-import SectionAdviserData from "./test/sectionAdviser.json";
+import { toast } from 'react-toastify';
+import { requestData } from '@/lib/dataRequester';
+//import SectionAdviserData from "./test/sectionAdviser.json";
+
+interface GradeLevelsInterface {
+  gradeLevel: string;
+  gradeLevelOfferedId: number;
+  sections: {
+    gradeSectionProgramId: number;
+    sectionId: number;
+    sectionName: string;
+    adviser: string | null;
+    admissionSlot: number;
+    maxApplicationSlot: number;
+    isCustomProgram: boolean;
+    programDetails:
+      | {
+          program: string;
+          description: string;
+        }
+      | undefined;
+  }[];
+};
 
 const GradeLevels: React.FC = () => {
   // State for selected grade level and section
@@ -21,6 +43,7 @@ const GradeLevels: React.FC = () => {
 
   // State for managing new section creation
   const [isNewSection, setIsNewSection] = React.useState<boolean>(false);
+  const [data, setData] = useState<GradeLevelsInterface[]>([]);
 
   // Handle grade level selection
   const handleGradeLevelClick = (gradeLevel: string) => {
@@ -37,7 +60,7 @@ const GradeLevels: React.FC = () => {
     setIsEditing(false); // Reset editing state when selecting a section
 
     // Find the selected section details
-    const gradeLevelDetails = TestData.gradeLevels.find(
+    const gradeLevelDetails = data.find(
       (grade) => grade.gradeLevel === selectedGradeLevel
     );
 
@@ -49,12 +72,12 @@ const GradeLevels: React.FC = () => {
       if (sectionInfo) {
         setSectionDetails({
           sectionName: sectionInfo.sectionName,
-          sectionAdviser: sectionInfo.sectionAdviser,
-          sectionCapacity: sectionInfo.sectionCapacity,
-          maximumApplication: sectionInfo.maximumApplication,
+          sectionAdviser: sectionInfo.adviser || '',
+          sectionCapacity: sectionInfo.admissionSlot,
+          maximumApplication: sectionInfo.maxApplicationSlot,
           isCustomProgram: sectionInfo.isCustomProgram,
           customProgramDetails: sectionInfo.isCustomProgram
-            ? sectionInfo.customProgramDetails
+            ? sectionInfo.programDetails
             : undefined,
         });
         setIsCustomProgram(sectionInfo.isCustomProgram);
@@ -177,6 +200,29 @@ const GradeLevels: React.FC = () => {
       });
     }
   };
+
+  // retrieve collections of grade levels from server
+  const retrieveGradeLevels = async () => {
+    try {
+      const response = await requestData<GradeLevelsInterface[]>({
+        url: 'http://localhost:3000/api/grade-levels/fetch',
+        method: 'GET'
+      })
+
+      if (response) {
+        setData(response)
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    retrieveGradeLevels()
+  }, [])
   
   return (
     <div className="flex flex-row gap-4 justify-center pt-7 px-8 w-full">
@@ -185,7 +231,7 @@ const GradeLevels: React.FC = () => {
         <div className="border-r-2 border-text-2 px-3 py-3 w-3/6">
           <h2 className="text-text-2 font-semibold text-base">GRADE LEVELS</h2>
           <ul className="mt-4">
-            {TestData.gradeLevels.map((grade, index) => (
+            {data.map((grade, index) => (
               <li
                 key={index}
                 className={`text-text-1 button-transition flex cursor-pointer flex-col gap-y-2 rounded-full px-3 py-1 text-sm hover:scale-105 hover:bg-accent/50 ${
@@ -202,7 +248,7 @@ const GradeLevels: React.FC = () => {
           <h2 className="text-text-2 font-semibold text-base">SECTION</h2>
           <div className="mt-4">
             {selectedGradeLevel &&
-              TestData.gradeLevels
+              data
                 .filter((grade) => grade.gradeLevel === selectedGradeLevel)
                 .map((grade, index) => (
                   <div key={index}>

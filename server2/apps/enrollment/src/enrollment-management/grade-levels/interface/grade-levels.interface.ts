@@ -10,6 +10,7 @@ export interface GradeLevels {
     }[];
     academic_program: {
       program: string;
+      description: string;
     };
     grade_level_offered: {
       grade_level_offered_id: number;
@@ -29,7 +30,13 @@ export interface GradeLevels {
       adviser: string | null;
       admissionSlot: number;
       maxApplicationSlot: number;
-      program: string;
+      isCustomProgram: boolean;
+      programDetails:
+        | {
+            program: string;
+            description: string;
+          }
+        | undefined;
     }[];
   };
 

@@ -141,6 +141,7 @@ export class GradeLevelsService {
           academic_program: {
             select: {
               program: true,
+              description: true,
             },
           },
           grade_level_offered: {
@@ -171,7 +172,13 @@ export class GradeLevelsService {
           adviser: section.adviser,
           admissionSlot: section.admission_slot,
           maxApplicationSlot: section.max_application_slot,
-          program: item.academic_program.program,
+          programDetails: item.academic_program
+            ? {
+                program: item.academic_program.program,
+                description: item.academic_program.description,
+              }
+            : undefined,
+          isCustomProgram: item.academic_program ? false : true,
         })),
       });
     });
