@@ -15,10 +15,9 @@ import {
   faTrash,
   faTimes,
   faPlusCircle
-} from '@fortawesome/free-solid-svg-icons'
-import { toast } from 'react-toastify'
-import { requestData } from '@/lib/dataRequester'
-import { string } from 'zod'
+} from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
+import { requestData } from '@/lib/dataRequester';
 
 /**
  * Represents a time range with start and end times
@@ -58,6 +57,7 @@ interface ScheduleData {
   applications: number;
   status: string;
   gradeLevel: string;
+  maximumApplication: number;
 };
 
 const ScheduleItem = ({ 
@@ -153,14 +153,20 @@ export default function EnrollmentSchedule() {
       toast.error('Please fill in all required fields and fix validation errors')
       return
     }
+  
+    // Get the local date string (YYYY-MM-DD format)
+    const adjustedDate = new Date(selectedDate!);
+    adjustedDate.setMinutes(adjustedDate.getMinutes() - adjustedDate.getTimezoneOffset());
+    const dateString = adjustedDate.toISOString().split('T')[0];
 
     const newSchedule: ScheduleData = {
-      id: Date.now(), // Generate unique ID
-      date: selectedDate!.toISOString().split('T')[0],
+      id: Date.now(),
+      date: dateString,
       timeRanges,
       status: 'active',
-      applications: 0, // New schedules start with 0 applications
-      gradeLevel: selectedGrade!
+      applications: 0,
+      gradeLevel: selectedGrade!,
+      maximumApplication: maxApplications,
     }
 
     if (editingScheduleId) {
@@ -221,7 +227,10 @@ export default function EnrollmentSchedule() {
       const processedSchedule = schedule.map((s) => ({
         DateString: s.date,
         timeRanges: s.timeRanges,
+        applicationSlot: s.maximumApplication,
       }));
+
+      console.log('processedSchedule: ', processedSchedule);
 
       const response = await requestData<{ message: string }>({
         url: 'http://localhost:3000/api/enrollment-schedule/store-data',
@@ -303,31 +312,24 @@ export default function EnrollmentSchedule() {
    */
   const validateMaxApplications = (value: number) => {
     if (value < 0) {
-      setMaxApplicationsError('Maximum applications cannot be negative')
-      return false
+      setMaxApplicationsError('Maximum applications cannot be negative');
+      return false;
     }
+    
     if (editingSchedule?.applications && value < editingSchedule.applications) {
-      setMaxApplicationsError(`Maximum applications cannot be less than current applications (${editingSchedule.applications})`)
-      return false
+      setMaxApplicationsError(`Maximum applications cannot be less than current applications (${editingSchedule.applications})`);
+      return false;
     }
-
-    // Calculate total maximum applications for the selected grade level
-    const gradeLevel = selectedGradeData
-    if (gradeLevel) {
-      const totalMaxApplications = gradeLevel.sections.reduce(
-        (sum, section) => sum + section.maximumApplication,
-        0
-      )
-      
-      if (value > totalMaxApplications) {
-        setMaxApplicationsError(`Maximum applications cannot exceed the grade level's total capacity (${totalMaxApplications})`)
-        return false
-      }
+  
+    // Use remaining slots as the threshold
+    if (value > data.schoolCapacity.remainingSlots) {
+      setMaxApplicationsError(`Maximum applications cannot exceed remaining school capacity (${data.schoolCapacity.remainingSlots})`);
+      return false;
     }
-
-    setMaxApplicationsError('')
-    return true
-  }
+  
+    setMaxApplicationsError('');
+    return true;
+  };
 
   /**
    * Memoized data for the selected grade level
@@ -365,18 +367,6 @@ export default function EnrollmentSchedule() {
   }, [selectedDate, timeRanges, hasValidationErrors, maxApplicationsError])
 
   /**
-   * Memoized total maximum applications for the selected grade level
-   * @type {number}
-   */
-  const totalGradeMaxApplications = useMemo(() => {
-    if (!selectedGradeData) return 0
-    return selectedGradeData.sections.reduce(
-      (sum, section) => sum + section.maximumApplication,
-      0
-    )
-  }, [selectedGradeData])
-
-  /**
    * Handles grade level selection
    * @param {string} gradeLevel - The selected grade level
    */
@@ -399,7 +389,8 @@ export default function EnrollmentSchedule() {
   };
 
   const handleAddTimeSlot = () => {
-    setShowAddModal(true)
+    setMaxApplications(0);
+    setShowAddModal(true);
   }
 
   const handleDeleteSchedule = async (scheduleId: string) => {
@@ -777,22 +768,22 @@ export default function EnrollmentSchedule() {
                     <h4 className='mb-2 rounded-[10px] bg-text-2/10 px-2 py-1 text-sm font-semibold text-text-2'>Maximum Applications</h4>
                     <div className='flex flex-col gap-2'>
                       <input
-                        type="number"
+                        key={editingScheduleId || 'new'}
+                        type="text"
                         value={maxApplications}
                         onChange={(e) => {
-                          const value = Number(e.target.value)
-                          setMaxApplications(value)
-                          validateMaxApplications(value)
+                          const value = e.target.value === '' ? 0 : Number(e.target.value.replace(/[^0-9]/g, ''));
+                          setMaxApplications(value);
+                          validateMaxApplications(value);
                         }}
-                        min="0"
-                        max={totalGradeMaxApplications}
+                        pattern="[0-9]*"
                         className={`w-full rounded border px-2 py-1 ${
                           maxApplicationsError ? 'border-danger' : 'border-text-2/50'
                         }`}
-                        placeholder="Enter maximum number of applications"
+                        placeholder="Enter maximum applications"
                       />
                       <div className='text-sm text-gray-500'>
-                        Grade level total capacity: {totalGradeMaxApplications} applications
+                        Remaining school capacity: {data.schoolCapacity.remainingSlots} slots
                       </div>
                       {maxApplicationsError && (
                         <div className='text-danger text-sm'>{maxApplicationsError}</div>

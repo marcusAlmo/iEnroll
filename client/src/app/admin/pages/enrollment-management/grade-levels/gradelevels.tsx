@@ -1,50 +1,118 @@
-import React from 'react';
-import { Combobox } from "@headlessui/react";
-import TestData from "./test/testData.json";
-import SectionAdviserData from "./test/sectionAdviser.json";
+import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+import { requestData } from '@/lib/dataRequester';
+import { FiTrash } from 'react-icons/fi';
+
+interface GradeLevelsInterface {
+  gradeLevel: string;
+  gradeSectionProgramId: number;
+  gradeLevelOfferedId: number;
+  sections: {
+    gradeSectionProgramId: number;
+    sectionId: number;
+    sectionName: string;
+    adviser: string | null;
+    admissionSlot: number;
+    maxApplicationSlot: number;
+    isCustomProgram: boolean;
+    programDetails:
+      | {
+          program: string;
+          description: string;
+        }
+      | undefined;
+  }[];
+};
+
+interface ProgramInterface {
+  program: string;
+  programId: number;
+  description: string;
+}
+
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+}
+
+interface CreateSectionInterface {
+  gradeLevelOfferedId: number | undefined;
+  sectionName: string;
+  adviser: string;
+  admissionSlot: number;
+  maxApplicationSlot: number;
+  programName: string;
+  programId: number;
+  isUpdate: boolean;
+}
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-background rounded-lg p-6 max-w-md w-full pointer-events-auto shadow-xl border-2 border-gray-300">
+        <h3 className="text-lg font-semibold text-text mb-2">{title}</h3>
+        <p className="text-text mb-6">{message}</p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-text-2 rounded-lg hover:bg-text-2/20 cursor-pointer button-transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 cursor-pointer button-transition"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const GradeLevels: React.FC = () => {
   // State for selected grade level and section
-  const [selectedGradeLevel, setSelectedGradeLevel] = React.useState<string | null>(null);
-  const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
-  const [isCustomProgram, setIsCustomProgram] = React.useState<boolean>(false);
-  const [query, setQuery] = React.useState<string>("");
-  const [isEditing, setIsEditing] = React.useState<boolean>(false);
+  const [selectedGradeLevel, setSelectedGradeLevel] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  
+  // State for deleting the section
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
   
   // State for section details
-  const [sectionDetails, setSectionDetails] = React.useState<{
+  const [sectionDetails, setSectionDetails] = useState<{
     sectionName: string;
+    sectionId: number;
     sectionAdviser: string;
     sectionCapacity: number;
     maximumApplication: number;
     isCustomProgram: boolean;
-    customProgramDetails?: { program: string; description: string };
-  } | null>(null);
-
-  const [selectedAdviser, setSelectedAdviser] = React.useState<{
-    firstName: string;
-    middleName: string;
-    lastName: string;
-    phoneNumber: string;
-    email: string;
-    address: {
-      street: string;
-      district: string;
-      municipality: string;
-      province: string;
+    customProgramDetails: { 
+      program: string; 
+      programId: number;
+      description: string 
     };
   } | null>(null);
 
   // State for managing new section creation
-  const [isNewSection, setIsNewSection] = React.useState<boolean>(false);
+  const [isNewSection, setIsNewSection] = useState<boolean>(false);
+  const [data, setData] = useState<GradeLevelsInterface[]>([]);
   
-  // Filter advisers based on query
-  const filteredAdvisers = query === ""
-    ? SectionAdviserData.sectionAdviser
-    : SectionAdviserData.sectionAdviser.filter((adviser) => {
-        const fullName = `${adviser.firstName} ${adviser.middleName} ${adviser.lastName}`.toLowerCase();
-        return fullName.includes(query.toLowerCase());
-      });
+  // State for programs dropdown
+  const [programs, setPrograms] = useState<ProgramInterface[]>([]);
 
   // Handle grade level selection
   const handleGradeLevelClick = (gradeLevel: string) => {
@@ -53,7 +121,6 @@ const GradeLevels: React.FC = () => {
     setSectionDetails(null); // Clear section details
     setIsNewSection(false); // Reset new section state
     setIsEditing(false); // Reset editing state
-    setSelectedAdviser(null); // Reset selected adviser
   };
 
   // Handle section selection
@@ -62,7 +129,7 @@ const GradeLevels: React.FC = () => {
     setIsEditing(false); // Reset editing state when selecting a section
 
     // Find the selected section details
-    const gradeLevelDetails = TestData.gradeLevels.find(
+    const gradeLevelDetails = data.find(
       (grade) => grade.gradeLevel === selectedGradeLevel
     );
 
@@ -72,27 +139,74 @@ const GradeLevels: React.FC = () => {
       );
 
       if (sectionInfo) {
+        // Find matching program - make case insensitive comparison
+        const matchingProgram = programs.find(
+          p => p.program.toUpperCase() === sectionInfo.programDetails?.program?.toUpperCase()
+        );
+        
         setSectionDetails({
           sectionName: sectionInfo.sectionName,
-          sectionAdviser: sectionInfo.sectionAdviser,
-          sectionCapacity: sectionInfo.sectionCapacity,
-          maximumApplication: sectionInfo.maximumApplication,
+          sectionId: sectionInfo.sectionId,
+          sectionAdviser: sectionInfo.adviser || '',
+          sectionCapacity: sectionInfo.admissionSlot,
+          maximumApplication: sectionInfo.maxApplicationSlot,
           isCustomProgram: sectionInfo.isCustomProgram,
-          customProgramDetails: sectionInfo.isCustomProgram
-            ? sectionInfo.customProgramDetails
-            : undefined,
+          customProgramDetails: {
+            program: sectionInfo.programDetails?.program || '',
+            programId: matchingProgram?.programId || 0, // Make sure to set programId
+            description: sectionInfo.programDetails?.description || ''
+          }
         });
-        
-        // Find and set the selected adviser from the adviser list
-        const adviser = SectionAdviserData.sectionAdviser.find(
-          (adv) => `${adv.firstName} ${adv.middleName} ${adv.lastName}` === sectionInfo.sectionAdviser
-        );
-        setSelectedAdviser(adviser || null);
-        setIsCustomProgram(sectionInfo.isCustomProgram);
       }
     }
 
     setIsNewSection(false); // Reset new section state
+  };
+
+  // handle delete section
+  const handleDeleteSection = (sectionId: number) => {
+    if (!selectedGradeLevel || !sectionId) return;
+    
+    setSectionToDelete(sectionId);
+    setIsDeleteModalOpen(true);
+  };
+
+  // confirms deletion of section
+  const confirmDelete = async () => {
+    if (!selectedGradeLevel || !sectionToDelete) return;
+    
+    await deleteSection(sectionToDelete);
+
+    // Reset states after deletion
+    setSelectedSection(null);
+    setSectionDetails(null);
+    setIsDeleteModalOpen(false);
+    setSectionToDelete(null);
+  };
+
+  const deleteSection = async (sectionId: number) => {
+    try {
+      const response = await requestData<{message: string}>({
+        url: `http://localhost:3000/api/grade-levels/delete/${sectionId}`,
+        method: 'DELETE',
+      });
+
+      if (response) {
+        toast.success('Section deleted successfully');
+        await retrieveGradeLevels();
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+
+      console.error(error);
+    }
+  }
+
+  // cancels deletion of section
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSectionToDelete(null);
   };
 
   // Handle "Edit Section" button click
@@ -102,25 +216,46 @@ const GradeLevels: React.FC = () => {
 
   // Handle "Add New Section" button click
   const handleAddNewSection = () => {
+    const defaultProgram = programs[0] || { 
+      program: 'Default Program', 
+      programId: 0, 
+      description: '' 
+    };
+    
     setSectionDetails({
       sectionName: "",
+      sectionId: 0,
       sectionAdviser: "",
       sectionCapacity: 0,
       maximumApplication: 0,
       isCustomProgram: false,
-      customProgramDetails: undefined,
+      customProgramDetails: defaultProgram
     });
   
-    setIsCustomProgram(false); // Reset the checkbox state
-    setSelectedAdviser(null); // Reset the selected adviser
-    setQuery(""); // Reset the query
-    setIsNewSection(true); // Enable new section creation mode
-    setIsEditing(false); // Ensure editing mode is off
+    setIsNewSection(true);  // This was missing!
+    setIsEditing(false);
   };
 
   // Handle input changes for section details
+  // eslint-disable-next-line
   const handleInputChange = (field: string, value: any) => {
-    if (sectionDetails && (isNewSection || isEditing)) {
+    if (!sectionDetails) return;
+  
+    // Special handling for number fields to prevent NaN
+    if (field === 'sectionCapacity' || field === 'maximumApplication') {
+      value = parseInt(value) || 0;
+    }
+  
+    if (field.startsWith('customProgramDetails.')) {
+      const nestedField = field.split('.')[1];
+      setSectionDetails({
+        ...sectionDetails,
+        customProgramDetails: {
+          ...sectionDetails.customProgramDetails,
+          [nestedField]: value
+        }
+      });
+    } else {
       setSectionDetails({
         ...sectionDetails,
         [field]: value
@@ -128,52 +263,130 @@ const GradeLevels: React.FC = () => {
     }
   };
   
-  // Handle custom program details changes
-  const handleCustomProgramChange = (field: string, value: string) => {
-    if (sectionDetails && (isNewSection || isEditing)) {
+  // Handle program selection change
+  const handleProgramChange = (programId: number) => {
+    const selectedProgram = programs.find(p => p.programId === programId) || {
+      program: '',
+      programId: 0,
+      description: ''
+    };
+  
+    if (sectionDetails) {
       setSectionDetails({
         ...sectionDetails,
         customProgramDetails: {
-          ...(sectionDetails.customProgramDetails || { program: "", description: "" }),
-          [field]: value
+          program: selectedProgram.program,
+          programId: selectedProgram.programId,
+          description: selectedProgram.description
         }
       });
     }
   };
   
   // Handle create new section submission
-  const handleCreateSection = () => {
+  const handleCreateSection = async () => {
     if (!sectionDetails || !selectedGradeLevel) return;
-    // Please remove before deployment and replace with acutal API call
-    console.log("Creating new section:", {
-      gradeLevel: selectedGradeLevel,
-      section: sectionDetails
-    });
+  
+    console.log("Creating section with details:", sectionDetails); // Add detailed logging
     
-    // For demo purpose, we'll just reset the form
-    setIsNewSection(false);
-    setSelectedSection(sectionDetails.sectionName);
-    
-    alert(`Section ${sectionDetails.sectionName} created successfully!`);
+    try {
+      const requestBody = {
+        gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
+        sectionName: sectionDetails.sectionName,
+        adviser: sectionDetails.sectionAdviser,
+        admissionSlot: sectionDetails.sectionCapacity,
+        maxApplicationSlot: sectionDetails.maximumApplication,
+        programName: sectionDetails.customProgramDetails.program,
+        programId: sectionDetails.customProgramDetails.programId,
+        isUpdate: false,
+      };      
+  
+      console.log("Final request body:", requestBody); // Log the final payload
+      
+      await createSection(requestBody);
+
+      // ... rest of your code
+    } catch (error) {
+      console.error("Error in handleCreateSection:", error);
+      // ... error handling
+    }
   };
 
+  const createSection = async (data: CreateSectionInterface) => {
+    try {
+      const response = await requestData<{message: string}>({
+        url: 'http://localhost:3000/api/grade-levels/create',
+        method: 'POST',
+        body: {
+          ...data
+        }
+      });
+
+      if (response) {
+        toast.success(response.message);
+        await retrieveGradeLevels();
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error has occurred');
+
+      console.log(err);
+    }
+  }
+
   // Handle update section submission
-  const handleUpdateSection = () => {
+  const handleUpdateSection = async () => {
     if (!sectionDetails || !selectedGradeLevel || !selectedSection) return;
     
-    console.log("Updating section:", {
-      gradeLevel: selectedGradeLevel,
-      section: sectionDetails
-    });
-    
-    setIsEditing(false);
-    
-    // Update the selected section if section name changed
-    if (sectionDetails.sectionName !== selectedSection) {
-      setSelectedSection(sectionDetails.sectionName);
-    }
+    try {
+      console.log('Updating section with details:', {
+        gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
+        sectionId: sectionDetails.sectionId,
+        programName: sectionDetails.customProgramDetails?.program,
+        programId: sectionDetails.customProgramDetails?.programId,
+        sectionName: sectionDetails.sectionName,
+        adviser: sectionDetails.sectionAdviser,
+        admissionSlot: sectionDetails.sectionCapacity,
+        maxApplicationSlot: sectionDetails.maximumApplication,
+        gradeSectionProgramId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeSectionProgramId,
+        isUpdate: true
+      });
 
-    alert(`Section ${sectionDetails.sectionName} updated successfully!`);
+      const response = await requestData<{ message: string}>({
+        url: `http://localhost:3000/api/grade-levels/update/${sectionDetails.sectionId}`,
+        method: "POST",
+        body: {
+          gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
+          programName: sectionDetails.customProgramDetails?.program,
+          programId: sectionDetails.customProgramDetails?.programId,
+          sectionName: sectionDetails.sectionName,
+          adviser: sectionDetails.sectionAdviser,
+          admissionSlot: sectionDetails.sectionCapacity,
+          maxApplicationSlot: sectionDetails.maximumApplication,
+          gradeSectionProgramId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeSectionProgramId,
+          isUpdate: true
+        }
+      });
+      
+      if (response) {
+        toast.success(response.message);
+      
+        // Reset editing state
+        setIsEditing(false);
+
+        // Update the selected section if section name changed
+        if (sectionDetails.sectionName !== selectedSection) {
+          setSelectedSection(sectionDetails.sectionName);
+        }
+
+        // Refresh data from server
+        await retrieveGradeLevels();
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+      console.error(error);
+    }
   };
 
   // Handle cancel button click
@@ -196,19 +409,62 @@ const GradeLevels: React.FC = () => {
     }
   };
 
-  // Toggle custom program checkbox
-  const handleToggleCustomProgram = (checked: boolean) => {
-    setIsCustomProgram(checked);
-    if (sectionDetails) {
-      setSectionDetails({
-        ...sectionDetails,
-        isCustomProgram: checked,
-        customProgramDetails: checked 
-          ? (sectionDetails.customProgramDetails || { program: "", description: "" })
-          : undefined
-      });
+  // retrieve collections of grade levels from server
+  const retrieveGradeLevels = async () => {
+    try {
+      const response = await requestData<GradeLevelsInterface[]>({
+        url: 'http://localhost:3000/api/grade-levels/fetch',
+        method: 'GET'
+      })
+
+      if (response) {
+        setData(response)
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+
+      console.error(error);
     }
-  };
+  }
+
+  // retrieve programs from server (if you have an API for this)
+  const retrievePrograms = async () => {
+    try {
+      // Uncomment this when you have an actual API endpoint
+      const response = await requestData<{programList: ProgramInterface[]}>({
+        url: 'http://localhost:3000/api/grade-levels/retrieve-programs',
+        method: 'GET'
+      })
+
+      if (response) {
+        setPrograms(response.programList)
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    console.log("Current mode:", {
+      isNewSection,
+      isEditing,
+      canEdit: isNewSection || isEditing
+    });
+  }, [isNewSection, isEditing]);
+
+  useEffect(() => {
+    console.log("Section details updated:", sectionDetails);
+  }, [sectionDetails]);
+
+  // execute retrieval
+  useEffect(() => {
+    retrieveGradeLevels();
+    retrievePrograms();
+  }, [])
   
   return (
     <div className="flex flex-row gap-4 justify-center pt-7 px-8 w-full">
@@ -217,7 +473,7 @@ const GradeLevels: React.FC = () => {
         <div className="border-r-2 border-text-2 px-3 py-3 w-3/6">
           <h2 className="text-text-2 font-semibold text-base">GRADE LEVELS</h2>
           <ul className="mt-4">
-            {TestData.gradeLevels.map((grade, index) => (
+            {data.map((grade, index) => (
               <li
                 key={index}
                 className={`text-text-1 button-transition flex cursor-pointer flex-col gap-y-2 rounded-full px-3 py-1 text-sm hover:scale-105 hover:bg-accent/50 ${
@@ -234,7 +490,7 @@ const GradeLevels: React.FC = () => {
           <h2 className="text-text-2 font-semibold text-base">SECTION</h2>
           <div className="mt-4">
             {selectedGradeLevel &&
-              TestData.gradeLevels
+              data
                 .filter((grade) => grade.gradeLevel === selectedGradeLevel)
                 .map((grade, index) => (
                   <div key={index}>
@@ -301,83 +557,15 @@ const GradeLevels: React.FC = () => {
               <label className="block text-text text-sm font-medium mb-1">
                 Section Adviser
               </label>
-              {(isNewSection || isEditing) ? (
-                <Combobox
-                  value={selectedAdviser}
-                  onChange={(adviser) => {
-                    setSelectedAdviser(adviser);
-                    if (adviser) {
-                      handleInputChange("sectionAdviser", 
-                        `${adviser.firstName} ${adviser.middleName} ${adviser.lastName}`);
-                    }
-                  }}
-                >
-                  <div className="relative mt-1">
-                    <div className="relative w-full cursor-default overflow-hidden rounded-lg border border-gray-300 bg-white text-left">
-                      <Combobox.Input
-                        className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
-                        displayValue={(adviser: any) => 
-                          adviser ? `${adviser.firstName} ${adviser.middleName} ${adviser.lastName}` : ""
-                        }
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Search for an adviser"
-                      />
-                      <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-2" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </Combobox.Button>
-                    </div>
-                    <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-container-1 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                      {filteredAdvisers.length === 0 && query !== "" ? (
-                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                          No advisers found.
-                        </div>
-                      ) : (
-                        filteredAdvisers.map((adviser, index) => (
-                          <Combobox.Option
-                            key={index}
-                            className={({ active }) =>
-                              `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                                active ? "bg-accent text-white" : "text-gray-900"
-                              }`
-                            }
-                            value={adviser}
-                          >
-                            {({ selected, active }) => (
-                              <>
-                                <span
-                                  className={`block truncate ${
-                                    selected ? "font-medium" : "font-normal"
-                                  }`}
-                                >
-                                  {`${adviser.firstName} ${adviser.middleName} ${adviser.lastName}`}
-                                </span>
-                                {selected && (
-                                  <span
-                                    className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
-                                      active ? "text-white" : "text-accent"
-                                    }`}
-                                  >
-                                    ✓
-                                  </span>
-                                )}
-                              </>
-                            )}
-                          </Combobox.Option>
-                        ))
-                      )}
-                    </Combobox.Options>
-                  </div>
-                </Combobox>
-              ) : (
-                <input
-                  type="text"
-                  value={sectionDetails.sectionAdviser}
-                  readOnly
-                  className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 opacity-75"
-                />
-              )}
+              <input
+                type="text"
+                value={sectionDetails.sectionAdviser}
+                onChange={(e) => handleInputChange("sectionAdviser", e.target.value)}
+                readOnly={!(isNewSection || isEditing)}
+                className={`w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 ${
+                  !(isNewSection || isEditing) ? "opacity-75" : ""
+                }`}
+              />
             </div>
             <div>
               <label className="block text-text text-sm font-medium mb-1">
@@ -385,7 +573,7 @@ const GradeLevels: React.FC = () => {
               </label>
               <input
                 type="number"
-                value={sectionDetails.sectionCapacity}
+                value={sectionDetails.sectionCapacity === 0 ? '' : sectionDetails.sectionCapacity}
                 onChange={(e) => handleInputChange("sectionCapacity", parseInt(e.target.value) || 0)}
                 readOnly={!(isNewSection || isEditing)}
                 className={`w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 ${
@@ -399,7 +587,7 @@ const GradeLevels: React.FC = () => {
               </label>
               <input
                 type="number"
-                value={sectionDetails.maximumApplication}
+                value={sectionDetails.maximumApplication === 0 ? '' : sectionDetails.maximumApplication}
                 onChange={(e) => handleInputChange("maximumApplication", parseInt(e.target.value) || 0)}
                 readOnly={!(isNewSection || isEditing)}
                 className={`w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 ${
@@ -407,77 +595,46 @@ const GradeLevels: React.FC = () => {
                 }`}
               />
             </div>
-            
-            {/* Show the checkbox when adding a new section or editing */}
-            {(isNewSection || isEditing) && (
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={isCustomProgram}
-                    onChange={(e) => handleToggleCustomProgram(e.target.checked)}
-                    className="form-checkbox button-transition h-4 w-4 cursor-pointer rounded border-text-2 text-primary focus:ring-accent"
-                  />
-                  <span className="text-text text-sm">Custom Program?</span>
-                </label>
-              </div>
-            )}
 
             {/* Show input fields for custom program when checkbox is checked during new section creation or editing */}
-            {(isNewSection || isEditing) && isCustomProgram && (
-              <div className="flex flex-col gap-2">
-                <h3 className="text-text font-semibold">Custom Program Details</h3>
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">
-                    Program Name
-                  </label>
-                  <input
-                    type="text"
-                    value={sectionDetails?.customProgramDetails?.program || ""}
-                    onChange={(e) => handleCustomProgramChange("program", e.target.value)}
+            <div className="flex flex-col gap-2">
+              <h3 className="text-text font-semibold">Program Details</h3>
+              <div>
+                <label className="block text-text text-sm font-medium mb-1">
+                  Program Name
+                </label>
+                {programs.length === 0 ? (
+                  <div className="text-text-2 text-sm">Loading programs...</div>
+                ) : (
+                  <select
+                    disabled={!(isNewSection || isEditing)}
+                    value={sectionDetails.customProgramDetails?.programId || ''}
+                    onChange={(e) => {
+                      console.log("Select onChange triggered with value:", e.target.value); // Add logging
+                      handleProgramChange(parseInt(e.target.value));
+                    }}
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={sectionDetails?.customProgramDetails?.description || ""}
-                    onChange={(e) => handleCustomProgramChange("description", e.target.value)}
-                    className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
-                  />
-                </div>
+                  >
+                    {programs.map(program => (
+                      <option key={program.programId} value={program.programId}>
+                        {program.program}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
-            )}
-            
-            {/* Show custom program details when viewing existing section with custom program */}
-            {!isNewSection && !isEditing && sectionDetails.isCustomProgram && sectionDetails.customProgramDetails && (
-              <div className="flex flex-col gap-2">
-                <h3 className="text-text font-semibold">Custom Program</h3>
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">
-                    Program Name
-                  </label>
-                  <input
-                    type="text"
-                    value={sectionDetails.customProgramDetails.program}
-                    readOnly
-                    className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 opacity-75"
-                  />
-                </div>
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={sectionDetails.customProgramDetails.description}
-                    readOnly
-                    className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 opacity-75"
-                  />
-                </div>
+              <div>
+                <label className="block text-text text-sm font-medium mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={sectionDetails.customProgramDetails?.description || ""}
+                  readOnly
+                  className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
+                  rows={4}
+                />
               </div>
-            )}
+            </div>
             
             {/* Add buttons for form actions */}
             {isNewSection && (
@@ -514,9 +671,29 @@ const GradeLevels: React.FC = () => {
                 </button>
               </div>
             )}
+            
+            {/* Delete button */}
+            {!isNewSection && !isEditing && selectedSection && (
+              <div className="flex justify-center mt-6">
+                <button
+                  className="text-red-500 hover:text-red-700 transition-colors flex items-center gap-2"
+                  onClick={() => handleDeleteSection(sectionDetails.sectionId)}
+                >
+                  <FiTrash size={18} />
+                  <span>Delete Section</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        message={`Are you sure you want to delete this section?`}
+      />
     </div>
   );
 };

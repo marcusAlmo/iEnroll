@@ -1,40 +1,35 @@
 import { Controller } from '@nestjs/common';
 import { GradeLevelsService } from './grade-levels.service';
 import { MessagePattern } from '@nestjs/microservices';
+import { GradeLevels } from './interface/grade-levels.interface';
 
 @Controller('grade-levels')
 export class GradeLevelsController {
   constructor(private readonly gradeLevelsService: GradeLevelsService) {}
 
-  @MessagePattern({ cmd: 'get-grade-levels' })
+  @MessagePattern({ cmd: 'fetch-grade-levels-sections' })
   async getGradeLevels(payload: { schoolId: number }) {
     return await this.gradeLevelsService.getGradeLevels(payload.schoolId);
   }
 
   @MessagePattern({ cmd: 'create-update-grade-levels' })
   async createDeleteGradeLevels(payload: {
-    gradeLevelOfferedId: number;
-    sectionId: number;
-    programname: string;
-    programId: number;
-    sectionName: string;
-    adviser: string;
-    admissionSlot: number;
-    maxApplicationSlot: number;
-    gradeSectionProgramId: number;
-    isUpdate: boolean;
+    schoolId: number;
+    payload: GradeLevels['receivedData'];
+    sectionId: number | undefined;
   }) {
     return await this.gradeLevelsService.createAndUpdateGradeLevel(
-      payload.gradeLevelOfferedId,
+      payload.schoolId,
+      payload.payload.gradeLevelOfferedId,
       payload.sectionId,
-      payload.programname,
-      payload.programId,
-      payload.sectionName,
-      payload.adviser,
-      payload.admissionSlot,
-      payload.maxApplicationSlot,
-      payload.gradeSectionProgramId,
-      payload.isUpdate,
+      payload.payload.programName,
+      payload.payload.programId,
+      payload.payload.sectionName,
+      payload.payload.adviser,
+      payload.payload.admissionSlot,
+      payload.payload.maxApplicationSlot,
+      payload.payload.gradeSectionProgramId,
+      payload.payload.isUpdate,
     );
   }
 

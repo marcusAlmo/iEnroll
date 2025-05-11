@@ -1,22 +1,22 @@
 import { $Enums } from '@prisma/client';
 export interface Requirements {
   retrieveRequirementsRaw: {
-    grade_section_program_id: number;
     grade_level_offered_id: number;
-    enrollment_requirement: {
-      requirement_id: number;
-      name: string;
-      requirement_type: string;
-      accepted_data_type: string;
-      is_required: boolean | null;
-      description: string | null;
-    }[];
-    grade_level_offered: {
-      grade_level: {
-        grade_level_code: string;
-        grade_level: string;
-      };
+    grade_level_code: string;
+    grade_level: {
+      grade_level: string;
     };
+    grade_section_program: {
+      grade_section_program_id: number;
+      enrollment_requirement: {
+        requirement_id: number;
+        name: string;
+        requirement_type: string;
+        accepted_data_type: string;
+        is_required: boolean | null;
+        description: string | null;
+      }[];
+    }[];
   }[];
 
   processedRequirements: {
@@ -40,6 +40,7 @@ export interface Requirements {
       name: string;
       type: string;
       dataType: string;
+      program: string;
       isRequired: boolean;
       description: string;
     }[];

@@ -434,8 +434,9 @@ const Requirements = () => {
         toast.error('No requirements to create');
         return;
       }
-      
+
       console.log('requirementsData: ', requirementsData);
+      
       const response = await requestData<{message: string}>({
         url: 'http://localhost:3000/api/requirements/process-received-requirements',
         method: 'POST',

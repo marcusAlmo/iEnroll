@@ -16,18 +16,34 @@ export class RequirementsService {
   public async getAllRequirements(
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log(schoolId);
     const rawData: Requirements['retrieveRequirementsRaw'] =
       await this.getAllRequirementsRaw(schoolId);
 
+    console.log(rawData);
+
     const processedData: Requirements['processedRequirements'] =
       await this.processRetrieveData(rawData);
+
+    console.log(processedData);
 
     return this.microserviceUtility.returnSuccess(processedData);
   }
 
   public async processReceivedData(
+    schoolId: number,
     data: Requirements['receivedData'],
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log('receiveddata: ', data);
+
+    if (data.gradeSectionProgramId == 0) {
+      const programStringArr: string[] = data.requirements.map((d) => {
+        return d.program;
+      });
+
+      const programIds: string[] = await this.getProgramId(programStringArr);
+    }
+
     const result = await this.createRequirements(data);
 
     if (result) {
@@ -126,6 +142,8 @@ export class RequirementsService {
         },
       });
 
+    console.log(supportedAcademicLevels);
+
     if (!supportedAcademicLevels) return [];
 
     return supportedAcademicLevels.supported_acad_level as string[];
@@ -165,41 +183,40 @@ export class RequirementsService {
     console.log('gradeLevelOfferedIds', gradeLevelOfferedIds);
 
     const requirements: Requirements['retrieveRequirementsRaw'] =
-      await this.prisma.grade_section_program.findMany({
+      await this.prisma.grade_level_offered.findMany({
         where: {
           grade_level_offered_id: {
             in: gradeLevelOfferedIds,
           },
+          is_active: true,
         },
         select: {
-          grade_section_program_id: true,
-          grade_level_offered: {
+          grade_level_offered_id: true,
+          grade_section_program: {
             select: {
-              grade_level: {
+              grade_section_program_id: true,
+              enrollment_requirement: {
                 select: {
-                  grade_level_code: true,
-                  grade_level: true,
+                  requirement_id: true,
+                  name: true,
+                  requirement_type: true,
+                  accepted_data_type: true,
+                  is_required: true,
+                  description: true,
                 },
               },
             },
           },
-          grade_level_offered_id: true,
-          enrollment_requirement: {
+          grade_level_code: true,
+          grade_level: {
             select: {
-              requirement_id: true,
-              name: true,
-              requirement_type: true,
-              accepted_data_type: true,
-              is_required: true,
-              description: true,
+              grade_level: true,
             },
           },
         },
         orderBy: {
-          grade_level_offered: {
-            grade_level: {
-              order_position: 'asc',
-            },
+          grade_level: {
+            order_position: 'asc',
           },
         },
       });
@@ -212,45 +229,103 @@ export class RequirementsService {
   private async processRetrieveData(
     data: Requirements['retrieveRequirementsRaw'],
   ): Promise<Requirements['processedRequirements']> {
-    // First transform all data to the desired format
-    const transformedData = data.map((item) => ({
-      gradeSectionProgramId: item.grade_section_program_id,
-      gradeLevelOfferedId: item.grade_level_offered_id,
-      gradeLevel: item.grade_level_offered.grade_level.grade_level,
-      gradeLevelCode: item.grade_level_offered.grade_level.grade_level_code,
-      requirements: item.enrollment_requirement.map((requirement) => ({
-        requirementId: requirement.requirement_id,
-        name: requirement.name,
-        type: requirement.requirement_type,
-        dataType: requirement.accepted_data_type,
-        isRequired: requirement.is_required,
-        description: requirement.description,
-      })),
-    }));
+    const results: Requirements['processedRequirements'] = [];
+    console.log('data: ', data);
 
-    // Create a map to group by gradeLevelOfferedId
-    const gradeLevelMap = new Map<number, (typeof transformedData)[0]>();
+    for (const gradeLevelOffered of data) {
+      const {
+        grade_level_offered_id,
+        grade_level_code,
+        grade_section_program,
+      } = gradeLevelOffered;
+      const { grade_level } = gradeLevelOffered.grade_level;
 
-    for (const item of transformedData) {
-      if (gradeLevelMap.has(item.gradeLevelOfferedId)) {
-        // If we've seen this grade level before, merge the requirements
-        const existing = gradeLevelMap.get(item.gradeLevelOfferedId);
-        existing!.requirements.push(...item.requirements);
-      } else {
-        // First time seeing this grade level, add to map
-        gradeLevelMap.set(item.gradeLevelOfferedId, {
-          ...item,
-          // Create a new array to avoid reference issues
-          requirements: [...item.requirements],
-        });
+      const requirements: Array<{
+        requirementId: number;
+        name: string;
+        type: string;
+        dataType: string;
+        isRequired: boolean | null;
+        description: string | null;
+      }> = [];
+
+      const gradeSectionProgramIds = new Set<number>();
+
+      // Process all grade section programs (even if they have no requirements)
+      for (const program of grade_section_program) {
+        gradeSectionProgramIds.add(program.grade_section_program_id);
+
+        // Only process requirements if they exist
+        if (
+          program.enrollment_requirement &&
+          program.enrollment_requirement.length > 0
+        ) {
+          requirements.push(
+            ...program.enrollment_requirement.map((req) => ({
+              requirementId: req.requirement_id,
+              name: req.name,
+              type: req.requirement_type,
+              dataType: req.accepted_data_type,
+              isRequired: req.is_required,
+              description: req.description,
+            })),
+          );
+        }
       }
+
+      // Always include the grade level, even if there are no requirements
+      results.push({
+        gradeLevelOfferedId: grade_level_offered_id,
+        gradeLevel: grade_level,
+        gradeLevelCode: grade_level_code,
+        gradeSectionProgramId:
+          gradeSectionProgramIds.size > 0
+            ? Array.from(gradeSectionProgramIds)[0]
+            : 0,
+        requirements, // Will be empty array if no requirements exist
+      });
     }
 
-    // Convert the map values back to an array
-    return Array.from(gradeLevelMap.values());
+    return results;
   }
 
   // for creating new
+  private async getProgramId(programs: string[]): Promise<number[]> {
+    const result = await this.prisma.academic_program.findMany({
+      where: {
+        program: {
+          in: programs,
+        },
+      },
+      select: {
+        program_id: true,
+      },
+    });
+
+    return result ? result.map((item) => item.program_id) : [];
+  }
+
+  private async createGradeSectionProgram(
+    schoolId: number,
+    gradeLevelOfferedId: number,
+    name: string,
+    adviser: string,
+    admissionSlot: number,
+    maxApplicationSlot: number,
+  ): Promise<boolean> {
+    const result = await this.prisma.grade_section_program.create({
+      data: {
+        grade_level_offered_id: gradeLevelOfferedId,
+        name: name,
+        adviser: adviser,
+        admission_slot: admissionSlot,
+        max_application_slot: maxApplicationSlot,
+      },
+    });
+
+    return result ? true : false;
+  }
+
   private async createRequirements(
     data: Requirements['receivedData'],
   ): Promise<boolean> {

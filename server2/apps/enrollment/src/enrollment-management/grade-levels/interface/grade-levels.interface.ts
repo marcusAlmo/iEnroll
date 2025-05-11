@@ -1,26 +1,29 @@
 export interface GradeLevels {
   gradeLevels: {
-    grade_section_program_id: number;
-    grade_section: {
-      grade_section_id: number;
-      section_name: string;
-      adviser: string | null; // Adjusted to nullable if adviser may not always be assigned
-      admission_slot: number;
-      max_application_slot: number;
-    }[];
-    academic_program: {
-      program: string;
-    };
-    grade_level_offered: {
-      grade_level_offered_id: number;
-      grade_level: {
-        grade_level: string;
+    grade_section_program: {
+      grade_section_program_id: number;
+      academic_program: {
+        program: string;
+        description: string;
       };
+      grade_section: {
+        grade_section_id: number;
+        section_name: string;
+        adviser: string;
+        admission_slot: number;
+        max_application_slot: number;
+      }[];
+    }[];
+    grade_level_offered_id: number;
+    grade_level_code: string;
+    grade_level: {
+      grade_level: string;
     };
   }[];
 
   fixedFormat: {
     gradeLevel: string;
+    gradeSectionProgramId: number;
     gradeLevelOfferedId: number;
     sections: {
       gradeSectionProgramId: number;
@@ -29,12 +32,37 @@ export interface GradeLevels {
       adviser: string | null;
       admissionSlot: number;
       maxApplicationSlot: number;
-      program: string;
+      isCustomProgram: boolean;
+      programDetails:
+        | {
+            program: string;
+            description: string;
+          }
+        | undefined;
     }[];
   };
 
   programList: {
     programId: number;
     program: string;
+    description: string;
   }[];
+
+  receivedData: {
+    gradeLevelOfferedId: number;
+    programName: string;
+    programId: number;
+    sectionName: string;
+    adviser: string;
+    admissionSlot: number;
+    maxApplicationSlot: number;
+    gradeSectionProgramId: number | undefined;
+    isUpdate: boolean;
+  };
+
+  retrievedGradeLevels: {
+    gradeLevelCode: string;
+    gradeLevel: string;
+    gradeLevelOfferedId: number;
+  };
 }

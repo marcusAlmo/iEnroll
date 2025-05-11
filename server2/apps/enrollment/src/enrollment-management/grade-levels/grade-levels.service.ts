@@ -22,18 +22,43 @@ export class GradeLevelsService {
 
   // create and update grade levels
   public async createAndUpdateGradeLevel(
+    schoolId: number,
     gradeLevelOfferedId: number,
-    sectionId: number,
-    programname: string,
-    programId: number,
+    sectionId: number | undefined,
+    programname: string | undefined,
+    programId: number | undefined,
     sectionName: string,
     adviser: string,
     admissionSlot: number,
     maxApplicationSlot: number,
-    gradeSectionProgramId: number,
+    gradeSectionProgramId: number | undefined,
     isUpdate: boolean,
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log({
+      schoolId,
+      gradeLevelOfferedId,
+      sectionId,
+      programname,
+      programId,
+      sectionName,
+      adviser,
+      admissionSlot,
+      maxApplicationSlot,
+      gradeSectionProgramId,
+      isUpdate,
+    });
+
     if (isUpdate) {
+      if (!sectionId)
+        return this.microserviceUtility.badRequestExceptionReturn(
+          'Section id is missing in the data',
+        );
+
+      if (!gradeSectionProgramId)
+        return this.microserviceUtility.badRequestExceptionReturn(
+          'Grade section program id is missing in the data',
+        );
+
       const output: { message: string } = await this.updateSection(
         gradeLevelOfferedId,
         sectionId,
@@ -49,6 +74,7 @@ export class GradeLevelsService {
       return this.microserviceUtility.returnSuccess(output);
     } else {
       try {
+        console.log('Creating section...');
         const result = await this.prisma.$transaction(async (prisma) => {
           const output: { message: string } = await this.createSection(
             programId,
@@ -79,6 +105,7 @@ export class GradeLevelsService {
       select: {
         program_id: true,
         program: true,
+        description: true,
       },
     });
 
@@ -90,6 +117,7 @@ export class GradeLevelsService {
     const finalOutput: GradeLevels['programList'] = data.map((item) => ({
       programId: item.program_id,
       program: item.program,
+      description: item.description,
     }));
 
     return this.microserviceUtility.returnSuccess({
@@ -119,36 +147,45 @@ export class GradeLevelsService {
   private async retrievedata(
     schoolId: number,
   ): Promise<GradeLevels['fixedFormat'][]> {
+    // fetch supported academic levels
+    const supportedAcademicLevels: string[] =
+      await this.supportedAcademicLevels(schoolId);
+
+    const gradeLevelsOnly = await this.retrieveGradeLevelsOnly(
+      supportedAcademicLevels,
+      schoolId,
+    );
+
     const data: GradeLevels['gradeLevels'] =
-      await this.prisma.grade_section_program.findMany({
+      await this.prisma.grade_level_offered.findMany({
         where: {
-          grade_level_offered: {
-            school_id: schoolId,
-            is_active: true,
-          },
+          school_id: schoolId,
+          is_active: true,
         },
         select: {
-          grade_section_program_id: true,
-          grade_section: {
+          grade_level_offered_id: true,
+          grade_level_code: true,
+          grade_level: {
             select: {
-              grade_section_id: true,
-              section_name: true,
-              adviser: true,
-              admission_slot: true,
-              max_application_slot: true,
+              grade_level: true,
             },
           },
-          academic_program: {
+          grade_section_program: {
             select: {
-              program: true,
-            },
-          },
-          grade_level_offered: {
-            select: {
-              grade_level_offered_id: true,
-              grade_level: {
+              grade_section_program_id: true, // Added this missing field
+              academic_program: {
                 select: {
-                  grade_level: true,
+                  program: true,
+                  description: true,
+                },
+              },
+              grade_section: {
+                select: {
+                  grade_section_id: true,
+                  section_name: true,
+                  adviser: true,
+                  admission_slot: true,
+                  max_application_slot: true,
                 },
               },
             },
@@ -156,27 +193,107 @@ export class GradeLevelsService {
         },
       });
 
-    if (!data || data.length == 0) return [];
+    if (!gradeLevelsOnly || gradeLevelsOnly.length === 0) return [];
 
-    const finalData: GradeLevels['fixedFormat'][] = [];
+    // Create a lookup map of data by grade level code
+    const dataByGradeLevelCode = new Map<
+      string,
+      GradeLevels['gradeLevels'][0]
+    >();
 
     data.forEach((item) => {
-      finalData.push({
-        gradeLevel: item.grade_level_offered.grade_level.grade_level,
-        gradeLevelOfferedId: item.grade_level_offered.grade_level_offered_id,
-        sections: item.grade_section.map((section) => ({
-          gradeSectionProgramId: item.grade_section_program_id,
-          sectionId: section.grade_section_id,
-          sectionName: section.section_name,
-          adviser: section.adviser,
-          admissionSlot: section.admission_slot,
-          maxApplicationSlot: section.max_application_slot,
-          program: item.academic_program.program,
-        })),
-      });
+      dataByGradeLevelCode.set(item.grade_level_code, item);
     });
 
-    return finalData;
+    // Build the result by iterating through gradeLevelsOnly
+    const result: GradeLevels['fixedFormat'][] = [];
+
+    for (const gradeLevel of gradeLevelsOnly) {
+      const gradeData = dataByGradeLevelCode.get(gradeLevel.gradeLevelCode);
+
+      const sections = (gradeData?.grade_section_program || []).flatMap(
+        (program) =>
+          program.grade_section.map((section) => ({
+            gradeSectionProgramId: program.grade_section_program_id,
+            sectionId: section.grade_section_id,
+            sectionName: section.section_name,
+            adviser: section.adviser,
+            admissionSlot: section.admission_slot,
+            maxApplicationSlot: section.max_application_slot,
+            programDetails: program.academic_program
+              ? {
+                  program: program.academic_program.program,
+                  description: program.academic_program.description,
+                }
+              : undefined,
+            isCustomProgram: !program.academic_program,
+          })),
+      );
+      result.push({
+        gradeLevel: gradeLevel.gradeLevel,
+        gradeSectionProgramId:
+          gradeData?.grade_section_program[0]?.grade_section_program_id || 0,
+        gradeLevelOfferedId: gradeLevel.gradeLevelOfferedId,
+        sections: sections,
+      });
+    }
+
+    return result;
+  }
+
+  private async supportedAcademicLevels(schoolId: number) {
+    const result = await this.prisma.school.findFirst({
+      where: {
+        school_id: schoolId,
+      },
+      select: {
+        supported_acad_level: true,
+      },
+    });
+
+    return result?.supported_acad_level
+      ? (result.supported_acad_level as string[])
+      : [];
+  }
+
+  private async retrieveGradeLevelsOnly(
+    academicLevels: string[],
+    schoolId: number,
+  ): Promise<GradeLevels['retrievedGradeLevels'][]> {
+    const data = await this.prisma.grade_level.findMany({
+      where: {
+        academic_level: {
+          academic_level: {
+            in: academicLevels,
+          },
+        },
+      },
+      select: {
+        grade_level: true,
+        grade_level_code: true,
+        grade_level_offered: {
+          where: {
+            school_id: schoolId,
+            is_active: true,
+          },
+          select: {
+            grade_level_offered_id: true,
+          },
+        },
+      },
+    });
+
+    if (!data || data.length == 0) return [];
+
+    const finalOutput: GradeLevels['retrievedGradeLevels'][] = data
+      .filter((item) => item.grade_level_offered.length > 0) // Only include grade levels with active offers
+      .map((item) => ({
+        gradeLevel: item.grade_level,
+        gradeLevelCode: item.grade_level_code,
+        gradeLevelOfferedId: item.grade_level_offered[0].grade_level_offered_id,
+      }));
+
+    return finalOutput;
   }
 
   // for storing the grade levels section
@@ -184,15 +301,29 @@ export class GradeLevelsService {
   private async updateSection(
     gradeLevelOfferedId: number,
     sectionId: number,
-    programname: string,
+    programname: string | undefined,
     sectionName: string,
     adviser: string,
     admissionSlot: number,
     maxApplicationSlot: number,
     gradeSectionProgramId: number,
-    programId: number,
+    programId: number | undefined,
   ) {
-    if (await this.determineifExists(gradeSectionProgramId, programname)) {
+    console.log('data: ', {
+      gradeLevelOfferedId,
+      sectionId,
+      programname,
+      sectionName,
+      adviser,
+      admissionSlot,
+      maxApplicationSlot,
+      gradeSectionProgramId,
+      programId,
+    });
+
+    const id = await this.determineifExists(gradeLevelOfferedId, programname);
+
+    if (id != null) {
       await this.prisma.grade_section.update({
         where: {
           grade_section_id: sectionId,
@@ -209,11 +340,16 @@ export class GradeLevelsService {
     } else {
       try {
         const result = await this.prisma.$transaction(async (prisma) => {
+          console.log('Creating section program');
           const gradeSectionProgrmId: number = await this.createSectionProgram(
             gradeLevelOfferedId,
             programId,
             prisma,
           );
+
+          console.log('gradeSectionProgrmId: ', gradeSectionProgrmId);
+
+          console.log('Updating grade section');
 
           await this.updateGradeSection(
             gradeSectionProgrmId,
@@ -238,12 +374,18 @@ export class GradeLevelsService {
 
   // this method determines if the program has been changed
   private async determineifExists(
-    gradeSectionProgramId: number,
-    program: string,
-  ): Promise<boolean> {
+    gradeLevelOfferedId: number,
+    program: string | undefined,
+  ): Promise<number | null> {
+    console.log('data2: ', {
+      gradeLevelOfferedId,
+      program,
+    });
+    if (!program) return 3;
+
     const data = await this.prisma.grade_section_program.findFirst({
       where: {
-        grade_section_program_id: gradeSectionProgramId,
+        grade_level_offered_id: gradeLevelOfferedId,
         academic_program: {
           program: program,
         },
@@ -253,20 +395,34 @@ export class GradeLevelsService {
       },
     });
 
-    return data ? true : false;
+    console.log('data3: ', {
+      data,
+    });
+
+    return data ? data.program_id : null;
   }
 
   // create a new grade section program
   private async createSectionProgram(
     gradeLevelOfferedId: number,
-    programId: number,
+    programId: number | undefined,
     prisma: Prisma.TransactionClient,
   ): Promise<number> {
+    if (!programId) throw new Error('Program id is required');
+
+    console.log('data4: ', {
+      gradeLevelOfferedId,
+      programId,
+    });
     const data = await prisma.grade_section_program.create({
       data: {
         grade_level_offered_id: gradeLevelOfferedId,
         program_id: programId,
       },
+    });
+
+    console.log('data5: ', {
+      data,
     });
 
     return data.grade_section_program_id;
@@ -282,12 +438,21 @@ export class GradeLevelsService {
     maxApplicationSlot: number,
     prisma: Prisma.TransactionClient,
   ): Promise<void> {
+    console.log({
+      gradeSectionProgramId,
+      sectionId,
+      name,
+      adviser,
+      admissionSlot,
+      maxApplicationSlot,
+    });
+
     const data = await prisma.grade_section.update({
       where: {
         grade_section_id: sectionId,
       },
       data: {
-        grade_section_id: gradeSectionProgramId,
+        grade_section_program_id: gradeSectionProgramId,
         section_name: name,
         adviser: adviser,
         admission_slot: admissionSlot,
@@ -295,11 +460,13 @@ export class GradeLevelsService {
       },
     });
 
+    console.log(data);
+
     if (!data) throw new Error('An error has occured while applying changes');
   }
 
   private async createSection(
-    programId: number,
+    programId: number | undefined,
     sectionName: string,
     adviser: string,
     admissionSlot: number,
@@ -307,6 +474,8 @@ export class GradeLevelsService {
     prisma: Prisma.TransactionClient,
     gradeLevelOfferedid: number,
   ) {
+    if (!programId) return { message: 'Related information not found' };
+
     const data = await prisma.grade_section_program.findFirst({
       where: {
         program_id: programId,
@@ -317,11 +486,19 @@ export class GradeLevelsService {
       },
     });
 
-    if (!data) return { message: 'Related information not found' };
+    let gradeSectionProgramId: number = 0;
+
+    if (!data) {
+      gradeSectionProgramId = await this.createSectionProgram(
+        gradeLevelOfferedid,
+        programId,
+        prisma,
+      );
+    }
 
     const result = await prisma.grade_section.create({
       data: {
-        grade_section_program_id: data.grade_section_program_id,
+        grade_section_program_id: gradeSectionProgramId,
         section_name: sectionName,
         adviser: adviser,
         admission_slot: admissionSlot,

@@ -17,10 +17,14 @@ export class RequirementsController {
 
   @MessagePattern({ cmd: 'process-received-requirements' })
   async processReceivedData(payload: {
+    schoolId: number;
     data: Requirements['receivedData'];
   }): Promise<MicroserviceUtility['returnValue']> {
     console.log('payload.data: ', payload.data);
-    return this.requirementsService.processReceivedData(payload.data);
+    return this.requirementsService.processReceivedData(
+      payload.schoolId,
+      payload.data,
+    );
   }
 
   @MessagePattern({ cmd: 'delete-requirement' })
