@@ -55,6 +55,7 @@ export class EnrollmentScheduleController {
     @Query('gradeLevel') gradeLevel: string,
     @User('school_id') schoolId: number,
   ) {
+    schoolId = 0;
     return await this.enrollmentScheduleService.updateAllowSelection({
       gradeLevel,
       schoolId,

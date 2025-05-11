@@ -125,12 +125,15 @@ export class DateTimeUtilityService {
     return `${year}-${month}-${day}`;
   }
 
-  static stringToDate(date: string, time: string) {
-    const dateTimeString = `${date}T${time}:00`;
+  static stringToDate(dateString: string, timeString: string): Date {
+    console.log(dateString, timeString);
+    const [year, month, day] = dateString.split('-').map(Number);
+    const [hours, minutes] = timeString.split(':').map(Number);
 
-    const dateObject = new Date(dateTimeString);
-
-    return dateObject;
+    // Create as UTC date
+    const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    console.log(utcDate);
+    return utcDate;
   }
 
   static getTime12HourFormatUTC(date: Date): string {

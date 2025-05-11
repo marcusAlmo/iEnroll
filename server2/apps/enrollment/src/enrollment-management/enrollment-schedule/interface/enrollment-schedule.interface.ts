@@ -33,6 +33,7 @@ export interface EnrollmentSchedule {
   receivedData: {
     gradeLevel: string;
     schedDate: {
+      applicationSlot: number;
       DateString: string;
       timeRanges: {
         startTime: string;

@@ -33,6 +33,7 @@ export class RequirementsService {
   public async processReceivedData(
     data: Requirements['receivedData'],
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log('receiveddata: ', data);
     const result = await this.createRequirements(data);
 
     if (result) {

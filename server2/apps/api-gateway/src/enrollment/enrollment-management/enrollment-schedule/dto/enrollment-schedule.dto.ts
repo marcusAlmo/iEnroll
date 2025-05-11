@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 class TimeRange {
   @IsString()
@@ -12,6 +18,10 @@ class TimeRange {
 }
 
 class ScheduleDate {
+  @IsNumber()
+  @IsNotEmpty()
+  applicationSlot!: number;
+
   @IsString()
   @IsNotEmpty()
   DateString!: string;

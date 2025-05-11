@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { EnrollmentSchedule } from './interface/enrollment-schedule.interface';
 import { MicroserviceUtility } from '@lib/microservice-utility/microservice-utility.interface';
 import { DateTimeUtilityService } from '@lib/date-time-utility/date-time-utility.service';
-import { Decimal, JsonValue } from '@prisma/client/runtime/library';
+import { JsonValue } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class EnrollmentScheduleService {
@@ -29,32 +29,7 @@ export class EnrollmentScheduleService {
     data: EnrollmentSchedule['receivedData'],
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    const capacityCount: Decimal = await this.retrieveGradeSectionCapacity(
-      data.gradeLevel,
-      schoolId,
-    );
-
-    const applicationCount: Decimal = await this.retrieveApplicationCount(
-      data.gradeLevel,
-      schoolId,
-    );
-
-    // get the remaining capaciity
-    const remainingCapacity: Decimal = capacityCount.minus(applicationCount);
-
-    if (remainingCapacity.toNumber() == 0)
-      return this.microserviceUtility.badRequestExceptionReturn(
-        'No remaining capacity',
-      );
-
-    const newSchedCount: Decimal = await this.getSchedCount(data);
-
-    // divide the remaining capacity to new sched count
-    const slotCapacity: number = remainingCapacity
-      .div(newSchedCount)
-      .floor()
-      .toNumber();
-
+    console.log(data);
     const gradeLevelOfferedId: EnrollmentSchedule['scheduleReturn'] | null =
       await this.retrieveGradeLevelOfferedId(data.gradeLevel, schoolId);
 
@@ -64,11 +39,7 @@ export class EnrollmentScheduleService {
       );
 
     const processedData: EnrollmentSchedule['storeData'] =
-      await this.processNewScheduleData(
-        data,
-        slotCapacity,
-        gradeLevelOfferedId.id,
-      );
+      await this.processNewScheduleData(data, gradeLevelOfferedId.id);
 
     const result = await this.storeScheduleData(processedData);
 
@@ -119,6 +90,8 @@ export class EnrollmentScheduleService {
     gradeLevel: string,
     schoolId: number,
   ) {
+    console.log('gradeLevel: ', gradeLevel);
+    console.log('schoolId: ', schoolId);
     const id: EnrollmentSchedule['scheduleReturn'] | null =
       await this.retrieveGradeLevelOfferedId(gradeLevel, schoolId);
 
@@ -415,64 +388,8 @@ export class EnrollmentScheduleService {
   }
 
   // for storing data
-  private async retrieveGradeSectionCapacity(
-    gradeLevel: string,
-    schoolId: number,
-  ): Promise<Decimal> {
-    const gradeSlot = await this.prisma.grade_section.aggregate({
-      _sum: {
-        max_application_slot: true,
-      },
-      where: {
-        grade_section_program: {
-          grade_level_offered: {
-            grade_level: {
-              grade_level: gradeLevel,
-            },
-            school_id: schoolId,
-          },
-        },
-      },
-    });
-
-    return gradeSlot && gradeSlot._sum && gradeSlot._sum.max_application_slot
-      ? new Decimal(gradeSlot._sum.max_application_slot)
-      : new Decimal(0);
-  }
-
-  private async retrieveApplicationCount(
-    grade_level: string,
-    schoolId: number,
-  ): Promise<Decimal> {
-    const count = await this.prisma.enrollment_application.count({
-      where: {
-        grade_section_program: {
-          grade_level_offered: {
-            school_id: schoolId,
-            grade_level: {
-              grade_level: grade_level,
-            },
-          },
-        },
-      },
-    });
-
-    return new Decimal(count);
-  }
-
-  private async getSchedCount(
-    data: EnrollmentSchedule['receivedData'],
-  ): Promise<Decimal> {
-    const count = data.schedDate.reduce((acc, curr) => {
-      return acc + curr.timeRanges.length;
-    }, 0);
-
-    return new Decimal(count);
-  }
-
   private async processNewScheduleData(
     data: EnrollmentSchedule['receivedData'],
-    slotCapacity: number,
     gradeLevelOfferedId: number,
   ): Promise<EnrollmentSchedule['storeData']> {
     const processedDataArr: EnrollmentSchedule['storeData'] = [];
@@ -481,7 +398,7 @@ export class EnrollmentScheduleService {
       for (const t of d.timeRanges) {
         processedDataArr.push({
           grade_level_offered_id: gradeLevelOfferedId,
-          application_slot: slotCapacity,
+          application_slot: d.applicationSlot,
           start_datetime: DateTimeUtilityService.stringToDate(
             d.DateString,
             t.startTime,
@@ -494,6 +411,7 @@ export class EnrollmentScheduleService {
       }
     }
 
+    console.log(processedDataArr);
     return processedDataArr;
   }
 
