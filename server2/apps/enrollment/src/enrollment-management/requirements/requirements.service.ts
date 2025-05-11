@@ -31,9 +31,19 @@ export class RequirementsService {
   }
 
   public async processReceivedData(
+    schoolId: number,
     data: Requirements['receivedData'],
   ): Promise<MicroserviceUtility['returnValue']> {
     console.log('receiveddata: ', data);
+
+    if (data.gradeSectionProgramId == 0) {
+      const programStringArr: string[] = data.requirements.map((d) => {
+        return d.program;
+      });
+
+      const programIds: string[] = await this.getProgramId(programStringArr);
+    }
+
     const result = await this.createRequirements(data);
 
     if (result) {
@@ -280,6 +290,42 @@ export class RequirementsService {
   }
 
   // for creating new
+  private async getProgramId(programs: string[]): Promise<number[]> {
+    const result = await this.prisma.academic_program.findMany({
+      where: {
+        program: {
+          in: programs,
+        },
+      },
+      select: {
+        program_id: true,
+      },
+    });
+
+    return result ? result.map((item) => item.program_id) : [];
+  }
+
+  private async createGradeSectionProgram(
+    schoolId: number,
+    gradeLevelOfferedId: number,
+    name: string,
+    adviser: string,
+    admissionSlot: number,
+    maxApplicationSlot: number,
+  ): Promise<boolean> {
+    const result = await this.prisma.grade_section_program.create({
+      data: {
+        grade_level_offered_id: gradeLevelOfferedId,
+        name: name,
+        adviser: adviser,
+        admission_slot: admissionSlot,
+        max_application_slot: maxApplicationSlot,
+      },
+    });
+
+    return result ? true : false;
+  }
+
   private async createRequirements(
     data: Requirements['receivedData'],
   ): Promise<boolean> {

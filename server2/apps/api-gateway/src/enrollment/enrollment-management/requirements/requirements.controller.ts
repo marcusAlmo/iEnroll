@@ -9,7 +9,10 @@ import {
 } from '@nestjs/common';
 import { RequirementsService } from './requirements.service';
 import { User } from '@lib/decorators/user.decorator';
-import { RequirementsDTO, UpdateRequirementDto } from './dto/requirements.dto';
+import {
+  AddRequirementDTO,
+  UpdateRequirementDto,
+} from './dto/requirements.dto';
 
 @Controller('requirements')
 export class RequirementsController {
@@ -22,9 +25,14 @@ export class RequirementsController {
   }
 
   @Post('process-received-requirements')
-  async processReceivedData(@Body() receivedData: RequirementsDTO) {
+  async processReceivedData(
+    @User('school_id') schoolId: number,
+    @Body() receivedData: AddRequirementDTO,
+  ) {
+    schoolId = 0;
     console.log(receivedData);
     return this.requirementsService.processReceivedData({
+      schoolId,
       data: receivedData,
     });
   }

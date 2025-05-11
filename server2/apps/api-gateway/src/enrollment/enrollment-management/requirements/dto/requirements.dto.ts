@@ -27,9 +27,17 @@ export class RequirementsArr {
   @IsString()
   @IsNotEmpty()
   description!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  program!: string;
 }
 
 export class AddRequirementDTO {
+  @IsNumber()
+  @IsNotEmpty()
+  gradeSectionProgramId!: number;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => RequirementsArr)

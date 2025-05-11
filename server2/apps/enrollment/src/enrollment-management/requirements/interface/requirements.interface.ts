@@ -40,6 +40,7 @@ export interface Requirements {
       name: string;
       type: string;
       dataType: string;
+      program: string;
       isRequired: boolean;
       description: string;
     }[];
