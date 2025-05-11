@@ -38,6 +38,17 @@ interface ConfirmationModalProps {
   message: string;
 }
 
+interface CreateSectionInterface {
+  gradeLevelOfferedId: number | undefined;
+  sectionName: string;
+  adviser: string;
+  admissionSlot: number;
+  maxApplicationSlot: number;
+  programName: string;
+  programId: number;
+  isUpdate: boolean;
+}
+
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
@@ -89,7 +100,7 @@ const GradeLevels: React.FC = () => {
     sectionCapacity: number;
     maximumApplication: number;
     isCustomProgram: boolean;
-    customProgramDetails?: { 
+    customProgramDetails: { 
       program: string; 
       programId: number;
       description: string 
@@ -205,8 +216,11 @@ const GradeLevels: React.FC = () => {
 
   // Handle "Add New Section" button click
   const handleAddNewSection = () => {
-    // Use the first program from programsList for default values
-    const defaultProgram = programs[0];
+    const defaultProgram = programs[0] || { 
+      program: 'Default Program', 
+      programId: 0, 
+      description: '' 
+    };
     
     setSectionDetails({
       sectionName: "",
@@ -215,21 +229,33 @@ const GradeLevels: React.FC = () => {
       sectionCapacity: 0,
       maximumApplication: 0,
       isCustomProgram: false,
-      customProgramDetails: {
-        program: defaultProgram.program,
-        programId: defaultProgram.programId,
-        description: defaultProgram.description
-      },
+      customProgramDetails: defaultProgram
     });
   
-    setIsNewSection(true); // Enable new section creation mode
-    setIsEditing(false); // Ensure editing mode is off
+    setIsNewSection(true);  // This was missing!
+    setIsEditing(false);
   };
 
   // Handle input changes for section details
   // eslint-disable-next-line
   const handleInputChange = (field: string, value: any) => {
-    if (sectionDetails && (isNewSection || isEditing)) {
+    if (!sectionDetails) return;
+  
+    // Special handling for number fields to prevent NaN
+    if (field === 'sectionCapacity' || field === 'maximumApplication') {
+      value = parseInt(value) || 0;
+    }
+  
+    if (field.startsWith('customProgramDetails.')) {
+      const nestedField = field.split('.')[1];
+      setSectionDetails({
+        ...sectionDetails,
+        customProgramDetails: {
+          ...sectionDetails.customProgramDetails,
+          [nestedField]: value
+        }
+      });
+    } else {
       setSectionDetails({
         ...sectionDetails,
         [field]: value
@@ -239,63 +265,81 @@ const GradeLevels: React.FC = () => {
   
   // Handle program selection change
   const handleProgramChange = (programId: number) => {
-    if (sectionDetails && (isNewSection || isEditing)) {
-      const selectedProgram = programs.find(p => p.programId === programId);
-      
-      if (selectedProgram) {
-        setSectionDetails({
-          ...sectionDetails,
-          customProgramDetails: {
-            program: selectedProgram.program,
-            programId: selectedProgram.programId,
-            description: selectedProgram.description
-          }
-        });
-      }
+    const selectedProgram = programs.find(p => p.programId === programId) || {
+      program: '',
+      programId: 0,
+      description: ''
+    };
+  
+    if (sectionDetails) {
+      setSectionDetails({
+        ...sectionDetails,
+        customProgramDetails: {
+          program: selectedProgram.program,
+          programId: selectedProgram.programId,
+          description: selectedProgram.description
+        }
+      });
     }
   };
   
   // Handle create new section submission
   const handleCreateSection = async () => {
     if (!sectionDetails || !selectedGradeLevel) return;
-
+  
+    console.log("Creating section with details:", sectionDetails); // Add detailed logging
+    
     try {
-      // Structure the data for API request
       const requestBody = {
         gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
         sectionName: sectionDetails.sectionName,
         adviser: sectionDetails.sectionAdviser,
         admissionSlot: sectionDetails.sectionCapacity,
         maxApplicationSlot: sectionDetails.maximumApplication,
-        isCustomProgram: sectionDetails.isCustomProgram,
-        programDetails: sectionDetails.isCustomProgram ? {
-          program: sectionDetails.customProgramDetails?.program,
-          description: sectionDetails.customProgramDetails?.description
-        } : undefined
-      };
+        programName: sectionDetails.customProgramDetails.program,
+        programId: sectionDetails.customProgramDetails.programId,
+        isUpdate: false,
+      };      
+  
+      console.log("Final request body:", requestBody); // Log the final payload
+      
+      await createSection(requestBody);
 
-      // Actual API call would go here
-      console.log("Creating new section:", requestBody);
-      
-      toast.success(`Section ${sectionDetails.sectionName} created successfully!`);
-      
-      // Reset form and refresh data
-      await retrieveGradeLevels();
-      setIsNewSection(false);
-      setSelectedSection(sectionDetails.sectionName);
+      // ... rest of your code
     } catch (error) {
-      if (error instanceof Error) toast.error(error.message);
-      else toast.error("An unknown error occurred.");
-      console.error(error);
+      console.error("Error in handleCreateSection:", error);
+      // ... error handling
     }
   };
+
+  const createSection = async (data: CreateSectionInterface) => {
+    try {
+      const response = await requestData<{message: string}>({
+        url: 'http://localhost:3000/api/grade-levels/create',
+        method: 'POST',
+        body: {
+          ...data
+        }
+      });
+
+      if (response) {
+        toast.success(response.message);
+        await retrieveGradeLevels();
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error has occurred');
+
+      console.log(err);
+    }
+  }
 
   // Handle update section submission
   const handleUpdateSection = async () => {
     if (!sectionDetails || !selectedGradeLevel || !selectedSection) return;
     
     try {
-      console.log({
+      console.log('Updating section with details:', {
         gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
         sectionId: sectionDetails.sectionId,
         programName: sectionDetails.customProgramDetails?.program,
@@ -309,11 +353,10 @@ const GradeLevels: React.FC = () => {
       });
 
       const response = await requestData<{ message: string}>({
-        url: 'http://localhost:3000/api/grade-levels/receive',
+        url: `http://localhost:3000/api/grade-levels/update/${sectionDetails.sectionId}`,
         method: "POST",
         body: {
           gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
-          sectionId: sectionDetails.sectionId,
           programName: sectionDetails.customProgramDetails?.program,
           programId: sectionDetails.customProgramDetails?.programId,
           sectionName: sectionDetails.sectionName,
@@ -366,26 +409,6 @@ const GradeLevels: React.FC = () => {
     }
   };
 
-  // Toggle custom program checkbox
-  const handleToggleCustomProgram = (checked: boolean) => {
-    if (!sectionDetails) return;
-    
-    // Use the first program from programsList for default values
-    const defaultProgram = programs[0];
-  
-    setSectionDetails({
-      ...sectionDetails,
-      isCustomProgram: checked,
-      customProgramDetails: checked
-        ? sectionDetails.customProgramDetails || { 
-            program: defaultProgram.program, 
-            programId: defaultProgram.programId,
-            description: defaultProgram.description 
-          }
-        : undefined,
-    });
-  };
-
   // retrieve collections of grade levels from server
   const retrieveGradeLevels = async () => {
     try {
@@ -424,6 +447,18 @@ const GradeLevels: React.FC = () => {
       console.error(error);
     }
   }
+
+  useEffect(() => {
+    console.log("Current mode:", {
+      isNewSection,
+      isEditing,
+      canEdit: isNewSection || isEditing
+    });
+  }, [isNewSection, isEditing]);
+
+  useEffect(() => {
+    console.log("Section details updated:", sectionDetails);
+  }, [sectionDetails]);
 
   // execute retrieval
   useEffect(() => {
@@ -538,7 +573,7 @@ const GradeLevels: React.FC = () => {
               </label>
               <input
                 type="number"
-                value={sectionDetails.sectionCapacity}
+                value={sectionDetails.sectionCapacity === 0 ? '' : sectionDetails.sectionCapacity}
                 onChange={(e) => handleInputChange("sectionCapacity", parseInt(e.target.value) || 0)}
                 readOnly={!(isNewSection || isEditing)}
                 className={`w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 ${
@@ -552,7 +587,7 @@ const GradeLevels: React.FC = () => {
               </label>
               <input
                 type="number"
-                value={sectionDetails.maximumApplication}
+                value={sectionDetails.maximumApplication === 0 ? '' : sectionDetails.maximumApplication}
                 onChange={(e) => handleInputChange("maximumApplication", parseInt(e.target.value) || 0)}
                 readOnly={!(isNewSection || isEditing)}
                 className={`w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2 ${
@@ -560,59 +595,46 @@ const GradeLevels: React.FC = () => {
                 }`}
               />
             </div>
-            
-            {/* Show the checkbox when adding a new section or editing */}
-            {(isNewSection || isEditing) && (
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={(!sectionDetails.isCustomProgram)}
-                    onChange={(e) => handleToggleCustomProgram(e.target.checked)}
-                    className="form-checkbox h-4 w-4 cursor-pointer rounded border-text-2 text-primary focus:ring-accent"
-                  />
-                  <span className="text-text text-sm">Custom Program?</span>
-                </label>
-              </div>
-            )}
 
             {/* Show input fields for custom program when checkbox is checked during new section creation or editing */}
-            {(isNewSection || isEditing) && (!sectionDetails.isCustomProgram) && (
-              <div className="flex flex-col gap-2">
-                <h3 className="text-text font-semibold">Custom Program Details</h3>
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">
-                    Program Name
-                  </label>
-                  {programs.length === 0 ? (
-                    <div className="text-text-2 text-sm">Loading programs...</div>
-                  ) : (
-                    <select
-                      value={sectionDetails.customProgramDetails?.programId || ''}
-                      onChange={(e) => handleProgramChange(parseInt(e.target.value))}
-                      className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
-                    >
-                      {programs.map(program => (
-                        <option key={program.programId} value={program.programId}>
-                          {program.program}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={sectionDetails.customProgramDetails?.description || ""}
-                    readOnly
+            <div className="flex flex-col gap-2">
+              <h3 className="text-text font-semibold">Program Details</h3>
+              <div>
+                <label className="block text-text text-sm font-medium mb-1">
+                  Program Name
+                </label>
+                {programs.length === 0 ? (
+                  <div className="text-text-2 text-sm">Loading programs...</div>
+                ) : (
+                  <select
+                    disabled={!(isNewSection || isEditing)}
+                    value={sectionDetails.customProgramDetails?.programId || ''}
+                    onChange={(e) => {
+                      console.log("Select onChange triggered with value:", e.target.value); // Add logging
+                      handleProgramChange(parseInt(e.target.value));
+                    }}
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
-                    rows={4}
-                  />
-                </div>
+                  >
+                    {programs.map(program => (
+                      <option key={program.programId} value={program.programId}>
+                        {program.program}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
-            )}
+              <div>
+                <label className="block text-text text-sm font-medium mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={sectionDetails.customProgramDetails?.description || ""}
+                  readOnly
+                  className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"
+                  rows={4}
+                />
+              </div>
+            </div>
             
             {/* Add buttons for form actions */}
             {isNewSection && (

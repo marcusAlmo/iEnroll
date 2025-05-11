@@ -53,3 +53,41 @@ export class DeleteGradeLevelsDto {
   @IsNotEmpty()
   sectionId!: number;
 }
+
+export class CreateSectionDTO {
+  @IsNumber()
+  @IsOptional()
+  gradeLevelOfferedId?: number;
+
+  @IsString()
+  @IsOptional()
+  programName?: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  programId!: number;
+
+  @IsString()
+  @IsNotEmpty()
+  sectionName!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  adviser!: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  admissionSlot!: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  maxApplicationSlot!: number;
+
+  @IsNumber()
+  @IsOptional()
+  gradeSectionProgramId?: number;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  isUpdate!: boolean;
+}

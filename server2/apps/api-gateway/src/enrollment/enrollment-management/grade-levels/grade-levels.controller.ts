@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
 import { GradeLevelsService } from './grade-levels.service';
 import { User } from '@lib/decorators/user.decorator';
-import { GradeLevelsDto } from './dto/grade-levels.dto';
+import { CreateSectionDTO } from './dto/grade-levels.dto';
 
 @Controller('grade-levels')
 export class GradeLevelsController {
@@ -13,15 +13,31 @@ export class GradeLevelsController {
     return await this.gradeLevelService.getGradeLevels({ schoolId });
   }
 
-  @Post('receive')
+  @Post('update/:sectionId')
   async receiveGradeLevels(
     @User('school_id') schoolId: number,
-    @Body() payload: GradeLevelsDto,
+    @Param('sectionId') sectionId: string,
+    @Body() payload: CreateSectionDTO,
+  ) {
+    schoolId = 0;
+    const numberSectionId: number = Number(sectionId);
+    return await this.gradeLevelService.createAndUpdateGradeLevels({
+      schoolId,
+      payload,
+      sectionId: numberSectionId,
+    });
+  }
+
+  @Post('create') // For creation
+  async createGradeLevel(
+    @User('school_id') schoolId: number,
+    @Body() payload: CreateSectionDTO,
   ) {
     schoolId = 0;
     return await this.gradeLevelService.createAndUpdateGradeLevels({
       schoolId,
       payload,
+      sectionId: undefined,
     });
   }
 

@@ -50,14 +50,13 @@ export interface GradeLevels {
 
   receivedData: {
     gradeLevelOfferedId: number;
-    sectionId: number;
-    programName: string | undefined;
-    programId: number | undefined;
+    programName: string;
+    programId: number;
     sectionName: string;
     adviser: string;
     admissionSlot: number;
     maxApplicationSlot: number;
-    gradeSectionProgramId: number;
+    gradeSectionProgramId: number | undefined;
     isUpdate: boolean;
   };
 
@@ -67,33 +66,3 @@ export interface GradeLevels {
     gradeLevelOfferedId: number;
   };
 }
-
-/**
- * grade_section_program_id: true,
-          grade_section: {
-            select: {
-              grade_section_id: true,
-              section_name: true,
-              adviser: true,
-              admission_slot: true,
-              max_application_slot: true,
-            },
-          },
-          academic_program: {
-            select: {
-              program: true,
-              description: true,
-            },
-          },
-          grade_level_offered: {
-            select: {
-              grade_level_offered_id: true,
-              grade_level_code: true,
-              grade_level: {
-                select: {
-                  grade_level: true,
-                },
-              },
-            },
-          },
- */

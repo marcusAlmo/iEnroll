@@ -16,11 +16,12 @@ export class GradeLevelsController {
   async createDeleteGradeLevels(payload: {
     schoolId: number;
     payload: GradeLevels['receivedData'];
+    sectionId: number | undefined;
   }) {
-    console.log('payload: ', payload.payload.gradeLevelOfferedId);
     return await this.gradeLevelsService.createAndUpdateGradeLevel(
+      payload.schoolId,
       payload.payload.gradeLevelOfferedId,
-      payload.payload.sectionId,
+      payload.sectionId,
       payload.payload.programName,
       payload.payload.programId,
       payload.payload.sectionName,
