@@ -43,4 +43,24 @@ export class FeesService {
 
     return result.data as Fees['grade_level'];
   }
+
+  public async deleteFee(payload: object) {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'delete-fee' }, payload),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as { message: string };
+  }
+
+  public async getFeeTypes() {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-fee-types' }, {}),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as Fees['fee_type'];
+  }
 }

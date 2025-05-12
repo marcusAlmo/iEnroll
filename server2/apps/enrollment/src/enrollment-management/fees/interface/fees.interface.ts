@@ -16,6 +16,7 @@ export interface Fees {
       amount: Decimal;
       description: string | null;
       due_date: Date;
+      fee_type_id: number;
     }[];
   }[];
 
@@ -28,6 +29,7 @@ export interface Fees {
     gradeLevelCode: string;
     gradeLevel: string;
     fees: {
+      feeTypeId: number;
       feeId: number;
       feeName: string;
       amount: number;
@@ -54,6 +56,7 @@ export interface Fees {
     description: string | null;
     amount: Decimal;
     due_date: Date;
+    fee_type_id: number;
   }[];
 
   toInsertFees: {
@@ -68,5 +71,10 @@ export interface Fees {
   grade_level: {
     gradeLevelCode: string;
     gradeLevel: string;
+  }[];
+
+  fee_type: {
+    feeTypeId: number;
+    feeType: string;
   }[];
 }

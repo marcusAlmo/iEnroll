@@ -1,5 +1,5 @@
 import { User } from '@lib/decorators/user.decorator';
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
 import { FeesService } from './fees.service';
 import { Fees } from './dto/fees.dto';
 
@@ -22,9 +22,19 @@ export class FeesController {
     return await this.feesService.saveFees({ schoolId, receivedData });
   }
 
+  @Delete('delete/:feeId')
+  public async deleteFee(@Param('feeId') feeId: number) {
+    return await this.feesService.deleteFee({ feeId });
+  }
+
   @Get('grade-levels')
   public async getGradeLevels(@User('school_id') schoolId: number) {
     schoolId = 0;
     return await this.feesService.getGradeLevels({ schoolId });
+  }
+
+  @Get('fee-types')
+  public async getFeeTypes() {
+    return await this.feesService.getFeeTypes();
   }
 }

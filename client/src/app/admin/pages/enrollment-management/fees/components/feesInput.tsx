@@ -1,192 +1,203 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { faPlus, faPlusCircle, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { requestData } from "@/lib/dataRequester";
+import { faPlusCircle, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
-const FeesInput = ({ onFeeDataChange }: { onFeeDataChange: (data: any) => void }) => {
-  const [feeTypes, setFeeTypes] = useState<
-    { feeType: string; feeBreakdown: { description: string; amount: string }[] }[]
-  >([
-    { feeType: "", feeBreakdown: [{ description: "", amount: "" }] },
-  ]);
+interface FeeItem {
+  feeId: number;
+  feeTypeId: number;
+  feeName: string;
+  amount: number;
+  description: string | null;
+  dueDate: Date;
+}
 
+interface FeeType {
+  feeType: string;
+  feeTypeId: number;
+}
+
+const FeesInput = ({ 
+  onFeeDataChange,
+  initialFees = [],
+  feeTypes = [],
+  retrieveFees,
+}: { 
+  onFeeDataChange: (data: FeeItem[]) => void;
+  initialFees?: FeeItem[];
+  feeTypes?: FeeType[];
+  retrieveFees: () => void;
+}) => {
+  const [fees, setFees] = useState<FeeItem[]>(initialFees);
+  const lastInitialFeesRef = useRef<FeeItem[]>(initialFees);
+
+  // Only update state if initialFees actually changed
   useEffect(() => {
-    onFeeDataChange(feeTypes); // Update parent component whenever feeTypes changes
-  }, [feeTypes, onFeeDataChange]);
+    if (JSON.stringify(lastInitialFeesRef.current) !== JSON.stringify(initialFees)) {
+      setFees(initialFees);
+      lastInitialFeesRef.current = initialFees;
+    }
+  }, [initialFees]);
 
-  const handleAddFeeType = () => {
-    setFeeTypes((prev) => [
-      ...prev,
-      { feeType: "", feeBreakdown: [{ description: "", amount: "" }] },
-    ]);
+  // Debounce the parent updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (JSON.stringify(fees) !== JSON.stringify(lastInitialFeesRef.current)) {
+        onFeeDataChange(fees);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [fees, onFeeDataChange]);
+
+  // Add this right after your debounce useEffect
+  useEffect(() => {
+    console.log("Current fees in FeesInput:", fees.map(fee => ({
+      id: fee.feeId,
+      typeId: fee.feeTypeId,
+      name: fee.feeName,
+      amount: fee.amount,
+      description: fee.description,
+      dueDate: fee.dueDate
+    }))); 
+  }, [fees]);
+
+  const handleAddFee = () => {
+    if (feeTypes.length === 0) {
+      toast.error("No fee types available");
+      return;
+    }
+    
+    const newFee: FeeItem = {
+      feeId: 0, // Changed from Date.now() to 0 for new records
+      feeTypeId: feeTypes[0].feeTypeId,
+      feeName: `New ${feeTypes[0].feeType}`,
+      amount: 0,
+      description: null,
+      dueDate: new Date()
+    };
+    setFees(prev => [...prev, newFee]);
   };
 
-  const handleRemoveFeeType = (index: number) => {
-    setFeeTypes((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveFee = async (feeId: number) => {
+    try {
+      const response = await requestData<{message: string}>({
+        url: `http://localhost:3000/api/fees/delete/${feeId}`,
+        method: "DELETE",
+      });
+
+      if (response) {
+        toast.success(response.message);
+        retrieveFees();
+        setFees(prev => prev.filter(fee => fee.feeId !== feeId));
+      }
+    } catch(err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error("An error occurred while removing fee.");
+
+      console.error(err); 
+    }
   };
 
-  const handleAddFeeBreakdown = (index: number) => {
-    setFeeTypes((prev) =>
-      prev.map((feeType, i) =>
-        i === index
-          ? {
-              ...feeType,
-              feeBreakdown: [
-                ...feeType.feeBreakdown,
-                { description: "", amount: "" },
-              ],
-            }
-          : feeType
+  const handleFeeChange = (feeId: number, field: keyof FeeItem, value: any) => {
+    setFees(prev =>
+      prev.map(fee =>
+        fee.feeId === feeId ? { ...fee, [field]: value } : fee
       )
     );
   };
 
-  const handleRemoveFeeBreakdown = (feeTypeIndex: number, breakdownIndex: number) => {
-    setFeeTypes((prev) =>
-      prev.map((feeType, i) =>
-        i === feeTypeIndex
-          ? {
-              ...feeType,
-              feeBreakdown: feeType.feeBreakdown.filter(
-                (_, bIndex) => bIndex !== breakdownIndex
-              ),
-            }
-          : feeType
-      )
-    );
-  };
 
   return (
-    <div className="w-full flex flex-col gap-y-3 pr-4">
-      {feeTypes.map((feeType, feeTypeIndex) => (
-        <div key={feeTypeIndex}>
-          <div className="flex flex-row gap-x-5">
-            <div className="flex flex-col gap-y-1">
-              <label className="text-text font-semibold text-sm">
-                Fee Type (optional)
-              </label>
-              <Input
-                placeholder="ex. Miscellaneous Fees"
-                className="border border-text-2 w-[300px]"
-                value={feeType.feeType}
-                onChange={(e) =>
-                  setFeeTypes((prev) =>
-                    prev.map((ft, i) =>
-                      i === feeTypeIndex ? { ...ft, feeType: e.target.value } : ft
-                    )
-                  )
-                }
-              />
+    <div className="w-full flex flex-col gap-y-6 pr-4">
+      {fees.map((fee) => {
+        const currentFeeType = feeTypes.find(type => type.feeTypeId === fee.feeTypeId);
+        
+        return (
+          <div key={fee.feeId} className="space-y-4">
+            <div className="flex flex-row gap-x-5 items-start">
+              <div className="flex-1 flex flex-col gap-y-1">
+                <label className="text-text font-semibold text-sm">Fee Type</label>
+                <select
+                  value={fee.feeTypeId || feeTypes[0]?.feeTypeId || ''}
+                  onChange={(e) => {
+                    const newTypeId = Number(e.target.value);
+                    handleFeeChange(fee.feeId, 'feeTypeId', newTypeId);
+                  }}
+                  className="border border-text-2 rounded-md p-2 text-sm w-full"
+                >
+                  {feeTypes.map((type) => (
+                    <option key={type.feeTypeId} value={type.feeTypeId}>
+                      {type.feeType}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex-1 flex flex-col gap-y-1">
+                <label className="text-text font-semibold text-sm">Fee Name</label>
+                <Input
+                  placeholder="ex. Tuition Fee"
+                  className="border border-text-2"
+                  value={fee.feeName}
+                  onChange={(e) =>
+                    handleFeeChange(fee.feeId, 'feeName', e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="pt-7">
+                <button
+                  onClick={() => handleRemoveFee(fee.feeId)}
+                  className="text-danger hover:text-danger-dark flex items-center gap-1"
+                  title="Remove fee"
+                >
+                  <FontAwesomeIcon icon={faTrash} size="sm" />
+                </button>
+              </div>
             </div>
-            <div className="flex">
-              <div
-                className="rounded-[10px] border border-text-2 px-3 py-1.5 mt-5 hover:bg-slate-300"
-                onClick={() =>
-                  handleRemoveFeeType(feeTypeIndex)
-                }
-                title="Remove fee type"
-              >
-                <FontAwesomeIcon
-                  icon={faTrash}
-                  className="text-danger hover:cursor-pointer"
+
+            <div className="flex flex-row gap-x-5">
+              <div className="flex-1">
+                <label className="text-text font-semibold text-sm">
+                  Description (optional)
+                </label>
+                <Input
+                  placeholder="ex. Annual tuition fee"
+                  className="border border-text-2 w-full"
+                  value={fee.description || ''}
+                  onChange={(e) =>
+                    handleFeeChange(fee.feeId, 'description', e.target.value)
+                  }
+                />
+              </div>
+              <div className="w-32">
+                <label className="text-text font-semibold text-sm">
+                  Amount
+                </label>
+                <Input
+                  placeholder="ex. 500"
+                  className="border border-text-2"
+                  type="number"
+                  required
+                  value={fee.amount}
+                  onChange={(e) =>
+                    handleFeeChange(fee.feeId, 'amount', Number(e.target.value))
+                  }
                 />
               </div>
             </div>
+
+            <hr className="border border-gray-300 my-4" />
           </div>
-          <div className="flex flex-col gap-y-5 mt-3">
-            {feeType.feeBreakdown.map((breakdown, breakdownIndex) => (
-              <div key={breakdownIndex} className="flex flex-row gap-x-5">
-                <div>
-                  <label className="text-text font-semibold text-sm">
-                    Fee Breakdown
-                  </label>
-                  <Input
-                    min={0}
-                    required
-                    placeholder="ex. Miscellaneous Fees"
-                    className="border border-text-2 w-full"
-                    value={breakdown.description}
-                    onChange={(e) =>
-                      setFeeTypes((prev) =>
-                        prev.map((ft, i) =>
-                          i === feeTypeIndex
-                            ? {
-                                ...ft,
-                                feeBreakdown: ft.feeBreakdown.map((bd, bIndex) =>
-                                  bIndex === breakdownIndex
-                                    ? { ...bd, description: e.target.value }
-                                    : bd
-                                ),
-                              }
-                            : ft
-                        )
-                      )
-                    }
-                  />
-                </div>
-                <div className="flex flex-row items-center gap-x-5">
-                  <div className="w-fit">
-                    <label className="text-text font-semibold text-sm">
-                      Amount
-                    </label>
-                    <Input
-                      placeholder="ex. 500"
-                      className="border border-text-2"
-                      type="number"
-                      required
-                      value={breakdown.amount}
-                      onChange={(e) =>
-                        setFeeTypes((prev) =>
-                          prev.map((ft, i) =>
-                            i === feeTypeIndex
-                              ? {
-                                  ...ft,
-                                  feeBreakdown: ft.feeBreakdown.map(
-                                    (bd, bIndex) =>
-                                      bIndex === breakdownIndex
-                                        ? { ...bd, amount: e.target.value }
-                                        : bd
-                                  ),
-                                }
-                              : ft
-                          )
-                        )
-                      }
-                    />
-                  </div>
-                  <div
-                    className="rounded-[10px] border border-text-2 px-3 py-1.5 mt-5 hover:bg-slate-300"
-                    onClick={() =>
-                      handleRemoveFeeBreakdown(feeTypeIndex, breakdownIndex)
-                    }
-                    title="Remove fee breakdown"
-                  >
-                    <FontAwesomeIcon
-                      icon={faTrash}
-                      className="text-danger hover:cursor-pointer"
-                    />
-                  </div>
-                  <div
-                    onClick={() => handleAddFeeBreakdown(feeTypeIndex)}
-                    className="rounded-[10px] border border-text-2 px-3 py-1.5 mt-5 hover:bg-slate-300"
-                    title="Add fee breakdown"
-                  >
-                    <FontAwesomeIcon
-                      icon={faPlus}
-                      className="text-success hover:cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-            <hr className="border border-gray-300 my-6" />
-          </div>
-        </div>
-      ))}
+        );
+      })}
 
       <Button
-        onClick={handleAddFeeType}
+        onClick={handleAddFee}
         className="my-4 bg-background rounded-[10px] border border-text-2 text-text-2 hover:bg-slate-200"
       >
         <FontAwesomeIcon
@@ -194,7 +205,7 @@ const FeesInput = ({ onFeeDataChange }: { onFeeDataChange: (data: any) => void }
           className="text-accent"
           style={{ fontSize: 16 }}
         />
-        Add another fee type
+        Add another fee
       </Button>
     </div>
   );

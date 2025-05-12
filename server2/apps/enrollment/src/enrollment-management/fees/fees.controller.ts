@@ -23,8 +23,18 @@ export class FeesController {
     );
   }
 
+  @MessagePattern({ cmd: 'get-fee-types' })
+  async getFeeTypes() {
+    return await this.feesService.retrieveFeeTypes();
+  }
+
   @MessagePattern({ cmd: 'get-grade-levels' })
   async getGradeLevels(payload: { schoolId: number }) {
     return await this.feesService.getGradeLevels(payload.schoolId);
+  }
+
+  @MessagePattern({ cmd: 'delete-fee' })
+  async deleteFee(payload: { feeId: number }) {
+    return await this.feesService.deleteFee(payload.feeId);
   }
 }

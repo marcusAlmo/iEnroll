@@ -38,6 +38,7 @@ export class FeesService {
                   amount: true,
                   description: true,
                   due_date: true,
+                  fee_type_id: true,
                 },
               },
             },
@@ -132,7 +133,47 @@ export class FeesService {
     return this.microserviceUtilityService.returnSuccess(finalData);
   }
 
-  // UTILITY FUNCTIONS
+  public async deleteFee(
+    feeId: number,
+  ): Promise<MicroserviceUtility['returnValue']> {
+    const data = await this.prisma.enrollment_fee.delete({
+      where: {
+        fee_id: feeId,
+      },
+    });
+
+    if (!data)
+      return this.microserviceUtilityService.internalServerErrorReturn(
+        'An error has occured while deleting fee',
+      );
+
+    return this.microserviceUtilityService.returnSuccess({
+      message: 'Fee deleted successfully',
+    });
+  }
+
+  public async retrieveFeeTypes(): Promise<MicroserviceUtility['returnValue']> {
+    const data = await this.prisma.fee_type.findMany({
+      select: {
+        fee_type_id: true,
+        fee_type: true,
+      },
+    });
+
+    if (!data)
+      return this.microserviceUtilityService.notFoundExceptionReturn(
+        'Fee types not found',
+      );
+
+    const finalData: Fees['fee_type'] = data.map((d) => ({
+      feeTypeId: d.fee_type_id,
+      feeType: d.fee_type,
+    }));
+
+    return this.microserviceUtilityService.returnSuccess(finalData);
+  }
+
+  // UTILITY FUNCTIONS29
 
   // this is for fetching
   private async processFetchedData(
@@ -149,6 +190,7 @@ export class FeesService {
             amount: e.amount.toNumber(),
             description: e.description,
             dueDate: e.due_date,
+            feeTypeId: e.fee_type_id,
           })),
       );
 
