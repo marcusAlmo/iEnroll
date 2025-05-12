@@ -28,15 +28,15 @@ export class RequirementsArr {
   @IsNotEmpty()
   description!: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  program!: string;
+  programId!: number;
 }
 
 export class AddRequirementDTO {
   @IsNumber()
   @IsNotEmpty()
-  gradeSectionProgramId!: number;
+  gradeLevelOfferedId!: number;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -77,6 +77,7 @@ export class UpdateRequirementData {
   description!: string;
 
   @IsBoolean()
+  @IsNotEmpty()
   isRequired!: boolean;
 
   @IsString()
@@ -86,6 +87,10 @@ export class UpdateRequirementData {
   @IsString()
   @IsNotEmpty()
   type!: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  programId!: number;
 }
 
 export class UpdateRequirementDto {

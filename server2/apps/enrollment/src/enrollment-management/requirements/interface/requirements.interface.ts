@@ -7,7 +7,6 @@ export interface Requirements {
       grade_level: string;
     };
     grade_section_program: {
-      grade_section_program_id: number;
       enrollment_requirement: {
         requirement_id: number;
         name: string;
@@ -16,11 +15,14 @@ export interface Requirements {
         is_required: boolean | null;
         description: string | null;
       }[];
+      academic_program: {
+        program: string;
+        program_id: number;
+      };
     }[];
   }[];
 
   processedRequirements: {
-    gradeSectionProgramId: number;
     gradeLevelOfferedId: number;
     gradeLevel: string;
     gradeLevelCode: string;
@@ -31,20 +33,27 @@ export interface Requirements {
       dataType: string;
       isRequired: boolean | null;
       description: string | null;
+      program: string | null;
+      programId: number | null;
     }[];
   }[];
 
   receivedData: {
-    gradeSectionProgramId: number;
+    gradeLevelOfferedId: number;
     requirements: {
       name: string;
       type: string;
       dataType: string;
-      program: string;
+      programId: number;
       isRequired: boolean;
       description: string;
     }[];
   };
+
+  retrievedGradeSectionProgramId: {
+    programId: number;
+    grade_section_program_id: number;
+  }[];
 
   dataForProcessing: {
     tobeCreated: string[];
@@ -67,5 +76,6 @@ export interface Requirements {
     isRequired: boolean;
     name: string;
     type: string;
+    programId: number;
   };
 }
