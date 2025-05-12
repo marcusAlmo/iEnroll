@@ -400,6 +400,7 @@ const Requirements = () => {
   };
 
   // Update requirement field
+  // eslint-disable-next-line
   const updateRequirement = (index: number, field: keyof Requirement, value: any) => {
     const requirement = requirements[index];
     const updatedRequirement = { ...requirement, [field]: value };
