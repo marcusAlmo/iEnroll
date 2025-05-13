@@ -18,6 +18,15 @@ interface GradeLevelFeeData {
   }[];
 }
 
+interface SubmitableData {
+  feeTypeId: number;
+  feeId: number;
+  feeName: string;
+  amount: number;
+  description: string | null;
+  dueDate: Date;
+};
+
 interface FeeType {
   feeTypeId: number;
   feeType: string;
@@ -88,7 +97,7 @@ export default function Fees() {
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!currentGradeLevel) return;
     
     const currentFees = modifiedFees[currentGradeLevel.gradeLevelCode] || [];
@@ -115,14 +124,46 @@ export default function Fees() {
     }
   
     // Separate new vs existing fees for submission
-    const newFees = currentFees.filter(f => f.feeId === 0);
-    const existingFees = currentFees.filter(f => f.feeId !== 0);
+    let newFees: SubmitableData[] | undefined = currentFees.filter(f => f.feeId === 0);
+    let existingFees: SubmitableData[] | undefined = currentFees.filter(f => f.feeId !== 0);
+
+    newFees = newFees && newFees.length > 0 ? newFees : undefined;
+    existingFees = existingFees && existingFees.length > 0
+      ? existingFees : undefined;
+
+    if (newFees === undefined && existingFees === undefined) {
+      toast.error("No fees to submit");
+      setShowModal(false);
+      return;
+    }
     
     console.log("Submitting:", {
       newFees,
       existingFees,
       gradeLevel: currentGradeLevel.gradeLevelCode
     });
+
+    try {
+      const response = await requestData<{ message: string }>({
+        url: 'http://localhost:3000/api/fees/save',
+        method: 'POST',
+        body: {
+          gradeLevelCode: currentGradeLevel.gradeLevelCode,
+          existingFees,
+          newFees
+        }
+      });
+
+      if (response) {
+        toast.success(response.message);
+        await retrieveFees();
+      }
+    } catch (err) {
+      if (err instanceof Error) toast.error(err.message);
+      else toast.error('An error has occured while processing the data');
+
+      console.error(err);
+    }
   
     setShowModal(false);
   };
@@ -170,9 +211,6 @@ export default function Fees() {
               </div>
             ) : (
               <>
-                <div className="font-semibold text-text text-lg mb-4">
-                  Editing fees for {currentGradeLevel.gradeLevel}
-                </div>
                 <FeesInput 
                   key={`${currentGradeLevel?.gradeLevelCode}-${version}`} // Combined key
                   onFeeDataChange={handleFeeDataChange} 

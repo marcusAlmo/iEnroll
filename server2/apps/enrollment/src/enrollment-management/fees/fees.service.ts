@@ -58,35 +58,46 @@ export class FeesService {
     schoolId: number,
     receivedData: Fees['receivedData'],
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log('receivedDataService: ', receivedData);
     if (await this.isModifiable(schoolId))
       return this.microserviceUtilityService.conflictExceptionReturn(
         'Payment records exists, fees cannot be modified',
       );
 
     try {
-      console.log(receivedData);
       const result = await this.prisma.$transaction(async (prisma) => {
-        const gradeSectionProgramIds: number[] =
-          await this.retrieveSectionProgramIds(schoolId, receivedData, prisma);
+        if (receivedData.newFees && receivedData.newFees.length > 0) {
+          const gradeSectionProgramIds: number[] =
+            await this.retrieveSectionProgramIds(
+              schoolId,
+              receivedData.gradeLevelCode,
+              prisma,
+            );
 
-        console.log('gradeSectionProgramIds: ', gradeSectionProgramIds);
-        const fees: Fees['retrievedFeesCollection'] = await this.retrieveFees(
-          gradeSectionProgramIds,
-          prisma,
-        );
+          const toBeCreated = gradeSectionProgramIds.flatMap((id) => {
+            const newFees: Fees['toBeCreated'][] = receivedData.newFees.map(
+              (f) => ({
+                grade_section_program_id: id,
+                name: f.feeName,
+                amount: new Decimal(f.amount),
+                description: f.description,
+                due_date: f.dueDate,
+                fee_type_id: f.feeTypeId,
+              }),
+            );
 
-        console.log('fees: ', fees);
-        const { feesToUpdate, feesToDelete, feesToInsert } =
-          await this.filterToUpdateandDelete(fees, receivedData);
+            return newFees;
+          });
 
-        console.log('feesToUpdate: ', feesToUpdate);
-        console.log('feesToDelete: ', feesToDelete);
-        console.log('feesToInsert: ', feesToInsert);
-        await this.updateFees(feesToUpdate, prisma);
-        await this.deleteFees(feesToDelete, prisma);
-        await this.insertFees(gradeSectionProgramIds, feesToInsert, prisma);
+          // create new fees
+          await this.createNewFees(toBeCreated, prisma);
+        }
 
-        console.log('Fees saved successfully');
+        if (receivedData.existingFees.length > 0) {
+          // update existing fees
+          await this.updateExistingFees(receivedData.existingFees, prisma);
+        }
+
         return 'Fees saved successfully';
       });
       console.log(result);
@@ -94,6 +105,7 @@ export class FeesService {
       return this.microserviceUtilityService.returnSuccess({ message: result });
       // eslint-disable-next-line
     } catch (err) {
+      console.log(err);
       return this.microserviceUtilityService.internalServerErrorReturn(
         'An error has occured while applying changes',
       );
@@ -182,16 +194,28 @@ export class FeesService {
     const finalDataHolder: Fees['fetchValue'][] = [];
 
     for (const d of data) {
+      const seenFees = new Set<string>();
+
       const fees: Fees['fetchValue']['fees'] = d.grade_section_program.flatMap(
         (p) =>
-          p.enrollment_fee.map((e) => ({
-            feeId: e.fee_id,
-            feeName: e.name,
-            amount: e.amount.toNumber(),
-            description: e.description,
-            dueDate: e.due_date,
-            feeTypeId: e.fee_type_id,
-          })),
+          p.enrollment_fee
+            .map((e) => ({
+              feeId: e.fee_id,
+              feeName: e.name,
+              amount: e.amount.toNumber(),
+              description: e.description,
+              dueDate: e.due_date,
+              feeTypeId: e.fee_type_id,
+            }))
+            .filter((fee) => {
+              // Create a unique key for each fee based on relevant properties
+              const key = `${fee.feeName}|${fee.description}|${fee.amount}|${fee.feeTypeId}`;
+              if (seenFees.has(key)) {
+                return false; // Duplicate found, skip it
+              }
+              seenFees.add(key);
+              return true; // Unique, keep it
+            }),
       );
 
       finalDataHolder.push({
@@ -223,7 +247,7 @@ export class FeesService {
 
   private async retrieveSectionProgramIds(
     schoolId: number,
-    receivedData: Fees['receivedData'],
+    gradeLevelCode: string,
     prisma: Prisma.TransactionClient,
   ): Promise<number[]> {
     const gradeSectionProgramIdArr =
@@ -231,125 +255,173 @@ export class FeesService {
         where: {
           grade_level_offered: {
             school_id: schoolId,
-            grade_level_code: {
-              in: receivedData.gradeLevelCode,
-            },
+            grade_level_code: gradeLevelCode,
           },
         },
         select: {
           grade_section_program_id: true,
+          program_id: true,
         },
+      });
+
+    const existingRecordProgramId = gradeSectionProgramIdArr.map(
+      (g) => g.program_id,
+    );
+
+    const programIds = await this.prisma.academic_program.findMany({
+      select: {
+        program_id: true,
+      },
+    });
+
+    const existingGradeSectionProgramId: number[] =
+      gradeSectionProgramIdArr.map((g) => g.grade_section_program_id);
+
+    const programId = programIds
+      .filter((p) => !existingRecordProgramId.includes(p.program_id))
+      .map((p) => p.program_id);
+
+    if (programId.length === 0) return existingGradeSectionProgramId;
+
+    const gradeSectionProgramId = await this.createGradeSection(
+      schoolId,
+      gradeLevelCode,
+      programId,
+      prisma,
+    );
+
+    return [...existingGradeSectionProgramId, ...gradeSectionProgramId];
+  }
+
+  private async createGradeSection(
+    schoolId: number,
+    gradeLevelCode: string,
+    programIdArr: number[],
+    prisma: Prisma.TransactionClient,
+  ): Promise<number[]> {
+    const retrieveGradeLevelOfferedId =
+      await prisma.grade_level_offered.findFirst({
+        where: {
+          school_id: schoolId,
+          grade_level_code: gradeLevelCode,
+        },
+        select: {
+          grade_level_offered_id: true,
+        },
+      });
+
+    if (!retrieveGradeLevelOfferedId) return [];
+
+    const toBeCreated = programIdArr.map((p) => ({
+      grade_level_offered_id:
+        retrieveGradeLevelOfferedId.grade_level_offered_id,
+      program_id: p,
+    }));
+
+    const gradeSectionProgramIdArr =
+      await prisma.grade_section_program.createManyAndReturn({
+        data: toBeCreated,
       });
 
     return gradeSectionProgramIdArr.map((g) => g.grade_section_program_id);
   }
 
-  private async retrieveFees(
-    gradeSectionProgramIds: number[],
+  private async createNewFees(
+    data: Fees['toBeCreated'][],
     prisma: Prisma.TransactionClient,
-  ): Promise<Fees['retrievedFeesCollection']> {
-    const fees = await prisma.enrollment_fee.findMany({
-      where: {
-        grade_section_program_id: {
-          in: gradeSectionProgramIds,
+  ): Promise<void> {
+    const result = await prisma.enrollment_fee.createMany({
+      data,
+    });
+
+    if (!result)
+      throw new Error('An error has occured while creating new fees');
+  }
+
+  private async updateExistingFees(
+    data: Fees['receivedFeesCollection'][],
+    prisma: Prisma.TransactionClient,
+  ): Promise<void> {
+    for (const d of data) {
+      const gradeSectionAndDetails = await this.getGradeSectionAndDetails(
+        d.feeId,
+        prisma,
+      );
+
+      console.log('gradeSectionAndDetails: ', gradeSectionAndDetails);
+
+      const feeIdArr: number[] = await this.gatherSimilarFees(
+        gradeSectionAndDetails!,
+        prisma,
+      );
+
+      console.log('feeIdArr: ', feeIdArr);
+
+      const result = await prisma.enrollment_fee.updateMany({
+        where: {
+          fee_id: {
+            in: feeIdArr,
+          },
         },
+        data: {
+          name: d.feeName,
+          amount: new Decimal(d.amount),
+          description: d.description,
+          due_date: d.dueDate,
+          fee_type_id: d.feeTypeId,
+        },
+      });
+
+      console.log('update result: ', result);
+
+      if (!result)
+        throw new Error('An error has occured while updating existing fees');
+    }
+  }
+
+  private async getGradeSectionAndDetails(
+    feeId: number,
+    prisma: Prisma.TransactionClient,
+  ): Promise<Fees['gradeSectionAndDetails'] | null> {
+    const data = await prisma.enrollment_fee.findUnique({
+      where: {
+        fee_id: feeId,
+      },
+      select: {
+        name: true,
+        amount: true,
+        description: true,
+        fee_type_id: true,
+      },
+    });
+
+    if (!data) return null;
+
+    return {
+      name: data.name,
+      amount: data.amount,
+      description: data.description,
+      feeTypeId: data.fee_type_id,
+    };
+  }
+
+  private async gatherSimilarFees(
+    rawData: Fees['gradeSectionAndDetails'],
+    prisma: Prisma.TransactionClient,
+  ): Promise<number[]> {
+    const result = await prisma.enrollment_fee.findMany({
+      where: {
+        name: rawData.name,
+        amount: rawData.amount,
+        fee_type_id: rawData.feeTypeId,
       },
       select: {
         fee_id: true,
-        name: true,
-        description: true,
-        amount: true,
-        due_date: true,
       },
     });
 
-    return fees;
-  }
+    console.log('result: ', result);
 
-  private async filterToUpdateandDelete(
-    fees: Fees['retrievedFeesCollection'],
-    receivedData: Fees['receivedData'],
-  ): Promise<{
-    feesToUpdate: Fees['retrievedFeesCollection'];
-    feesToDelete: number[];
-    feesToInsert: Fees['toInsertFees'];
-  }> {
-    const feesToUpdate: Fees['retrievedFeesCollection'] = [];
-    const feesToDelete: number[] = [];
-
-    for (const fee of fees) {
-      const receivedFee = receivedData.feeDetailsArr.find(
-        (f) => f.feeName === fee.name,
-      );
-      if (receivedFee) {
-        feesToUpdate.push({
-          fee_id: fee.fee_id,
-          name: fee.name,
-          amount: new Decimal(receivedFee.amount),
-          description: receivedFee.description,
-          due_date: receivedFee.dueDate,
-        });
-      } else feesToDelete.push(fee.fee_id);
-    }
-
-    const feesToInsert: Fees['toInsertFees'] =
-      receivedData.feeDetailsArr.filter(
-        (f) => !fees.find((fee) => fee.name === f.feeName),
-      );
-
-    return { feesToUpdate, feesToDelete, feesToInsert };
-  }
-
-  private async updateFees(
-    fees: Fees['retrievedFeesCollection'],
-    prisma: Prisma.TransactionClient,
-  ): Promise<void> {
-    for (const f of fees) {
-      await prisma.enrollment_fee.update({
-        where: {
-          fee_id: f.fee_id,
-        },
-        data: {
-          name: f.name,
-          amount: f.amount,
-          description: f.description,
-          due_date: f.due_date,
-        },
-      });
-    }
-  }
-
-  private async deleteFees(
-    fees: number[],
-    prisma: Prisma.TransactionClient,
-  ): Promise<void> {
-    await prisma.enrollment_fee.deleteMany({
-      where: { fee_id: { in: fees } },
-    });
-  }
-
-  private async insertFees(
-    gradeSectionProgramIds: number[],
-    fees: Fees['toInsertFees'],
-    prisma: Prisma.TransactionClient,
-  ): Promise<void> {
-    const allData = gradeSectionProgramIds.flatMap((id) =>
-      fees.map((f) => ({
-        fee_type_id: f.feeTypeId,
-        name: f.feeName,
-        amount: new Decimal(f.amount),
-        description: f.description,
-        due_date: f.dueDate,
-        grade_section_program_id: id,
-      })),
-    );
-
-    console.log('gradeSectionProgramIds: ', gradeSectionProgramIds);
-    console.log('fees: ', fees);
-    console.log('allData', allData);
-    await prisma.enrollment_fee.createMany({
-      data: allData,
-      skipDuplicates: true,
-    });
+    return result.map((r) => r.fee_id);
   }
 }

@@ -12,6 +12,10 @@ import {
 class FeeDetailsDTO {
   @IsNumber()
   @IsNotEmpty()
+  feeId!: number;
+
+  @IsNumber()
+  @IsNotEmpty()
   feeTypeId!: number;
 
   @IsString()
@@ -33,13 +37,19 @@ class FeeDetailsDTO {
 }
 
 export class Fees {
-  @IsArray()
-  @IsString({ each: true })
+  @IsString()
   @IsNotEmpty()
-  gradeLevelCode!: string[];
+  gradeLevelCode!: string;
 
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FeeDetailsDTO)
-  feeDetailsArr!: FeeDetailsDTO[];
+  newFees!: FeeDetailsDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FeeDetailsDTO)
+  existingFees!: FeeDetailsDTO[];
 }

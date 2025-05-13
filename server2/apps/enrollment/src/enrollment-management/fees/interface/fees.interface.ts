@@ -38,16 +38,20 @@ export interface Fees {
     }[];
   };
 
+  receivedFeesCollection: {
+    feeId: number;
+    feeTypeId: number;
+    feeName: string;
+    amount: number;
+    description: string | null;
+    dueDate: Date;
+  };
+
   // for storing fees
   receivedData: {
-    gradeLevelCode: string[];
-    feeDetailsArr: {
-      feeTypeId: number;
-      feeName: string;
-      amount: number;
-      description: string | null;
-      dueDate: Date;
-    }[];
+    gradeLevelCode: string;
+    newFees: Fees['receivedFeesCollection'][];
+    existingFees: Fees['receivedFeesCollection'][];
   };
 
   retrievedFeesCollection: {
@@ -77,4 +81,20 @@ export interface Fees {
     feeTypeId: number;
     feeType: string;
   }[];
+
+  toBeCreated: {
+    grade_section_program_id: number;
+    name: string;
+    amount: Decimal;
+    description: string | null;
+    due_date: Date;
+    fee_type_id: number;
+  };
+
+  gradeSectionAndDetails: {
+    name: string;
+    amount: Decimal;
+    description: string | null;
+    feeTypeId: number;
+  };
 }

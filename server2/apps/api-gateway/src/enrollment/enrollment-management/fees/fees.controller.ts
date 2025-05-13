@@ -19,6 +19,7 @@ export class FeesController {
     @Body() receivedData: Fees,
   ) {
     schoolId = 0;
+    console.log('Controller: ', receivedData);
     return await this.feesService.saveFees({ schoolId, receivedData });
   }
 

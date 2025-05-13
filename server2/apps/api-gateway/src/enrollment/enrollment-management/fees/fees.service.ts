@@ -23,7 +23,7 @@ export class FeesService {
     return result.data as Fees['fetchValue'][];
   }
 
-  public async saveFees(payload: object) {
+  public async saveFees(payload: object): Promise<{ message: string }> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
       this.client.send({ cmd: 'save-fees' }, payload),
     );
