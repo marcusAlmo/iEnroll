@@ -61,9 +61,15 @@ export class AuthService {
       });
     } else if (email) {
       const decryptedEmail = SecureUtilityService.decrypt(email);
+      console.log(
+        decryptedEmail,
+        emailEntered,
+        decryptedEmail === emailEntered,
+      );
+
       const isEmailMatch: boolean = decryptedEmail === emailEntered;
 
-      if (!isEmailMatch) {
+      if (isEmailMatch) {
         user = await this.prisma.user.findFirst({
           where: { email_address: decryptedEmail },
           select: { user_id: true, username: true, password_hash: true },

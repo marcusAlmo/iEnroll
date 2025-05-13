@@ -179,6 +179,8 @@ export class ReUploadService {
           },
         }),
       ]);
+
+      return { success: true };
     } catch (error) {
       console.error(error);
       throw new RpcException({

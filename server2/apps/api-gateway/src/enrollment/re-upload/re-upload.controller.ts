@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -44,9 +43,10 @@ export class ReUploadController {
       textContent?: string;
     }[];
 
-    if (!files?.length) {
-      throw new BadRequestException('ERR_FILES_NOT_FOUND');
-    }
+    // ? I commented out because there are instances that requirements are not all file based
+    // if (!files?.length) {
+    //   throw new BadRequestException('ERR_FILES_NOT_FOUND');
+    // }
 
     const uploadedFiles = await Promise.all(
       files.map((file) =>

@@ -147,9 +147,16 @@ export const EnrollmentReviewProvider: React.FC<{
   const [sectionModalType, setSectionModalType] = useState<
     "assign" | "reassign"
   >("reassign");
+  const [requirementActionClicked, setIsRequirementActionClicked] =
+    useState(false);
+  const [statusUpdateFinished, setStatusUpdateFinished] = useState(false);
 
   // Queries
-  const { data: gradeLevels, isPending: isGradeLevelPending } = useQuery({
+  const {
+    data: gradeLevels,
+    isPending: isGradeLevelPending,
+    error: aa,
+  } = useQuery({
     queryKey: ["assignedGradeLevels"],
     queryFn: getAllGradeLevels,
     select: (data): GradeLevel[] =>
@@ -159,6 +166,10 @@ export const EnrollmentReviewProvider: React.FC<{
       })),
   });
 
+  useEffect(() => {
+    console.log(gradeLevels);
+  }, [aa, gradeLevels]);
+
   const { data: sections, isPending: isSectionsPending } = useQuery({
     queryKey: ["enrolledSections", selectedGradeLevel],
     queryFn: () => getAllSectionsByGradeLevel(selectedGradeLevel!),
@@ -166,7 +177,7 @@ export const EnrollmentReviewProvider: React.FC<{
       const raw = data.data;
       const gradeSectionPrograms = new Set<number>();
       console.log("RESUL", raw);
-      
+
       const result: Section[] = raw.map((section) => {
         gradeSectionPrograms.add(section.gradeSectionProgramId);
         return {
@@ -211,7 +222,7 @@ export const EnrollmentReviewProvider: React.FC<{
         : getAllStudentsAssignedBySection(selectedSection!.sectionId),
     select: (data): Student[] => {
       console.log("DATA", data);
-      
+
       return data.data.map((student) => ({
         studentId: student.studentId,
         studentName: [
@@ -277,6 +288,7 @@ export const EnrollmentReviewProvider: React.FC<{
     mutationFn: approveOrDenyRequirement,
     onSuccess: () => {
       console.log("Approve or deny success");
+      setStatusUpdateFinished(true);
       handleNext();
       queryClient.invalidateQueries({
         queryKey: ["enrolledRequirements", selectedStudent?.studentId],
@@ -314,6 +326,7 @@ export const EnrollmentReviewProvider: React.FC<{
   }, [isRequirementsPending, requirements]);
 
   useEffect(() => {
+    if (!requirementActionClicked || !statusUpdateFinished) return;
     if (selectedStudent && !isRequirementsPending && requirements?.length) {
       let accepted = 0;
       let pending = 0;
@@ -358,8 +371,10 @@ export const EnrollmentReviewProvider: React.FC<{
   }, [
     isRequirementsPending,
     mutateUpdateEnrollmentStatus,
+    requirementActionClicked,
     requirements,
     selectedStudent,
+    statusUpdateFinished,
   ]);
 
   useEffect(() => {
@@ -402,6 +417,9 @@ export const EnrollmentReviewProvider: React.FC<{
   const handleRequirementStatus = useCallback(
     (status: boolean, reason?: string) => {
       if (!selectedRequirement) return;
+
+      setStatusUpdateFinished(false);
+      setIsRequirementActionClicked(true);
 
       mutateApproveOrDenyRequirement({
         applicationId: selectedRequirement.applicationId,

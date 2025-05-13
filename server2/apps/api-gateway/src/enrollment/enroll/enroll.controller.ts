@@ -165,9 +165,10 @@ export class EnrollController {
     @User('user_id') studentId: number,
     @User('school_id') schoolId: number,
   ) {
-    if (!files?.length) {
-      throw new BadRequestException('ERR_FILES_NOT_FOUND');
-    }
+    // ? I commented out because there are instances that requirements are not all file based
+    // if (!files?.length) {
+    //   throw new BadRequestException('ERR_FILES_NOT_FOUND');
+    // }
 
     const uploadedFiles = await Promise.all(
       files.map((file) =>
