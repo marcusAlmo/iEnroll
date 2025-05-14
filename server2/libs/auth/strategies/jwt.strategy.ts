@@ -1,19 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { Request } from 'express';
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly authService: AuthService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: (req: Request): string | null => {
+        const token = req.cookies['access_token'];
+        return typeof token === 'string' ? token : null;
+      },
       secretOrKey: process.env.JWT_SECRET_KEY || 'supersecret',
     });
   }
 
   async validate(payload: JwtPayload) {
-    // You can fetch the user from the database or cache here
     const user = await this.authService.validateUserById(payload.sub);
     if (!user) {
       throw new NotFoundException('User not found');
