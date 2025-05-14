@@ -5,11 +5,13 @@ import { ValidationPipe } from '@nestjs/common';
 import os from 'os';
 import 'multer';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   dotenv.config();
 
   const app = await NestFactory.create(ApiGatewayModule);
+  app.use(cookieParser());
   app.setGlobalPrefix('/api');
 
   const SWAGGER_ENDPOINT = 'api/docs';
