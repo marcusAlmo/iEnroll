@@ -4,6 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useLocation, useNavigate } from "react-router";
 import { requestData } from "@/lib/dataRequester";
+import { toast } from "react-toastify";
 
 const schema = yup.object().shape({
   email: yup.string().email("Invalid email").required("Email is required"),
@@ -62,8 +63,7 @@ export default function CredentialsForm() {
 
         if (verifiedFromQuery !== "true") throw new Error("Email not verified");
 
-        // eslint-disable-next-line
-        const res = await requestData<any>({
+        const res = await requestData<{ message: string }>({
           url: "http://localhost:3000/api/auth/login",
           method: "POST",
           body: {
@@ -74,6 +74,7 @@ export default function CredentialsForm() {
         });
 
         if (res) {
+          toast.success(res.message);
           navigate("/admin");
         }
       } catch (err) {

@@ -83,7 +83,10 @@ export class AuthService {
     return isMatch ? { userId: user.user_id, username: user.username } : -2;
   }
 
-  async login(user: { userId: number; username: string }) {
+  async login(user: {
+    userId: number;
+    username: string;
+  }): Promise<{ access_token: string }> {
     console.debug('Login user:', user);
     const payload: JwtPayload = { sub: user.userId, username: user.username };
     return {
