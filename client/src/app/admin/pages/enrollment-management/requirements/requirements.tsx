@@ -11,10 +11,11 @@ interface Requirement {
   dataType: string;
   isRequired: boolean;
   description: string;
+  program: string;
+  programId: number;
 }
 
 interface GradeLevel {
-  gradeSectionProgramId: number;
   gradeLevelOfferedId: number;
   gradeLevel: string;
   gradeLevelCode: string;
@@ -32,6 +33,12 @@ interface Toast {
 interface DropdownOption {
   value: string;
   label: string;
+}
+
+interface ProgramInterface {
+  program: string;
+  programId: number;
+  description: string;
 }
 
 interface DropdownProps {
@@ -203,11 +210,39 @@ const Requirements = () => {
   // State to track active grade level ID
   const [activeGradeId, setActiveGradeId] = useState<number>(4); // Default to Grade 11
   
-  // State to track unsaved changes
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
-  
   // State for loading status
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // State to track original data from server
+  const [originalGradeLevels, setOriginalGradeLevels] = useState<GradeLevel[]>([]);
+
+  // programs
+  const [programs, setPrograms] = useState<ProgramInterface[]>([]);
+
+  // Compute if there are unsaved changes
+  const hasUnsavedChanges = () => {
+    // Check if there are any newly added requirements
+    if (changes.added.length > 0 && changes.added.some(req => req.name || req.description)) {
+      return true;
+    }
+
+    // Check if there are any modified requirements
+    if (changes.modified.length > 0) {
+      return true;
+    }
+
+    // Check if any existing requirements have been deleted
+    const currentGrade = gradeLevels.find(grade => grade.gradeLevelOfferedId === activeGradeId);
+    const originalGrade = originalGradeLevels.find(grade => grade.gradeLevelOfferedId === activeGradeId);
+    
+    if (currentGrade && originalGrade) {
+      if (currentGrade.requirements.length !== originalGrade.requirements.length) {
+        return true;
+      }
+    }
+
+    return false;
+  };
 
   const retrieveRequirements = async () => {
     try {
@@ -220,6 +255,7 @@ const Requirements = () => {
 
       if (response) {
         setGradeLevels(response);
+        setOriginalGradeLevels(JSON.parse(JSON.stringify(response)));
         if (response.length > 0) {
           setActiveGradeId(response[0].gradeLevelOfferedId);
         }
@@ -242,10 +278,25 @@ const Requirements = () => {
   const activeGrade = gradeLevels.find(grade => grade.gradeLevelOfferedId === activeGradeId);
   const requirements = activeGrade?.requirements || [];
 
+  // Handle program change for a specific requirement
+  const handleProgramChange = (index: number, programId: string) => {
+    const requirement = requirements[index];
+    const updatedRequirement = { ...requirement, programId: Number(programId) };
+
+    // Find the program details to update the program name as well
+    const selectedProgram = programs.find(p => p.programId === Number(programId));
+    if (selectedProgram) {
+      updatedRequirement.program = selectedProgram.program;
+    }
+
+    // Update the requirement using the updateRequirement function
+    updateRequirement(index, 'programId', Number(programId));
+  };
+
   // Handle grade level selection
   const handleGradeLevelClick = (gradeId: number) => {
     // Check if there are unsaved changes and confirm before changing grades
-    if (hasUnsavedChanges) {
+    if (hasUnsavedChanges()) {
       const confirmChange = window.confirm(
         "You have unsaved changes. Are you sure you want to switch grades without saving?"
       );
@@ -254,19 +305,31 @@ const Requirements = () => {
       }
     }
     
+    // Reset changes for the current grade level
+    setChanges({
+      modified: [],
+      added: []
+    });
+    
     // Update active grade ID
     setActiveGradeId(gradeId);
   };
 
   // Add a new requirement
   const addRequirement = () => {
+    // Get the first program as default if programs are loaded
+    const defaultProgramId = programs.length > 0 ? programs[0].programId : 0;
+    const defaultProgram = programs.find(p => p.programId === defaultProgramId);
+    
     const newRequirement: Requirement = {
       requirementId: 0, // 0 indicates a new, unsaved requirement
       name: '',
       type: 'document',
       dataType: 'document',
       isRequired: false,
-      description: ''
+      description: '',
+      programId: defaultProgramId,
+      program: defaultProgram?.program || ''
     };
     
     setGradeLevels(prevLevels => 
@@ -285,8 +348,6 @@ const Requirements = () => {
       ...prev,
       added: [...prev.added, {...newRequirement}] // Create new object
     }));
-    
-    setHasUnsavedChanges(true);
   };
 
   const deleteRequirementOnServer = async (requirementId: number) => {
@@ -299,18 +360,14 @@ const Requirements = () => {
       });
       
       if (response){
-        //await retrieveRequirements();
         toast.success(response.message);
         return true;
       }
-      //addToast('success', 'Requirement deleted successfully');
-      //return true;
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
       else toast.error('Failed to delete requirement');
       
       console.error('Failed to delete requirement:', error);
-      //addToast('error', 'Failed to delete requirement');
       return false;
     }
   };
@@ -340,8 +397,6 @@ const Requirements = () => {
           : grade
       )
     );
-  
-    setHasUnsavedChanges(true);
   };
 
   // Update requirement field
@@ -365,16 +420,26 @@ const Requirements = () => {
     );
   
     // Track changes
-    if (requirement.requirementId) {
+    if (requirement.requirementId > 0) {
       // Existing requirement being modified
       setChanges(prev => {
         const existingModified = prev.modified.find(r => r.requirementId === requirement.requirementId);
-        return {
-          ...prev,
-          modified: existingModified
-            ? prev.modified.map(r => r.requirementId === requirement.requirementId ? updatedRequirement : r)
-            : [...prev.modified, updatedRequirement]
-        };
+        
+        if (existingModified) {
+          // Update the existing modified requirement
+          return {
+            ...prev,
+            modified: prev.modified.map(r => 
+              r.requirementId === requirement.requirementId ? updatedRequirement : r
+            )
+          };
+        } else {
+          // Add to modified list
+          return {
+            ...prev,
+            modified: [...prev.modified, updatedRequirement]
+          };
+        }
       });
     } else {
       // New requirement being modified before saving
@@ -396,29 +461,23 @@ const Requirements = () => {
         return prev;
       });
     }
-  
-    setHasUnsavedChanges(true);
   };
 
   const processNewData = () => {
     const selectedGradeSectionProgram = gradeLevels.find(grade => grade.gradeLevelOfferedId === activeGradeId);
-    console.log('requirements: ', requirements);
-    console.log('gradeSectionProgramId: ', selectedGradeSectionProgram);
-    console.log('changes: ', changes);
-    console.log('gradeLevels: ', gradeLevels);
-
+    
     if (selectedGradeSectionProgram){
       const requirementsData = {
-        gradeSectionProgramId: selectedGradeSectionProgram.gradeSectionProgramId,
+        gradeLevelOfferedId: selectedGradeSectionProgram.gradeLevelOfferedId,
         requirements: changes.added.map(newReq => ({
           name: newReq.name,
           type: newReq.type,
           dataType: newReq.dataType,
           isRequired: newReq.isRequired,
-          description: newReq.description
+          description: newReq.description,
+          programId: newReq.programId
         })),
       };
-      console.log('requirementsData: ', requirementsData);
 
       return requirementsData;
     }
@@ -435,7 +494,7 @@ const Requirements = () => {
         return;
       }
 
-      console.log('requirementsData: ', requirementsData);
+      console.log('Creating new requirements:', requirementsData);
       
       const response = await requestData<{message: string}>({
         url: 'http://localhost:3000/api/requirements/process-received-requirements',
@@ -449,7 +508,6 @@ const Requirements = () => {
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
       else toast.error('Failed to create requirements');
-
       console.error('Failed to create requirements:', error);
     }
   }
@@ -459,36 +517,33 @@ const Requirements = () => {
     try {
       setIsLoading(true);
       
-      console.log('Changes to be saved:', {
-        modifications: changes.modified,
-        additions: changes.added
-      });
-  
       // Validate data
-      const hasEmptyNames = gradeLevels.some(grade => 
-        grade.requirements.some(req => !req.name.trim())
-      );
-  
+      const newRequirementsToCreate = changes.added.filter(req => req.name && req.description);
+      const existingRequirementsToUpdate = changes.modified.filter(req => req.requirementId > 0);
+      
+      console.log('Changes to save:', {
+        newRequirements: newRequirementsToCreate,
+        modifiedRequirements: existingRequirementsToUpdate
+      });
+      
+      // Check for empty names in requirements
+      const hasEmptyNames = [...newRequirementsToCreate, ...existingRequirementsToUpdate].some(req => !req.name.trim());
       if (hasEmptyNames) throw new Error('All requirements must have a name');
   
-      const hasEmptyDescriptions = gradeLevels.some(grade => 
-        grade.requirements.some(req => !req.description.trim())
-      );
-  
+      // Check for empty descriptions in requirements
+      const hasEmptyDescriptions = [...newRequirementsToCreate, ...existingRequirementsToUpdate].some(req => !req.description.trim());
       if (hasEmptyDescriptions) throw new Error('All requirements must have a description');
       
-      // Process additions
-      if (changes.added.length > 0) {
-        console.log('Adding requirements:', changes.added);
+      // Process additions (new requirements)
+      if (newRequirementsToCreate.length > 0) {
+        console.log('Creating new requirements...');
         await createRequirements();
-        
-        // Refresh requirements after successful additions
-        await retrieveRequirements();
       }
   
-      // Process modifications
-      if (changes.modified.length > 0) {
-        await updateData(changes.modified);
+      // Process modifications (existing requirements)
+      if (existingRequirementsToUpdate.length > 0) {
+        console.log('Updating existing requirements...');
+        await updateData(existingRequirementsToUpdate);
       }
   
       // Reset changes after successful save
@@ -497,7 +552,9 @@ const Requirements = () => {
         added: []
       });
       
-      setHasUnsavedChanges(false);
+      // Refresh requirements from server to ensure consistency
+      await retrieveRequirements();
+      
       setIsLoading(false);
       addToast('success', 'Requirements saved successfully!');
       
@@ -509,13 +566,22 @@ const Requirements = () => {
 
   const updateData = async (data: Requirement[]) => {
     try {
-      const finalData = {
-        data: data,
-      };
+      console.log('Updating requirements:', data);
+      
       const response = await requestData<{message: string}>({
         url: 'http://localhost:3000/api/requirements/update',
         method: 'PUT',
-        body: finalData,
+        body: {
+          data: data.map(req => ({
+            dataType: req.dataType,
+            requirementId: req.requirementId,
+            description: req.description,
+            isRequired: req.isRequired,
+            name: req.name,
+            type: req.type,
+            programId: req.programId
+          }))
+        }
       });
 
       if (response) {
@@ -542,6 +608,30 @@ const Requirements = () => {
     { value: 'image', label: 'Image' },
     { value: 'text', label: 'Text' }
   ];
+
+  // retrieve programs from server (if you have an API for this)
+  const retrievePrograms = async () => {
+    try {
+      // Uncomment this when you have an actual API endpoint
+      const response = await requestData<{programList: ProgramInterface[]}>({
+        url: 'http://localhost:3000/api/grade-levels/retrieve-programs',
+        method: 'GET'
+      })
+
+      if (response) {
+        setPrograms(response.programList)
+      }
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("An unknown error occurred.");
+
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    retrievePrograms();
+  }, []);
 
   return (
     <div className="bg-gray-100 p-4">
@@ -570,92 +660,117 @@ const Requirements = () => {
         </div>
 
         {/* Requirements configuration panel */}
-        <div className="bg-white rounded-lg shadow w-2/3 p-4">
+        <div className="bg-white rounded-lg shadow w-2/2.5 p-4">
           <div className="mb-4">
-            <div className="flex items-center gap-4 px-2 mt-5 mb-2">
+            {/* Always render header structure to maintain consistent width */}
+            <div className={`flex items-center gap-4 px-2 mt-5 mb-2 ${requirements.length === 0 ? 'invisible' : ''}`}>
               <div className="w-10"></div>
               <div className="flex-1 font-semibold text-gray-900">Requirement Name</div>
+              <div className="w-32 font-semibold text-gray-900">Program</div>
               <div className="w-36 font-semibold text-gray-900">Type</div>
               <div className="w-36 font-semibold text-gray-900">Data Type</div>
               <div className="w-20 font-semibold text-gray-900 text-center">Required</div>
             </div>
 
-            {requirements.map((req, index) => (
-              <div key={index} className="flex items-center gap-4 mb-3">
-                <div className="w-10 flex justify-center">
-                  <button 
-                    className="p-3 text-red-600 border-1 h-10 w-11 border-gray-500 bg-gray-100 rounded-md hover:bg-gray-300"
-                    onClick={async () => await deleteRequirement(index)}
-                    disabled={isLoading}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={req.name}
-                    onChange={e => updateRequirement(index, 'name', e.target.value)}
-                    placeholder="Enter name (e.g. BC, F137)"
-                    className="w-full px-3 py-2 border-1 border-gray-500 bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                  />
-                  <input
-                    type="text"
-                    value={req.description}
-                    onChange={e => updateRequirement(index, 'description', e.target.value)}
-                    placeholder="Enter description"
-                    className="w-full mt-1 px-3 py-2 border-1 border-gray-500 bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                  />
-                </div>
-                <div className="w-36">
-                  <Dropdown
-                    options={typeOptions}
-                    value={req.type}
-                    onChange={(value) => updateRequirement(index, 'type', value)}
-                    className="w-full"
-                  />
-                </div>
-                <div className="w-36">
-                  <Dropdown
-                    options={dataTypeOptions}
-                    value={req.dataType}
-                    onChange={(value) => updateRequirement(index, 'dataType', value)}
-                    className="w-full"
-                  />
-                </div>
-                <div className="w-20 flex justify-center">
-                  <div className={`w-10 h-10 rounded-md border-1 border-gray-500 flex items-center justify-center ${req.isRequired ? 'bg-gray-200 border-gray-300' : 'border-gray-300'}`}>
-                    {req.isRequired && <Check size={20} className="text-gray-500" />}
+            {requirements.length === 0 ? (
+              // Empty state with same width structure
+              <div className="flex items-center gap-4 mb-3 opacity-0 pointer-events-none">
+                <div className="w-10"></div>
+                <div className="flex-1"></div>
+                <div className="w-32"></div>
+                <div className="w-36"></div>
+                <div className="w-36"></div>
+                <div className="w-20"></div>
+              </div>
+            ) : (
+              requirements.map((req, index) => (
+                <div key={index} className="flex items-center gap-4 mb-3">
+                  <div className="w-10 flex justify-center">
+                    <button 
+                      className="p-3 text-red-600 border-1 h-10 w-11 border-gray-500 bg-gray-100 rounded-md hover:bg-gray-300"
+                      onClick={async () => await deleteRequirement(index)}
+                      disabled={isLoading}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  <div className="flex-1">
                     <input
-                      type="checkbox"
-                      checked={req.isRequired}
-                      onChange={e => updateRequirement(index, 'isRequired', e.target.checked)}
-                      className="opacity-0 absolute w-6 h-6 cursor-pointer"
+                      type="text"
+                      value={req.name}
+                      onChange={e => updateRequirement(index, 'name', e.target.value)}
+                      placeholder="Enter name (e.g. BC, F137)"
+                      className="w-full px-3 py-2 border-1 border-gray-500 bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                    />
+                    <input
+                      type="text"
+                      value={req.description}
+                      onChange={e => updateRequirement(index, 'description', e.target.value)}
+                      placeholder="Enter description"
+                      className="w-full mt-1 px-3 py-2 border-1 border-gray-500 bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                     />
                   </div>
+                  <div className="w-32">
+                    <Dropdown
+                      options={programs.map(program => ({
+                        value: program.programId.toString(),
+                        label: program.program
+                      }))}
+                      value={req.programId.toString()}
+                      onChange={(value) => handleProgramChange(index, value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="w-36">
+                    <Dropdown
+                      options={typeOptions}
+                      value={req.type}
+                      onChange={(value) => updateRequirement(index, 'type', value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="w-36">
+                    <Dropdown
+                      options={dataTypeOptions}
+                      value={req.dataType}
+                      onChange={(value) => updateRequirement(index, 'dataType', value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="w-20 flex justify-center">
+                    <div className={`w-10 h-10 rounded-md border-1 border-gray-500 flex items-center justify-center ${req.isRequired ? 'bg-gray-200 border-gray-300' : 'border-gray-300'}`}>
+                      {req.isRequired && <Check size={20} className="text-gray-500" />}
+                      <input
+                        type="checkbox"
+                        checked={req.isRequired}
+                        onChange={e => updateRequirement(index, 'isRequired', e.target.checked)}
+                        className="opacity-0 absolute w-6 h-6 cursor-pointer"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
-          <button 
-            className="w-full py-3 flex items-center justify-center  bg-gray-100 hover:bg-gray-200 rounded-md mb-4 border-2 border-gray-400 text-gray-700"
-            onClick={addRequirement}
-          >
-            <PlusCircle size={20} className="mr-2 text-blue-500" />
-            <span>add another requirement</span>
-          </button>
+            <button 
+              className="w-full py-3 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md mb-4 border-2 border-gray-400 text-gray-700"
+              onClick={addRequirement}
+            >
+              <PlusCircle size={20} className="mr-2 text-blue-500" />
+              <span>add another requirement</span>
+            </button>
+          </div>
         </div>
-      </div>
 
       <div className="flex flex-col items-center mt-4">
         <button
           onClick={saveRequirements}
-          disabled={isLoading || !hasUnsavedChanges}
+          disabled={isLoading || !hasUnsavedChanges()}
           className={`px-6 py-3 rounded-md font-medium flex items-center ${
             isLoading 
               ? 'bg-gray-400 cursor-not-allowed'
-              : !hasUnsavedChanges
+              : !hasUnsavedChanges()
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-accent hover:bg-primary text-white'
           }`}

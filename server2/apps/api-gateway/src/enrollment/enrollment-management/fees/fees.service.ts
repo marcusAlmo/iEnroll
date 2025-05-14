@@ -23,7 +23,7 @@ export class FeesService {
     return result.data as Fees['fetchValue'][];
   }
 
-  public async saveFees(payload: object) {
+  public async saveFees(payload: object): Promise<{ message: string }> {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
       this.client.send({ cmd: 'save-fees' }, payload),
     );
@@ -42,5 +42,25 @@ export class FeesService {
     await this.exceptionCheckerService.checker(result);
 
     return result.data as Fees['grade_level'];
+  }
+
+  public async deleteFee(payload: object) {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'delete-fee' }, payload),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as { message: string };
+  }
+
+  public async getFeeTypes() {
+    const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
+      this.client.send({ cmd: 'get-fee-types' }, {}),
+    );
+
+    await this.exceptionCheckerService.checker(result);
+
+    return result.data as Fees['fee_type'];
   }
 }

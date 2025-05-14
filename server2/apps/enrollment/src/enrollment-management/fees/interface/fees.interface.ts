@@ -16,6 +16,7 @@ export interface Fees {
       amount: Decimal;
       description: string | null;
       due_date: Date;
+      fee_type_id: number;
     }[];
   }[];
 
@@ -28,6 +29,7 @@ export interface Fees {
     gradeLevelCode: string;
     gradeLevel: string;
     fees: {
+      feeTypeId: number;
       feeId: number;
       feeName: string;
       amount: number;
@@ -36,16 +38,20 @@ export interface Fees {
     }[];
   };
 
+  receivedFeesCollection: {
+    feeId: number;
+    feeTypeId: number;
+    feeName: string;
+    amount: number;
+    description: string | null;
+    dueDate: Date;
+  };
+
   // for storing fees
   receivedData: {
-    gradeLevelCode: string[];
-    feeDetailsArr: {
-      feeTypeId: number;
-      feeName: string;
-      amount: number;
-      description: string | null;
-      dueDate: Date;
-    }[];
+    gradeLevelCode: string;
+    newFees: Fees['receivedFeesCollection'][];
+    existingFees: Fees['receivedFeesCollection'][];
   };
 
   retrievedFeesCollection: {
@@ -54,6 +60,7 @@ export interface Fees {
     description: string | null;
     amount: Decimal;
     due_date: Date;
+    fee_type_id: number;
   }[];
 
   toInsertFees: {
@@ -69,4 +76,25 @@ export interface Fees {
     gradeLevelCode: string;
     gradeLevel: string;
   }[];
+
+  fee_type: {
+    feeTypeId: number;
+    feeType: string;
+  }[];
+
+  toBeCreated: {
+    grade_section_program_id: number;
+    name: string;
+    amount: Decimal;
+    description: string | null;
+    due_date: Date;
+    fee_type_id: number;
+  };
+
+  gradeSectionAndDetails: {
+    name: string;
+    amount: Decimal;
+    description: string | null;
+    feeTypeId: number;
+  };
 }

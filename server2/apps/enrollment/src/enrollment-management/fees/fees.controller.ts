@@ -17,14 +17,25 @@ export class FeesController {
     schoolId: number;
     receivedData: Fees['receivedData'];
   }) {
+    console.log('payload100: ', payload);
     return await this.feesService.saveFees(
       payload.schoolId,
       payload.receivedData,
     );
   }
 
+  @MessagePattern({ cmd: 'get-fee-types' })
+  async getFeeTypes() {
+    return await this.feesService.retrieveFeeTypes();
+  }
+
   @MessagePattern({ cmd: 'get-grade-levels' })
   async getGradeLevels(payload: { schoolId: number }) {
     return await this.feesService.getGradeLevels(payload.schoolId);
+  }
+
+  @MessagePattern({ cmd: 'delete-fee' })
+  async deleteFee(payload: { feeId: number }) {
+    return await this.feesService.deleteFee(payload.feeId);
   }
 }
