@@ -4,14 +4,13 @@ import { instance } from ".";
 import { AlertTriangle } from "lucide-react";
 
 type Props = {
-  token: string | null;
   logout: () => void;
   children: ReactNode;
 };
 
 const CHECK_STATUS = !import.meta.env.DEV;
 
-export const AxiosProvider = ({ token, logout, children }: Props) => {
+export const AxiosProvider = ({ logout, children }: Props) => {
   const interceptorsRegistered = useRef(false);
   const checking = useRef(false);
   const [ready, setReady] = useState(false);
@@ -51,12 +50,12 @@ export const AxiosProvider = ({ token, logout, children }: Props) => {
   useEffect(() => {
     if (interceptorsRegistered.current) return;
 
-    const reqInterceptor = instance.interceptors.request.use((config) => {
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
+    // const reqInterceptor = instance.interceptors.request.use((config) => {
+    //   if (token) {
+    //     config.headers.Authorization = `Bearer ${token}`;
+    //   }
+    //   return config;
+    // });
 
     const resInterceptor = instance.interceptors.response.use(
       (res) => {
@@ -65,6 +64,8 @@ export const AxiosProvider = ({ token, logout, children }: Props) => {
       },
       (error: AxiosError) => {
         const status = error.response?.status;
+        console.log("STATUS", status, status === HttpStatusCode.Unauthorized);
+        
         if (status === HttpStatusCode.InternalServerError) setServerDown(true);
         if (status === HttpStatusCode.Unauthorized) logout();
         return Promise.reject(error);
@@ -75,11 +76,11 @@ export const AxiosProvider = ({ token, logout, children }: Props) => {
     setReady(true);
 
     return () => {
-      instance.interceptors.request.eject(reqInterceptor);
+      // instance.interceptors.request.eject(reqInterceptor);
       instance.interceptors.response.eject(resInterceptor);
       interceptorsRegistered.current = false;
     };
-  }, [token, logout]);
+  }, [logout]);
 
   useEffect(() => {
     if (CHECK_STATUS && ready) checkServerStatus(true);

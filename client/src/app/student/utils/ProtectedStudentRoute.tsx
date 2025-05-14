@@ -4,16 +4,16 @@ import { useAuth } from "@/contexts/useAuth";
 
 const ProtectedStudentRoute = () => {
   // Get username from context
-  const { isAuthenticated, accessToken } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // Get screen size
   const { mobile } = useScreenSize();
 
   // If user is authenticated and size is mobile, display
-  if (isAuthenticated && accessToken && mobile) return <Outlet />;
+  if (isAuthenticated && mobile) return <Outlet />;
 
   // If user is authenticated but size is NOT mobile, navigate to Warning Page
-  if (isAuthenticated && accessToken && !mobile)
+  if (isAuthenticated && !mobile)
     return <Navigate to="/iEnroll" />;
 
   // Else, navigate to log-in

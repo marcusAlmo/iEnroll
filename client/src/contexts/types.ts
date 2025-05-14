@@ -1,5 +1,5 @@
 export interface AuthContextType {
-  accessToken: string | null;
+  // accessToken: string | null;
   isAuthenticated: boolean;
   firstName?: string;
   login: (username: string, password: string) => Promise<string | undefined>;

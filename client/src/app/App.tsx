@@ -4,10 +4,10 @@ import { AxiosProvider } from "@/lib/axios/AxiosProvider";
 import { useAuth } from "@/contexts/useAuth";
 
 function App() {
-  const { accessToken, logout } = useAuth();
+  const { logout } = useAuth();
 
   return (
-    <AxiosProvider token={accessToken} logout={logout}>
+    <AxiosProvider logout={logout}>
       <AppRouter />
       <ToastContainer
         position="top-right"

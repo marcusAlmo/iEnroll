@@ -1,39 +1,62 @@
-import {
-  getAuthToken,
-  setAuthToken,
-  removeAuthToken,
-} from "@/services/common/auth-token";
 import { login } from "@/services/mobile-web-app/auth";
-import { ReactNode, useState, useCallback, useRef, useEffect } from "react";
+import { ReactNode, useState, useCallback, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { checkIsAuthenticated } from "@/services/common/auth";
+import { logout as logoutAccount } from "@/services/common/auth";
+import { toast } from "react-toastify";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Pa-change na lang ulit to false
-  const initialAuthToken = useRef(getAuthToken());
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    !!initialAuthToken.current,
-  );
-  const [accessToken, setAccessToken] = useState(initialAuthToken.current);
+  // const initialAuthToken = useRef(getAuthToken());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+
+  const {
+    data: loginData,
+    isPending: isLoginPending,
+    error: loginError,
+  } = useQuery({
+    queryKey: ["get-is-authenticated"],
+    queryFn: checkIsAuthenticated,
+  });
+
+  const { mutate: mutateLogout } = useMutation({
+    mutationKey: ["logout-account"],
+    mutationFn: logoutAccount,
+    onSuccess: () => {
+      setIsAuthenticated(false);
+    },
+    onError: () => {
+      toast.error("Error logging out account.");
+    },
+  });
+
+  useEffect(() => {
+    if (!isLoginPending && loginData) setIsAuthenticated(true);
+  }, [isLoginPending, loginData]);
+
+  useEffect(() => {
+    if (loginError) setIsAuthenticated(false);
+  }, [loginError]);
 
   // First name of the student
   // Kindly modify default value during backend integration
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [firstName, setFirstName] = useState<string>("Juan");
 
   // // Check if auth token is present in local storage to determine if user is authenticated
   // useEffect(() => {
   //   setIsAuthenticated(!!localStorage.getItem('authToken'));
   // }, []);
-  const register = useCallback((token: string) => {
-    setAuthToken(token);
-    setAccessToken(token);
+  const register = useCallback(() => {
+    // setAuthToken(token);
+    // setAccessToken(token);
     setIsAuthenticated(true);
   }, []);
 
   const forget = useCallback(() => {
-    removeAuthToken();
-    setAccessToken(null);
-    setIsAuthenticated(false);
-  }, []);
+    mutateLogout();
+  }, [mutateLogout]);
 
   const loginWeb = async (
     username: string,
@@ -58,11 +81,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const data = await response.json();
 
-      // Assuming success message or account type is returned on success
-      if (data?.authToken) {
-        register(data.authToken);
-        return data.account_type || "User"; // Return account type on successful login
-      }
+      // // Assuming success message or account type is returned on success
+      // if (data?.authToken) {
+      //   register(data.authToken);
+      //   return data.account_type || "User"; // Return account type on successful login
+      // }
 
       return data?.message || "An error occurred";
     } catch (error) {
@@ -72,24 +95,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const loginMobile = async (username: string, password: string) => {
-    const result = await login({
+    await login({
       username,
       password,
     });
-    register(result.access_token);
+    register();
   };
 
   const logout = () => {
     forget();
   };
 
-  // Automatically authenticate for development/testing purposes
-  useEffect(() => {
-    if (!isAuthenticated && import.meta.env.DEV) {
-      const dummyToken = "dev-auth-token";
-      register(dummyToken);
-    }
-  }, [isAuthenticated, register]);
+  // // Automatically authenticate for development/testing purposes
+  // useEffect(() => {
+  //   if (!isAuthenticated && import.meta.env.DEV) {
+  //     const dummyToken = "dev-auth-token";
+  //     register(dummyToken);
+  //   }
+  // }, [isAuthenticated, register]);
 
   return (
     <AuthContext.Provider
@@ -99,7 +122,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login: loginWeb,
         loginMobile,
         logout,
-        accessToken,
       }}
     >
       {children}
