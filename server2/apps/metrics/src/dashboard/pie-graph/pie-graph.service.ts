@@ -121,7 +121,7 @@ export class PieGraphService {
 
       pieGraphData.push({
         name: g.gradeLevel,
-        value: 5,
+        value: enrollmentCount,
       });
     }
 
