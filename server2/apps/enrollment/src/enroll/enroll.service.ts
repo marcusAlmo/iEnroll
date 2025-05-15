@@ -563,6 +563,7 @@ export class EnrollService {
     };
   }) {
     const { details, requirements, payment } = payload;
+    console.log('STEP 1');
 
     // Step 1 - Ensure the student exists and hasn't already applied or paid.
     const student = await this.prisma.student.findUnique({
@@ -584,6 +585,7 @@ export class EnrollService {
         message: 'ERR_STUDENT_NOT_FOUND',
       });
     }
+    console.log('STEP 2');
 
     // Step 2 - Check if student has already applied.
     if (student.enrollment_application) {
@@ -592,6 +594,7 @@ export class EnrollService {
         message: 'ERR_ALREADY_APPLIED',
       });
     }
+    console.log('STEP 3');
 
     // Step 3 - Check if student has already made a payment.
     if (student.enrollment_fee_payment) {

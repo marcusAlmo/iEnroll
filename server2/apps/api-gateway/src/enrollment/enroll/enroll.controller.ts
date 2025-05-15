@@ -170,50 +170,63 @@ export class EnrollController {
     //   throw new BadRequestException('ERR_FILES_NOT_FOUND');
     // }
 
-    const uploadedFiles = await Promise.all(
-      files.map((file) =>
-        this.enrollService.uploadFile(file, studentId, schoolId),
-      ),
-    );
+    console.log('ENROLLINg', files.length);
 
-    const failedUpload = uploadedFiles.find((res) => !res.success);
-    if (failedUpload) {
-      throw new InternalServerErrorException('ERR_FILE_UPLOAD_UNSUCCESSFUL');
+    try {
+      const uploadedFiles = await Promise.all(
+        files.map((file) =>
+          this.enrollService.uploadFile(file, studentId, schoolId),
+        ),
+      );
+
+      const failedUpload = uploadedFiles.find((res) => !res.success);
+      if (failedUpload) {
+        throw new InternalServerErrorException('ERR_FILE_UPLOAD_UNSUCCESSFUL');
+      }
+
+      const {
+        details: detailsRaw,
+        requirements: requirementsRaw,
+        payment: paymentRaw,
+      } = body;
+
+      console.log(1);
+
+      const details = JSON.parse(detailsRaw) as DetailsDtoHttp;
+      const requirements = JSON.parse(requirementsRaw) as (
+        | RequirementTextDtoHttp
+        | RequirementFileDtoHttp
+      )[];
+      const payment = JSON.parse(paymentRaw) as PaymentDtoHttp;
+      console.log(2);
+
+      let counter = -1;
+      const mappedRequirements = requirements.map((requirement, i) => {
+        if (!requirement.textContent) counter++;
+        return requirement.textContent
+          ? ({
+              ...requirement,
+              textContent: requirement.textContent,
+              fileId: undefined,
+            } as RequirementTextDto)
+          : ({
+              ...requirement,
+              fileId: uploadedFiles[counter]?.document?.id,
+            } as RequirementFileDto);
+      });
+      console.log(3);
+      console.log('MAPPEDREQ', mappedRequirements);
+
+      return this.enrollService.makeStudentEnrollmentApplication({
+        details: { ...details, studentId, schoolId },
+        requirements: mappedRequirements,
+        payment: {
+          ...payment,
+          fileId: uploadedFiles.at(-1)!.document?.id, // safer access than [length - 1]
+        },
+      });
+    } catch (error) {
+      console.log('errorsd', error);
     }
-
-    const {
-      details: detailsRaw,
-      requirements: requirementsRaw,
-      payment: paymentRaw,
-    } = body;
-
-    const details = JSON.parse(detailsRaw) as DetailsDtoHttp;
-    const requirements = JSON.parse(requirementsRaw) as (
-      | RequirementTextDtoHttp
-      | RequirementFileDtoHttp
-    )[];
-    const payment = JSON.parse(paymentRaw) as PaymentDtoHttp;
-
-    const mappedRequirements = requirements.map((requirement, i) => {
-      return requirement.textContent
-        ? ({
-            ...requirement,
-            textContent: requirement.textContent,
-            fileId: undefined,
-          } as RequirementTextDto)
-        : ({
-            ...requirement,
-            fileId: uploadedFiles[i]?.document?.id,
-          } as RequirementFileDto);
-    });
-
-    return this.enrollService.makeStudentEnrollmentApplication({
-      details: { ...details, studentId, schoolId },
-      requirements: mappedRequirements,
-      payment: {
-        ...payment,
-        fileId: uploadedFiles.at(-1)!.document?.id, // safer access than [length - 1]
-      },
-    });
   }
 }

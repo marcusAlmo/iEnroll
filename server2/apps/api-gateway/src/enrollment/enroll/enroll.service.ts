@@ -333,6 +333,8 @@ export class EnrollService {
   async makeStudentEnrollmentApplication(
     payload: MakeStudentEnrollmentPayload,
   ) {
+    console.log("$ sending", payload);
+    
     const result: MakeStudentEnrollmentReturn = await lastValueFrom(
       this.client.send(
         {
