@@ -7,6 +7,7 @@ import InfoIcon from '@/assets/images/info icon.svg';
 import { Switch } from '@headlessui/react';
 import CustomInput from '@/components/CustomInput';
 import { requestData } from '@/lib/dataRequester';
+import { toast } from 'react-toastify';
 
 const announcementSchema = z.object({
   subject: z
@@ -69,7 +70,6 @@ export default function Announcement() {
       });
 
       if(res){
-        console.log(res);
         setAnnouncement(res);
       }
     }catch(err) {
@@ -86,7 +86,6 @@ export default function Announcement() {
   // submits the data to the server
   const onSubmit = async (data: FormData) => {
     try{
-      console.log(enabled);
       const res = await requestData<SendDataResponse>({
         url: 'http://localhost:3000/api/announcements/receive',
         method: 'POST',
@@ -98,11 +97,13 @@ export default function Announcement() {
       });
 
       if(res){
-        console.log(res);
+        toast.success(res.message);
       }
     }catch(err) {
-      if(err instanceof Error) console.error(err.message);
-      else console.error(err);
+      if(err instanceof Error) toast.error(err.message);
+      else toast.error("An error has occurred");
+
+      console.error(err);
     }
   };
 

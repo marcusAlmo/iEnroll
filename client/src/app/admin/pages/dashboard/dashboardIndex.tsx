@@ -8,6 +8,7 @@ import EnrollmentCount from "@/app/admin/pages/dashboard/enrollment-count/enroll
 //import { getEnrollmentData } from "./../../../routes/dataRoutes";
 import Refresh from "@/assets/images/refresh btn.svg"; 
 import { requestData } from "@/lib/dataRequester";
+import { toast } from "react-toastify";
 
 interface enrollmentCardsData {
   enrollmentTotal: number,
@@ -34,12 +35,14 @@ const Dashboard: React.FC = () => {
       });
 
       if(response) {
-        console.log('response: ', response);
         setEnrollmentData(response);
       }
 
     }catch(err) {
-      if(err instanceof Error) console.log(err.message);
+      if(err instanceof Error) toast.error(err.message);
+      else toast.error("An error has occurred");
+
+      console.error(err);
     }
   };
 

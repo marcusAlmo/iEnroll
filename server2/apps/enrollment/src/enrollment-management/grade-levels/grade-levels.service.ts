@@ -34,20 +34,6 @@ export class GradeLevelsService {
     gradeSectionProgramId: number | undefined,
     isUpdate: boolean,
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log({
-      schoolId,
-      gradeLevelOfferedId,
-      sectionId,
-      programname,
-      programId,
-      sectionName,
-      adviser,
-      admissionSlot,
-      maxApplicationSlot,
-      gradeSectionProgramId,
-      isUpdate,
-    });
-
     if (isUpdate) {
       if (!sectionId)
         return this.microserviceUtility.badRequestExceptionReturn(
@@ -74,7 +60,6 @@ export class GradeLevelsService {
       return this.microserviceUtility.returnSuccess(output);
     } else {
       try {
-        console.log('Creating section...');
         const result = await this.prisma.$transaction(async (prisma) => {
           const output: { message: string } = await this.createSection(
             programId,
@@ -309,18 +294,6 @@ export class GradeLevelsService {
     gradeSectionProgramId: number,
     programId: number | undefined,
   ) {
-    console.log('data: ', {
-      gradeLevelOfferedId,
-      sectionId,
-      programname,
-      sectionName,
-      adviser,
-      admissionSlot,
-      maxApplicationSlot,
-      gradeSectionProgramId,
-      programId,
-    });
-
     const id = await this.determineifExists(gradeLevelOfferedId, programname);
 
     if (id != null) {
@@ -340,16 +313,11 @@ export class GradeLevelsService {
     } else {
       try {
         const result = await this.prisma.$transaction(async (prisma) => {
-          console.log('Creating section program');
           const gradeSectionProgrmId: number = await this.createSectionProgram(
             gradeLevelOfferedId,
             programId,
             prisma,
           );
-
-          console.log('gradeSectionProgrmId: ', gradeSectionProgrmId);
-
-          console.log('Updating grade section');
 
           await this.updateGradeSection(
             gradeSectionProgrmId,
@@ -377,10 +345,6 @@ export class GradeLevelsService {
     gradeLevelOfferedId: number,
     program: string | undefined,
   ): Promise<number | null> {
-    console.log('data2: ', {
-      gradeLevelOfferedId,
-      program,
-    });
     if (!program) return 3;
 
     const data = await this.prisma.grade_section_program.findFirst({
@@ -395,10 +359,6 @@ export class GradeLevelsService {
       },
     });
 
-    console.log('data3: ', {
-      data,
-    });
-
     return data ? data.program_id : null;
   }
 
@@ -410,19 +370,11 @@ export class GradeLevelsService {
   ): Promise<number> {
     if (!programId) throw new Error('Program id is required');
 
-    console.log('data4: ', {
-      gradeLevelOfferedId,
-      programId,
-    });
     const data = await prisma.grade_section_program.create({
       data: {
         grade_level_offered_id: gradeLevelOfferedId,
         program_id: programId,
       },
-    });
-
-    console.log('data5: ', {
-      data,
     });
 
     return data.grade_section_program_id;
@@ -438,15 +390,6 @@ export class GradeLevelsService {
     maxApplicationSlot: number,
     prisma: Prisma.TransactionClient,
   ): Promise<void> {
-    console.log({
-      gradeSectionProgramId,
-      sectionId,
-      name,
-      adviser,
-      admissionSlot,
-      maxApplicationSlot,
-    });
-
     const data = await prisma.grade_section.update({
       where: {
         grade_section_id: sectionId,
@@ -459,8 +402,6 @@ export class GradeLevelsService {
         max_application_slot: maxApplicationSlot,
       },
     });
-
-    console.log(data);
 
     if (!data) throw new Error('An error has occured while applying changes');
   }

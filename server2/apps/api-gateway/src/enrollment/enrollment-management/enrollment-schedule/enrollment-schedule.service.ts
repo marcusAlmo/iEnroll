@@ -51,7 +51,6 @@ export class EnrollmentScheduleService {
   public async deleteSchedule(
     payload: object,
   ): Promise<EnrollmentSchedule['processReturn']> {
-    console.log(payload);
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
       this.client.send({ cmd: 'delete-schedule' }, payload),
     );

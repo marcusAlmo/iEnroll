@@ -58,7 +58,6 @@ export class FeesService {
     schoolId: number,
     receivedData: Fees['receivedData'],
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log('receivedDataService: ', receivedData);
     if (await this.isModifiable(schoolId))
       return this.microserviceUtilityService.conflictExceptionReturn(
         'Payment records exists, fees cannot be modified',
@@ -100,12 +99,10 @@ export class FeesService {
 
         return 'Fees saved successfully';
       });
-      console.log(result);
 
       return this.microserviceUtilityService.returnSuccess({ message: result });
       // eslint-disable-next-line
     } catch (err) {
-      console.log(err);
       return this.microserviceUtilityService.internalServerErrorReturn(
         'An error has occured while applying changes',
       );
@@ -240,8 +237,6 @@ export class FeesService {
       },
     });
 
-    console.log('count: ', data);
-
     return data > 0 ? true : false;
   }
 
@@ -348,14 +343,10 @@ export class FeesService {
         prisma,
       );
 
-      console.log('gradeSectionAndDetails: ', gradeSectionAndDetails);
-
       const feeIdArr: number[] = await this.gatherSimilarFees(
         gradeSectionAndDetails!,
         prisma,
       );
-
-      console.log('feeIdArr: ', feeIdArr);
 
       const result = await prisma.enrollment_fee.updateMany({
         where: {
@@ -371,8 +362,6 @@ export class FeesService {
           fee_type_id: d.feeTypeId,
         },
       });
-
-      console.log('update result: ', result);
 
       if (!result)
         throw new Error('An error has occured while updating existing fees');
@@ -419,8 +408,6 @@ export class FeesService {
         fee_id: true,
       },
     });
-
-    console.log('result: ', result);
 
     return result.map((r) => r.fee_id);
   }

@@ -9,7 +9,6 @@ export class FeesController {
 
   @Get('retrieve')
   public async gettGradeLevelsAndFees(@User('school_id') schoolId: number) {
-    schoolId = 0;
     return await this.feesService.gettGradeLevelsAndFees({ schoolId });
   }
 
@@ -18,8 +17,6 @@ export class FeesController {
     @User('school_id') schoolId: number,
     @Body() receivedData: Fees,
   ) {
-    schoolId = 0;
-    console.log('Controller: ', receivedData);
     return await this.feesService.saveFees({ schoolId, receivedData });
   }
 
@@ -30,7 +27,6 @@ export class FeesController {
 
   @Get('grade-levels')
   public async getGradeLevels(@User('school_id') schoolId: number) {
-    schoolId = 0;
     return await this.feesService.getGradeLevels({ schoolId });
   }
 

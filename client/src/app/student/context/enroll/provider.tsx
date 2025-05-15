@@ -182,9 +182,11 @@ export const EnrollProvider: React.FC<{ children: React.ReactNode }> = ({
       })),
   });
 
-  useEffect(() => {
+  /**
+   * useEffect(() => {
     if (levelsError) console.log(levelsError);
   }, [levelsError]);
+   */
 
   const selectedLevelId = useWatch({
     control: stepOneForm.control,

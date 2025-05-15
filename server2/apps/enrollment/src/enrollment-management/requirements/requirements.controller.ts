@@ -20,7 +20,6 @@ export class RequirementsController {
     schoolId: number;
     data: Requirements['receivedData'];
   }): Promise<MicroserviceUtility['returnValue']> {
-    console.log('payload.data: ', payload.data);
     return this.requirementsService.processReceivedData(
       payload.schoolId,
       payload.data,

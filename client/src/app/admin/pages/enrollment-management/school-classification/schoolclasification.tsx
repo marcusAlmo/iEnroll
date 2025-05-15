@@ -38,7 +38,7 @@ export default function SchoolForm() {
     } catch(err) {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error has occurred');
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -72,14 +72,13 @@ export default function SchoolForm() {
       });
 
       if (data) {
-        console.log(data.message);
         toast.success(data.message);
         await fetchGradeLevels();
       }
     }catch(err) {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error has occurred');
-      console.log(err);
+      console.error(err);
     }
   };
 

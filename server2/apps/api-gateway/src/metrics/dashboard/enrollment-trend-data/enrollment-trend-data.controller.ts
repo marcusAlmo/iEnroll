@@ -12,7 +12,6 @@ export class EnrollmentTrendDataController {
 
   @Get('data')
   async getEnrollmentTrend(@User('school_id') schoolId: number) {
-    schoolId = 762306;
     return await this.enrollmentTrendDataService.getEnrollmentTrendData({
       schoolId,
     });

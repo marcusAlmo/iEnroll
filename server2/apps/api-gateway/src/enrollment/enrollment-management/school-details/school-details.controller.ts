@@ -9,7 +9,6 @@ export class SchoolDetailsController {
 
   @Get('retrieve')
   async getSchoolDetails(@User('school_id') schoolId: number) {
-    schoolId = 388243;
     return await this.schoolDetailsService.getSchoolDetails({ schoolId });
   }
 
@@ -18,7 +17,6 @@ export class SchoolDetailsController {
     @User('school_id') schoolId: number,
     @Body() schoolDetails: SchoolDetails,
   ) {
-    schoolId = 388243;
     return await this.schoolDetailsService.saveSchoolDetails({
       schoolDetails,
       schoolId,

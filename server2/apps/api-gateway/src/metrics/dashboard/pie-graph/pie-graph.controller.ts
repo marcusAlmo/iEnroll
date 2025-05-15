@@ -15,7 +15,6 @@ export class PieGraphController {
 
   @Get('data')
   async getPieGraphData(@User('school_id') schoolId: number) {
-    schoolId = 762306;
     return await this.pieGraphService.getPieGraphData({ schoolId });
   }
 }

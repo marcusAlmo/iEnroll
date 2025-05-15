@@ -264,7 +264,7 @@ const Requirements = () => {
       if (error instanceof Error) toast.error(error.message);
       else toast.error('An error occurred');
 
-      console.log(error);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -351,9 +351,7 @@ const Requirements = () => {
   };
 
   const deleteRequirementOnServer = async (requirementId: number) => {
-    console.log('requirementId: ', requirementId);
     try {
-      console.log(`Deleting requirement with ID: ${requirementId} from server`);
       const response = await requestData<{message: string}>({
         url: `http://localhost:3000/api/requirements/delete/${requirementId}`,
         method: 'DELETE',
@@ -494,8 +492,6 @@ const Requirements = () => {
         return;
       }
 
-      console.log('Creating new requirements:', requirementsData);
-      
       const response = await requestData<{message: string}>({
         url: 'http://localhost:3000/api/requirements/process-received-requirements',
         method: 'POST',
@@ -521,11 +517,6 @@ const Requirements = () => {
       const newRequirementsToCreate = changes.added.filter(req => req.name && req.description);
       const existingRequirementsToUpdate = changes.modified.filter(req => req.requirementId > 0);
       
-      console.log('Changes to save:', {
-        newRequirements: newRequirementsToCreate,
-        modifiedRequirements: existingRequirementsToUpdate
-      });
-      
       // Check for empty names in requirements
       const hasEmptyNames = [...newRequirementsToCreate, ...existingRequirementsToUpdate].some(req => !req.name.trim());
       if (hasEmptyNames) throw new Error('All requirements must have a name');
@@ -536,13 +527,11 @@ const Requirements = () => {
       
       // Process additions (new requirements)
       if (newRequirementsToCreate.length > 0) {
-        console.log('Creating new requirements...');
         await createRequirements();
       }
   
       // Process modifications (existing requirements)
       if (existingRequirementsToUpdate.length > 0) {
-        console.log('Updating existing requirements...');
         await updateData(existingRequirementsToUpdate);
       }
   
@@ -566,8 +555,6 @@ const Requirements = () => {
 
   const updateData = async (data: Requirement[]) => {
     try {
-      console.log('Updating requirements:', data);
-      
       const response = await requestData<{message: string}>({
         url: 'http://localhost:3000/api/requirements/update',
         method: 'PUT',
@@ -591,7 +578,7 @@ const Requirements = () => {
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
       else toast.error('An error occurred');
-      console.log(error);
+      console.error(error);
     }
   }
 

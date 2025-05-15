@@ -211,8 +211,6 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
 
   const fetchPersonnelInfo = async (userId: number) => {
     try {
-      console.log(selectedPersonnel)
-      console.log(userId)
       const data = await requestData<ServerPersonnelResponse>({
         url: `http://localhost:3000/api/profile-settings/get-employee-info/${userId}`,
         method: 'GET'
@@ -248,7 +246,7 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
       if (err instanceof Error) toast.error(err.message);
       else toast.error("An error occurred while fetching personnel info");
 
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -443,7 +441,6 @@ const RolesAccess: React.FC<RolesAccessProps> = ({ selectedPersonnel, onSave, se
   // Function to handle password change
   const handlePasswordChange = () => {
     const passwordValue = document.querySelector('input[name="password"]') as HTMLInputElement;
-    console.log(passwordValue.value)
     if (passwordValue && passwordValue.value.length >= 8)
       updatePassword(passwordValue.value);
     else {

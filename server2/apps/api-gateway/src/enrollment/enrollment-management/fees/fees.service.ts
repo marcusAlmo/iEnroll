@@ -27,7 +27,6 @@ export class FeesService {
     const result: MicroserviceUtility['returnValue'] = await lastValueFrom(
       this.client.send({ cmd: 'save-fees' }, payload),
     );
-    console.log(result);
 
     await this.exceptionCheckerService.checker(result);
 

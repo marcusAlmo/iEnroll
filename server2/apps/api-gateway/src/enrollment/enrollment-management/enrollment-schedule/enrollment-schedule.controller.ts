@@ -12,7 +12,6 @@ export class EnrollmentScheduleController {
 
   @Get('get-all-schedules')
   async getAllGrades(@User('school_id') schoolId: number) {
-    schoolId = 0;
     return await this.enrollmentScheduleService.getAllGrades({ schoolId });
   }
 
@@ -21,8 +20,6 @@ export class EnrollmentScheduleController {
     @User('school_id') schoolId: number,
     @Body() payload: EnrollmentScheduleDTO,
   ) {
-    schoolId = 0;
-    console.log('payload: ', payload);
     return await this.enrollmentScheduleService.storeData({
       data: payload,
       schoolId,

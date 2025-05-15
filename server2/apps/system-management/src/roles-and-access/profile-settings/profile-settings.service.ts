@@ -19,7 +19,6 @@ export class ProfileSettingsService {
     userId: number,
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log('userId: ', userId);
     const employeeInfo: ProfileSettings['employeeInfo'] | null =
       await this.getEmployeeInfoRaw(schoolId, userId);
 

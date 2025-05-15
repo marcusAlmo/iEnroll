@@ -39,7 +39,6 @@ export default function CredentialsForm() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      console.log("Form submitted", data);
 
       localStorage.setItem("email", data.email);
       localStorage.setItem("password", data.password);
@@ -78,8 +77,10 @@ export default function CredentialsForm() {
           navigate("/admin");
         }
       } catch (err) {
-        if (err instanceof Error) console.log(err.message);
-        else console.log(err);
+        if (err instanceof Error) toast.error(err.message);
+        else toast.error("An error has occurred");
+
+        console.error(err);
       }
     }
   }

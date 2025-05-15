@@ -17,7 +17,6 @@ export class SchoolClassificationService {
     schoolData: SchoolClassification['schoolInfoParam'],
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log('schoolData: ', schoolData);
     const result1: boolean = await this.allowModification(schoolId);
 
     // sends error message to client
@@ -136,8 +135,6 @@ export class SchoolClassificationService {
       },
     });
 
-    console.log(result);
-
     return result ? true : false;
   }
 
@@ -148,21 +145,14 @@ export class SchoolClassificationService {
     academicLevels: string[],
     prisma: Prisma.TransactionClient,
   ): Promise<SchoolClassification['savingGradeLevelsStatus']> {
-    console.log('newGradeLevelsArr: ', newGradeLevelsArr);
-    console.log('academicLevels: ', academicLevels);
-
     const toBeCreateGradeLevels: string[] =
       await this.filterOutExistingGradeLevels(schoolId, academicLevels, prisma);
-
-    console.log('toBeCreateGradeLevels: ', toBeCreateGradeLevels);
 
     const creationResult: boolean = await this.createGradeLevelOffered(
       schoolId,
       toBeCreateGradeLevels,
       prisma,
     );
-
-    console.log('creationResult: ', creationResult);
 
     if (!creationResult) throw new Error('Failed saving grades');
 
@@ -171,8 +161,6 @@ export class SchoolClassificationService {
       newGradeLevelsArr,
       prisma,
     );
-
-    console.log('activationResult: ', activationResult);
 
     if (!activationResult) throw new Error('Failed activating grades');
 
@@ -213,12 +201,8 @@ export class SchoolClassificationService {
     academicLevels: string[],
     prisma: Prisma.TransactionClient,
   ): Promise<string[]> {
-    console.log('academicLevels: ', academicLevels);
     const gradeLevelsFromAcademicLevels: SchoolClassification['gradeLevelFromAcademicLevel'] =
       await this.getGradeLevelsFromAcademicLevels(academicLevels, prisma);
-
-    // eslint-disable-next-line
-    console.log('gradeLevelsFromAcademicLevels: ', gradeLevelsFromAcademicLevels);
 
     const result = await prisma.grade_level_offered.findMany({
       where: {
@@ -240,10 +224,8 @@ export class SchoolClassificationService {
       },
     });
 
-    console.log('result: ', result);
-
-    // eslint-disable-next-line
-    return gradeLevelsFromAcademicLevels.filter((item) => {
+    return gradeLevelsFromAcademicLevels
+      .filter((item) => {
         return !result.some(
           (grade) => grade.grade_level.grade_level == item.gradeLevel,
         );
@@ -273,7 +255,6 @@ export class SchoolClassificationService {
     gradeLevelArr: string[],
     prisma: Prisma.TransactionClient,
   ) {
-    console.log('gradeLevelArr: ', gradeLevelArr);
     const result = await prisma.grade_level_offered.updateMany({
       where: {
         school_id: schoolId,
@@ -287,8 +268,6 @@ export class SchoolClassificationService {
         is_active: true,
       },
     });
-
-    console.log('result: ', result);
 
     return result ? true : false;
   }

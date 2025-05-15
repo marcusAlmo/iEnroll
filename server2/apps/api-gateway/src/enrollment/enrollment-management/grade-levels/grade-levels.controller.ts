@@ -9,7 +9,6 @@ export class GradeLevelsController {
 
   @Get('fetch')
   async fetchGradeLevels(@User('school_id') schoolId: number) {
-    schoolId = 0;
     return await this.gradeLevelService.getGradeLevels({ schoolId });
   }
 
@@ -19,7 +18,6 @@ export class GradeLevelsController {
     @Param('sectionId') sectionId: string,
     @Body() payload: CreateSectionDTO,
   ) {
-    schoolId = 0;
     const numberSectionId: number = Number(sectionId);
     return await this.gradeLevelService.createAndUpdateGradeLevels({
       schoolId,
@@ -33,7 +31,6 @@ export class GradeLevelsController {
     @User('school_id') schoolId: number,
     @Body() payload: CreateSectionDTO,
   ) {
-    schoolId = 0;
     return await this.gradeLevelService.createAndUpdateGradeLevels({
       schoolId,
       payload,

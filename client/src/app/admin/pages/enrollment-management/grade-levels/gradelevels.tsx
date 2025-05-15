@@ -287,8 +287,6 @@ const GradeLevels: React.FC = () => {
   const handleCreateSection = async () => {
     if (!sectionDetails || !selectedGradeLevel) return;
   
-    console.log("Creating section with details:", sectionDetails); // Add detailed logging
-    
     try {
       const requestBody = {
         gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
@@ -301,14 +299,10 @@ const GradeLevels: React.FC = () => {
         isUpdate: false,
       };      
   
-      console.log("Final request body:", requestBody); // Log the final payload
-      
       await createSection(requestBody);
 
-      // ... rest of your code
     } catch (error) {
       console.error("Error in handleCreateSection:", error);
-      // ... error handling
     }
   };
 
@@ -330,7 +324,7 @@ const GradeLevels: React.FC = () => {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error has occurred');
 
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -339,19 +333,6 @@ const GradeLevels: React.FC = () => {
     if (!sectionDetails || !selectedGradeLevel || !selectedSection) return;
     
     try {
-      console.log('Updating section with details:', {
-        gradeLevelOfferedId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeLevelOfferedId,
-        sectionId: sectionDetails.sectionId,
-        programName: sectionDetails.customProgramDetails?.program,
-        programId: sectionDetails.customProgramDetails?.programId,
-        sectionName: sectionDetails.sectionName,
-        adviser: sectionDetails.sectionAdviser,
-        admissionSlot: sectionDetails.sectionCapacity,
-        maxApplicationSlot: sectionDetails.maximumApplication,
-        gradeSectionProgramId: data.find(g => g.gradeLevel === selectedGradeLevel)?.gradeSectionProgramId,
-        isUpdate: true
-      });
-
       const response = await requestData<{ message: string}>({
         url: `http://localhost:3000/api/grade-levels/update/${sectionDetails.sectionId}`,
         method: "POST",
@@ -448,17 +429,21 @@ const GradeLevels: React.FC = () => {
     }
   }
 
-  useEffect(() => {
+  /**
+   * useEffect(() => {
     console.log("Current mode:", {
       isNewSection,
       isEditing,
       canEdit: isNewSection || isEditing
     });
   }, [isNewSection, isEditing]);
+   */
 
-  useEffect(() => {
+  /**
+   * useEffect(() => {
     console.log("Section details updated:", sectionDetails);
   }, [sectionDetails]);
+   */
 
   // execute retrieval
   useEffect(() => {
@@ -610,7 +595,6 @@ const GradeLevels: React.FC = () => {
                     disabled={!(isNewSection || isEditing)}
                     value={sectionDetails.customProgramDetails?.programId || ''}
                     onChange={(e) => {
-                      console.log("Select onChange triggered with value:", e.target.value); // Add logging
                       handleProgramChange(parseInt(e.target.value));
                     }}
                     className="w-full rounded-lg border border-text-2 bg-container-1 px-3 py-2"

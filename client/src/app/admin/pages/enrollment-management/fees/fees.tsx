@@ -101,14 +101,7 @@ export default function Fees() {
     if (!currentGradeLevel) return;
     
     const currentFees = modifiedFees[currentGradeLevel.gradeLevelCode] || [];
-    
-    console.log("Raw fee data:", currentFees.map(f => ({
-      id: f.feeId,
-      typeId: f.feeTypeId,
-      name: f.feeName,
-      amount: f.amount
-    })));
-  
+
     const invalidFees = currentFees.filter(fee => {
       // New fees (feeId=0) must have all required fields
       if (fee.feeId === 0) {
@@ -136,12 +129,6 @@ export default function Fees() {
       setShowModal(false);
       return;
     }
-    
-    console.log("Submitting:", {
-      newFees,
-      existingFees,
-      gradeLevel: currentGradeLevel.gradeLevelCode
-    });
 
     try {
       const response = await requestData<{ message: string }>({

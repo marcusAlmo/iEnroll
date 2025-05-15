@@ -54,7 +54,9 @@ const FeesInput = ({
   }, [fees, onFeeDataChange]);
 
   // Add this right after your debounce useEffect
-  useEffect(() => {
+  /**
+   * 
+   * @returns useEffect(() => {
     console.log("Current fees in FeesInput:", fees.map(fee => ({
       id: fee.feeId,
       typeId: fee.feeTypeId,
@@ -64,6 +66,7 @@ const FeesInput = ({
       dueDate: fee.dueDate
     }))); 
   }, [fees]);
+   */
 
   const handleAddFee = () => {
     if (feeTypes.length === 0) {
@@ -102,6 +105,7 @@ const FeesInput = ({
     }
   };
 
+  // eslint-disable-next-line
   const handleFeeChange = (feeId: number, field: keyof FeeItem, value: any) => {
     setFees(prev =>
       prev.map(fee =>
@@ -114,6 +118,7 @@ const FeesInput = ({
   return (
     <div className="w-full flex flex-col gap-y-6 pr-4">
       {fees.map((fee) => {
+        // eslint-disable-next-line
         const currentFeeType = feeTypes.find(type => type.feeTypeId === fee.feeTypeId);
         
         return (
