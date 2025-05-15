@@ -16,16 +16,11 @@ export class RequirementsService {
   public async getAllRequirements(
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log(schoolId);
     const rawData: Requirements['retrieveRequirementsRaw'] =
       await this.getAllRequirementsRaw(schoolId);
 
-    console.log(rawData);
-
     const processedData: Requirements['processedRequirements'] =
       await this.processRetrieveData(rawData);
-
-    console.log(processedData);
 
     return this.microserviceUtility.returnSuccess(processedData);
   }
@@ -34,8 +29,6 @@ export class RequirementsService {
     schoolId: number,
     data: Requirements['receivedData'],
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log('receiveddata: ', data);
-
     const gradeSectionProgramId: Requirements['retrievedGradeSectionProgramId'] =
       await this.getGradeSectionProgramId(
         data.requirements.map((item) => item.programId),
@@ -164,8 +157,6 @@ export class RequirementsService {
         },
       });
 
-    console.log(supportedAcademicLevels);
-
     if (!supportedAcademicLevels) return [];
 
     return supportedAcademicLevels.supported_acad_level as string[];
@@ -202,7 +193,6 @@ export class RequirementsService {
   ): Promise<Requirements['retrieveRequirementsRaw']> {
     const gradeLevelOfferedIds: number[] =
       await this.getAllGradeLevelOfferedId(schoolId);
-    console.log('gradeLevelOfferedIds', gradeLevelOfferedIds);
 
     const requirements: Requirements['retrieveRequirementsRaw'] =
       await this.prisma.grade_level_offered.findMany({
@@ -250,8 +240,6 @@ export class RequirementsService {
 
     if (!requirements || requirements.length == 0) return [];
 
-    console.log('requirements: ', requirements);
-
     return requirements;
   }
 
@@ -259,7 +247,6 @@ export class RequirementsService {
     data: Requirements['retrieveRequirementsRaw'],
   ): Promise<Requirements['processedRequirements']> {
     const results: Requirements['processedRequirements'] = [];
-    console.log('data: ', data);
 
     for (const gradeLevelOffered of data) {
       const { grade_level_offered_id, grade_level_code, grade_level_program } =
@@ -299,8 +286,6 @@ export class RequirementsService {
         }
       }
 
-      console.log('requirements: ', requirements);
-
       // Always include the grade level, even if there are no requirements
       results.push({
         gradeLevelOfferedId: grade_level_offered_id,
@@ -308,8 +293,6 @@ export class RequirementsService {
         gradeLevelCode: grade_level_code,
         requirements,
       });
-
-      console.log('results: ', results);
     }
 
     return results;

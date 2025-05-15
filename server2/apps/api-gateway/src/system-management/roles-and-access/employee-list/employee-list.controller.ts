@@ -12,7 +12,6 @@ export class EmployeeListController {
     @User('school_id') schoolId: number,
     @Query() name: string,
   ): Promise<EmployeeList['employeeList']> {
-    schoolId = 388243;
     return await this.employeeListService.getEmployeeList({
       schoolId,
       name,

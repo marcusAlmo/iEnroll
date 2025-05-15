@@ -17,7 +17,6 @@ export class FeesController {
     schoolId: number;
     receivedData: Fees['receivedData'];
   }) {
-    console.log('payload100: ', payload);
     return await this.feesService.saveFees(
       payload.schoolId,
       payload.receivedData,

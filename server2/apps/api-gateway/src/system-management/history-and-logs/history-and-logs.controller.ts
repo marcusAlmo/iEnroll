@@ -8,7 +8,6 @@ export class HistoryAndLogsController {
 
   @Get('retrieve-history-logs')
   async retrieveHistoryLogs(@User('school_id') schoolId: number) {
-    schoolId = 388243;
     return this.historyAndLogsService.retrieveHistoryLogs({ schoolId });
   }
 }

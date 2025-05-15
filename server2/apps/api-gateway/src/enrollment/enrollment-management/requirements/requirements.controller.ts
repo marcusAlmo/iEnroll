@@ -20,7 +20,6 @@ export class RequirementsController {
 
   @Get('retrieve')
   async getAllRequirements(@User('school_id') schoolId: number) {
-    schoolId = 0;
     return this.requirementsService.getAllRequirements({ schoolId });
   }
 
@@ -29,8 +28,6 @@ export class RequirementsController {
     @User('school_id') schoolId: number,
     @Body() receivedData: AddRequirementDTO,
   ) {
-    schoolId = 0;
-    console.log(receivedData);
     return this.requirementsService.processReceivedData({
       schoolId,
       data: receivedData,
@@ -47,7 +44,6 @@ export class RequirementsController {
 
   @Put('update')
   async updateRequirement(@Body() data: UpdateRequirementDto) {
-    console.log(data);
     return this.requirementsService.updateRequirement({
       data: data.data,
     });

@@ -33,7 +33,6 @@ export class SchoolDetailsController {
   async getMunicipality(payload: {
     provinceId: number;
   }): Promise<MicroserviceUtility['returnValue']> {
-    console.log('provinceId: ', payload.provinceId);
     return await this.schoolDetailsService.getMunicipality(payload.provinceId);
   }
 
@@ -41,7 +40,6 @@ export class SchoolDetailsController {
   async getDistrict(payload: {
     municipalityId: number;
   }): Promise<MicroserviceUtility['returnValue']> {
-    console.log('municipalityId: ', payload.municipalityId);
     return await this.schoolDetailsService.getDistrict(payload.municipalityId);
   }
 
@@ -49,7 +47,6 @@ export class SchoolDetailsController {
   async getStreet(payload: {
     districtId: number;
   }): Promise<MicroserviceUtility['returnValue']> {
-    console.log('districtId: ', payload.districtId);
     return await this.schoolDetailsService.getStreet(payload.districtId);
   }
 }

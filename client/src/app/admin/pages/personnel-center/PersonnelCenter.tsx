@@ -72,7 +72,6 @@ const PersonnelCenter: React.FC = () => {
 
   const retrievePersonnels = async () => {
     try {
-      console.log('retrieving personels')
       const response = await requestData<Personnel[]>({
         url: "http://localhost:3000/api/employee-list/retrieve",
         method: "GET",

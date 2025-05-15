@@ -204,12 +204,6 @@ export default function EnrollmentSchedule() {
       return;
     }
 
-    // API call with only new schedules
-    console.log('Saving new enrollment schedules:', {
-      grade: selectedGrade,
-      schedules: newSchedules
-    })
-
     await saveNewSchedToServer(selectedGrade, newSchedules)
 
     // After successful submission, move new schedules to existing
@@ -230,8 +224,6 @@ export default function EnrollmentSchedule() {
         applicationSlot: s.maximumApplication,
       }));
 
-      console.log('processedSchedule: ', processedSchedule);
-
       const response = await requestData<{ message: string }>({
         url: 'http://localhost:3000/api/enrollment-schedule/store-data',
         method: 'POST',
@@ -249,7 +241,7 @@ export default function EnrollmentSchedule() {
       if (error instanceof Error) toast.error(error.message);
       else toast.error('Failed saving new schedules');
 
-      console.log(error);
+      console.error(error);
     }
   }
 
@@ -263,13 +255,12 @@ export default function EnrollmentSchedule() {
 
       if (response) {
         setData(response);
-        console.log(response);
       }
     } catch(err) {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('Retrieve schedule failed');
 
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -407,8 +398,6 @@ export default function EnrollmentSchedule() {
         ));
         toast.warning('Schedule paused due to existing applications');
       } else {
-        // Only log if we're actually deleting an existing schedule
-        console.log('Deleting existing schedule with ID:', scheduleId);
         await deleteRecord(Number(scheduleId));
         setSchedules(schedules.filter(s => s.id.toString() !== scheduleId));
       }
@@ -436,7 +425,7 @@ export default function EnrollmentSchedule() {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('Delete record failed');
 
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -460,9 +449,8 @@ export default function EnrollmentSchedule() {
   
     const schedule = [...schedules, ...newSchedules].find(s => s.id.toString() === scheduleId);
     if (schedule) {
-      console.log(scheduleId)
       await pauseSchedule(Number(scheduleId), schedule.status === 'active');
-      toast.info(`Schedule ${schedule.status === 'active' ? 'paused' : 'activated'}`);
+      //toast.info(`Schedule ${schedule.status === 'active' ? 'paused' : 'activated'}`);
     }
   };
 
@@ -481,7 +469,7 @@ export default function EnrollmentSchedule() {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('Pause schedule failed');
 
-      console.log(err);
+      console.error(err);
     }
   }
 

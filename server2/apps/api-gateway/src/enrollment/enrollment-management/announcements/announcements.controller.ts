@@ -10,7 +10,6 @@ export class AnnouncementsController {
 
   @Get('fetch')
   async fetchAnnouncements(@User('school_id') schoolId: number) {
-    schoolId = 0;
     return await this.announcementsService.getAnnouncements({ schoolId });
   }
 
@@ -19,7 +18,6 @@ export class AnnouncementsController {
     @User('school_id') schoolId: number,
     @Body() receiveInput: ReceveInput,
   ) {
-    schoolId = 0;
     return await this.announcementsService.receiveAnnouncements({
       receiveInput: receiveInput,
       schoolId,

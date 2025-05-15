@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { string, z } from 'zod';
+import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from "@/components/ui/form";
-import ImportedCustomInput from '@/components/CustomInput';
 import { toast } from 'react-toastify';
 import { requestData } from '@/lib/dataRequester';
 
@@ -34,6 +33,7 @@ const CustomInput = ({
   optional = false,
   readOnly = false, // Add this prop
 }: {
+  // eslint-disable-next-line
   control: any;
   name: string;
   label: string;
@@ -78,12 +78,14 @@ const CustomSelect = ({
   labelStyle,
   onSelectChange,
 }: {
+  // eslint-disable-next-line
   control: any;
   name: string;
   label: string;
   options: { [key: string]: string | number }[];
   selectStyle?: string;
   labelStyle?: string;
+  // eslint-disable-next-line
   onSelectChange?: (selectedOption: any) => void;
 }) => (
   <Controller
@@ -206,7 +208,7 @@ export default function SchoolDetails() {
     } catch (err) {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error occurred');
-      console.log(err);
+      console.error(err);
       return null;
     }
   };
@@ -226,7 +228,7 @@ export default function SchoolDetails() {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error occurred');
 
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -249,7 +251,7 @@ export default function SchoolDetails() {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error occurred');
 
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -272,7 +274,7 @@ export default function SchoolDetails() {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error occurred');
 
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -394,7 +396,7 @@ export default function SchoolDetails() {
     } catch(err) {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error occurred');
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -403,16 +405,6 @@ export default function SchoolDetails() {
   }, []);
 
   const onSubmit = async (data: SchoolFormData) => {
-    console.log('School Details Submitted:', {
-      schoolName: data.name,
-      schoolContact: data.contactNumber,
-      schoolEmail: data.email,
-      schoolWebUrl: data.website,
-      schoolAddress: data.schoolAddress,
-      streetId: selectedStreets?.streetId ? selectedStreets.streetId : null,
-      schoolId: data.id.length > 0 ? Number(data.id) : null,
-    });
-
     try{
       const response = await requestData<{ message: string }>({
         url: 'http://localhost:3000/api/school-details/save',
@@ -434,7 +426,7 @@ export default function SchoolDetails() {
     }catch(err) {
       if (err instanceof Error) toast.error(err.message);
       else toast.error('An error occurred');
-      console.log(err);
+      console.error(err);
     }
   };
 

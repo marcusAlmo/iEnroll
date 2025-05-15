@@ -29,7 +29,6 @@ export class EnrollmentScheduleService {
     data: EnrollmentSchedule['receivedData'],
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log(data);
     const gradeLevelOfferedId: EnrollmentSchedule['scheduleReturn'] | null =
       await this.retrieveGradeLevelOfferedId(data.gradeLevel, schoolId);
 
@@ -51,7 +50,6 @@ export class EnrollmentScheduleService {
   public async deleteSchedule(
     scheduleId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log('scheduleId: ', scheduleId);
     await this.prisma.enrollment_schedule.delete({
       where: {
         schedule_id: scheduleId,
@@ -67,8 +65,6 @@ export class EnrollmentScheduleService {
     scheduleId: number,
     status: boolean,
   ): Promise<MicroserviceUtility['returnValue']> {
-    console.log('scheduleId: ', scheduleId);
-    console.log('status: ', status);
     await this.prisma.enrollment_schedule.update({
       where: {
         schedule_id: scheduleId,
@@ -90,8 +86,6 @@ export class EnrollmentScheduleService {
     gradeLevel: string,
     schoolId: number,
   ) {
-    console.log('gradeLevel: ', gradeLevel);
-    console.log('schoolId: ', schoolId);
     const id: EnrollmentSchedule['scheduleReturn'] | null =
       await this.retrieveGradeLevelOfferedId(gradeLevel, schoolId);
 
@@ -330,8 +324,6 @@ export class EnrollmentScheduleService {
       },
     });
 
-    console.log(data);
-
     return data.map((d) => ({
       id: d.schedule_id,
       applications: d.aux_schedule_slot
@@ -377,8 +369,6 @@ export class EnrollmentScheduleService {
           },
         },
       });
-    console.log('currentApplicationCount', currentApplicationCount);
-    console.log('maxStudentCount', maxStudentCount);
 
     return {
       totalCapacity: maxStudentCount?.plan.max_student_count || 0,
@@ -411,7 +401,6 @@ export class EnrollmentScheduleService {
       }
     }
 
-    console.log(processedDataArr);
     return processedDataArr;
   }
 

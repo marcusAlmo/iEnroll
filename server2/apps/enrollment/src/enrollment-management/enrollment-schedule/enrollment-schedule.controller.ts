@@ -14,7 +14,6 @@ export class EnrollmentScheduleController {
   async getAllGrades(payload: {
     schoolId: number;
   }): Promise<MicroserviceUtility['returnValue']> {
-    console.log('schoolIdL: ', payload.schoolId);
     return this.enrollmentScheduleService.getAllGrades(payload.schoolId);
   }
 
@@ -44,7 +43,6 @@ export class EnrollmentScheduleController {
   async deleteSchedule(payload: {
     scheduleId: number;
   }): Promise<MicroserviceUtility['returnValue']> {
-    console.log('scheduleId: ', payload.scheduleId);
     return this.enrollmentScheduleService.deleteSchedule(payload.scheduleId);
   }
 
