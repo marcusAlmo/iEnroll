@@ -74,7 +74,7 @@ export default function CredentialsForm() {
 
         if (res) {
           toast.success(res.message);
-          navigate("/admin");
+          navigate("/admin/dashboard");
         }
       } catch (err) {
         if (err instanceof Error) toast.error(err.message);
