@@ -16,6 +16,7 @@ export class FeesService {
   public async gettGradeLevelsAndFees(
     schoolId: number,
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log('schoolId: ', schoolId);
     const data: Fees['gradeLevelAndFees'] =
       await this.prisma.grade_level_offered.findMany({
         where: {
@@ -42,6 +43,11 @@ export class FeesService {
                 },
               },
             },
+          },
+        },
+        orderBy: {
+          grade_level: {
+            order_position: 'asc',
           },
         },
       });
@@ -191,36 +197,42 @@ export class FeesService {
     const finalDataHolder: Fees['fetchValue'][] = [];
 
     for (const d of data) {
-      const seenFees = new Set<string>();
+      // Use a Map to track unique fees by a composite key
+      const uniqueFeesMap = new Map<string, Fees['fetchValue']['fees'][0]>();
 
-      const fees: Fees['fetchValue']['fees'] = d.grade_level_program.flatMap(
-        (p) =>
-          p.enrollment_fee
-            .map((e) => ({
-              feeId: e.fee_id,
-              feeName: e.name,
-              amount: e.amount.toNumber(),
-              description: e.description,
-              dueDate: e.due_date,
-              feeTypeId: e.fee_type_id,
-            }))
-            .filter((fee) => {
-              // Create a unique key for each fee based on relevant properties
-              const key = `${fee.feeName}|${fee.description}|${fee.amount}|${fee.feeTypeId}`;
-              if (seenFees.has(key)) {
-                return false; // Duplicate found, skip it
-              }
-              seenFees.add(key);
-              return true; // Unique, keep it
-            }),
-      );
+      // Process all fees across all grade_level_programs
+      for (const program of d.grade_level_program) {
+        for (const fee of program.enrollment_fee) {
+          // Create a more reliable composite key
+          const key = JSON.stringify({
+            name: fee.name,
+            description: fee.description,
+            amount: fee.amount.toString(),
+            feeTypeId: fee.fee_type_id,
+            dueDate: fee.due_date.toISOString(),
+          });
+
+          if (!uniqueFeesMap.has(key)) {
+            uniqueFeesMap.set(key, {
+              feeId: fee.fee_id,
+              feeName: fee.name,
+              amount: fee.amount.toNumber(),
+              description: fee.description,
+              dueDate: fee.due_date,
+              feeTypeId: fee.fee_type_id,
+            });
+          }
+        }
+      }
 
       finalDataHolder.push({
         gradeLevelCode: d.grade_level.grade_level_code,
         gradeLevel: d.grade_level.grade_level,
-        fees: fees,
+        fees: Array.from(uniqueFeesMap.values()),
       });
     }
+
+    console.log('finalDataHolder: ', finalDataHolder);
 
     return finalDataHolder;
   }
@@ -258,7 +270,7 @@ export class FeesService {
       },
     });
 
-    const existingRecordProgramId = gradeSectionProgramIdArr.map(
+    const existingRecordProgramId: number[] = gradeSectionProgramIdArr.map(
       (g) => g.program_id,
     );
 

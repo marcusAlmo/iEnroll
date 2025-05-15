@@ -223,7 +223,7 @@ export class EnrollmentScheduleService {
       },
       orderBy: {
         grade_level: {
-          grade_level_code: 'asc',
+          order_position: 'asc',
         },
       },
     });
