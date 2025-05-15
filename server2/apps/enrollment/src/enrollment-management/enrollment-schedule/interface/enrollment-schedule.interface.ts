@@ -131,4 +131,13 @@ export interface EnrollmentSchedule {
     id: number;
     pastValue: boolean;
   };
+
+  auxScheduleSlot: {
+    schedule_id: number;
+    application_slot_left: number;
+    grade_level_offered_id: number;
+    start_datetime: Date;
+    end_datetime: Date;
+    is_closed: boolean;
+  };
 }

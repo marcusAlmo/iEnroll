@@ -407,19 +407,41 @@ export class EnrollmentScheduleService {
   private async storeScheduleData(
     data: EnrollmentSchedule['storeData'],
   ): Promise<EnrollmentSchedule['storeDataReturn']> {
-    const result = await this.prisma.enrollment_schedule.createMany({
+    const result = await this.prisma.enrollment_schedule.createManyAndReturn({
       data: data,
     });
 
-    return result
-      ? {
-          success: true,
-          message: 'Enrollment schedule created successfully',
-        }
-      : {
-          success: false,
-          message: 'Failed creating enrollment schedule',
-        };
+    if (result.length == 0) {
+      return {
+        success: false,
+        message: 'Failed creating enrollment schedule',
+      };
+    }
+
+    const auxScheduleSlot: EnrollmentSchedule['auxScheduleSlot'][] = [];
+
+    for (const r of result) {
+      auxScheduleSlot.push({
+        schedule_id: r.schedule_id,
+        application_slot_left: r.application_slot,
+        grade_level_offered_id: r.grade_level_offered_id,
+        start_datetime: r.start_datetime,
+        end_datetime: r.end_datetime,
+        is_closed: false,
+      });
+    }
+
+    const result2 = await this.prisma.aux_schedule_slot.createMany({
+      data: auxScheduleSlot,
+    });
+
+    return {
+      success: result2.count > 0,
+      message:
+        result2.count > 0
+          ? 'Enrollment schedule created successfully'
+          : 'Failed creating enrollment schedule',
+    };
   }
 
   // for updating allow section selection
