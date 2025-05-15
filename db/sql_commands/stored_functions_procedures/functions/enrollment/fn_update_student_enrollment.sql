@@ -44,7 +44,7 @@ BEGIN
     IF NEW.grade_section_id <> OLD.grade_section_id THEN
         IF (SELECT COUNT(*) FROM enrollment.student_enrollment 
             WHERE grade_section_id = NEW.grade_section_id) >= 
-            (SELECT slot FROM enrollment.grade_section WHERE grade_section_id = NEW.grade_section_id) 
+            (SELECT admission_slot FROM enrollment.grade_section WHERE grade_section_id = NEW.grade_section_id) 
         THEN
             RAISE EXCEPTION 'Slots are full. Please choose another grade section.';
         END IF;
