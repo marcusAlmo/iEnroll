@@ -82,15 +82,14 @@ const StatusBox = ({ status, description }: EnrollmentStatus) => {
           </div>
         ))}
 
-      {/* I removed this, I cannot vision what will be the purpose of this */}
-      {/* {currentStatus.actionText && (
+      {currentStatus.actionText && (
         <div
           className="text-primary mt-6 cursor-pointer self-start text-sm font-semibold underline"
           onClick={currentStatus.action}
         >
           {currentStatus.actionText}
         </div>
-      )} */}
+      )}
     </div>
   );
 };
