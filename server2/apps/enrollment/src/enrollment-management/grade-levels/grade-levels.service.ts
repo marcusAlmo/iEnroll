@@ -34,6 +34,20 @@ export class GradeLevelsService {
     gradeSectionProgramId: number | undefined,
     isUpdate: boolean,
   ): Promise<MicroserviceUtility['returnValue']> {
+    console.log({
+      schoolId,
+      gradeLevelOfferedId,
+      sectionId,
+      programname,
+      programId,
+      sectionName,
+      adviser,
+      admissionSlot,
+      maxApplicationSlot,
+      gradeSectionProgramId,
+      isUpdate,
+    });
+
     if (isUpdate) {
       if (!sectionId)
         return this.microserviceUtility.badRequestExceptionReturn(
@@ -77,6 +91,7 @@ export class GradeLevelsService {
         return this.microserviceUtility.returnSuccess(result);
         // eslint-disable-next-line
       } catch (err) {
+        console.log(err);
         return this.microserviceUtility.internalServerErrorReturn(
           'An error has occured while applying changes',
         );
@@ -376,6 +391,7 @@ export class GradeLevelsService {
         program_id: programId,
       },
     });
+    console.log('created section program', data);
 
     return data.grade_level_program_id;
   }
@@ -427,15 +443,21 @@ export class GradeLevelsService {
       },
     });
 
+    console.log('grade level program', data);
+
     let gradeSectionProgramId: number = 0;
 
-    if (!data) {
+    if (!data || !data.grade_level_program_id) {
       gradeSectionProgramId = await this.createSectionProgram(
         gradeLevelOfferedid,
         programId,
         prisma,
       );
+    } else {
+      gradeSectionProgramId = data.grade_level_program_id;
     }
+
+    console.log('grade section program id', gradeSectionProgramId);
 
     const result = await prisma.grade_section.create({
       data: {
