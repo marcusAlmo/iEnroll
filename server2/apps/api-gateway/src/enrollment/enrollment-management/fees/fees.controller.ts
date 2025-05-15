@@ -2,8 +2,11 @@ import { User } from '@lib/decorators/user.decorator';
 import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
 import { FeesService } from './fees.service';
 import { Fees } from './dto/fees.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('fees')
+@UseGuards(JwtAuthGuard)
 export class FeesController {
   constructor(private readonly feesService: FeesService) {}
 

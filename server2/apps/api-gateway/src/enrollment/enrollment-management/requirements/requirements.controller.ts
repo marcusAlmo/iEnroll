@@ -13,8 +13,11 @@ import {
   AddRequirementDTO,
   UpdateRequirementDto,
 } from './dto/requirements.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('requirements')
+@UseGuards(JwtAuthGuard)
 export class RequirementsController {
   constructor(private readonly requirementsService: RequirementsService) {}
 

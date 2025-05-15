@@ -2,8 +2,11 @@ import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
 import { GradeLevelsService } from './grade-levels.service';
 import { User } from '@lib/decorators/user.decorator';
 import { CreateSectionDTO } from './dto/grade-levels.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('grade-levels')
+@UseGuards(JwtAuthGuard)
 export class GradeLevelsController {
   constructor(private readonly gradeLevelService: GradeLevelsService) {}
 

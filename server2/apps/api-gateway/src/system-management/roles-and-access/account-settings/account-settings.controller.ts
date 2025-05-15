@@ -1,8 +1,11 @@
 import { Controller, Put, Param, Body } from '@nestjs/common';
 import { AccountSettingsService } from './account-settings.service';
 import { AccountSettings, UpdatePassword } from './dto/account-settings.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('account-settings')
+@UseGuards(JwtAuthGuard)
 export class AccountSettingsController {
   constructor(
     private readonly accountSettingsService: AccountSettingsService,

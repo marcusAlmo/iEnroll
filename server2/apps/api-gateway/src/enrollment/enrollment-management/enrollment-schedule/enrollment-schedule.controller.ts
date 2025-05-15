@@ -3,8 +3,11 @@ import { EnrollmentScheduleService } from './enrollment-schedule.service';
 import { Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
 import { User } from '@lib/decorators/user.decorator';
 import { EnrollmentScheduleDTO } from './dto/enrollment-schedule.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('enrollment-schedule')
+@UseGuards(JwtAuthGuard)
 export class EnrollmentScheduleController {
   constructor(
     private readonly enrollmentScheduleService: EnrollmentScheduleService,

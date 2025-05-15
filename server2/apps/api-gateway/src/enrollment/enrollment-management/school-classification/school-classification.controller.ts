@@ -2,8 +2,11 @@ import { Controller, Get, Post, Body } from '@nestjs/common';
 import { SchoolClassificationService } from './school-classification.service';
 import { User } from '@lib/decorators/user.decorator';
 import { SchoolClassification } from './dto/school-classification.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('school-classification')
+@UseGuards(JwtAuthGuard)
 export class SchoolClassificationController {
   constructor(
     private readonly schoolClassification: SchoolClassificationService,

@@ -2,8 +2,11 @@ import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { SchoolDetailsService } from './school-details.service';
 import { User } from '@lib/decorators/user.decorator';
 import { SchoolDetails } from './dto/school-details.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('school-details')
+@UseGuards(JwtAuthGuard)
 export class SchoolDetailsController {
   constructor(private readonly schoolDetailsService: SchoolDetailsService) {}
 

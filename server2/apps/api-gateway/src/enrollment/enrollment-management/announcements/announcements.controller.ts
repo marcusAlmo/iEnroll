@@ -3,8 +3,11 @@ import { Controller } from '@nestjs/common';
 import { Post, Body, Get } from '@nestjs/common';
 import { AnnouncementsService } from './announcements.service';
 import { ReceveInput } from './dto/announcements.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('announcements')
+@UseGuards(JwtAuthGuard)
 export class AnnouncementsController {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 

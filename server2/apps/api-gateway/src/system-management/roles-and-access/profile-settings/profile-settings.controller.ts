@@ -5,8 +5,11 @@ import {
   CreateEmployeeDto,
   UpdateProfileSettingsDto,
 } from './dto/profile-settings.dto';
+import { JwtAuthGuard } from '@lib/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('profile-settings')
+@UseGuards(JwtAuthGuard)
 export class ProfileSettingsController {
   constructor(
     private readonly profileSettingsService: ProfileSettingsService,
