@@ -109,7 +109,7 @@ export class PieGraphService {
     for (const g of gradeLevelsWithCode) {
       const enrollmentCount = await this.prisma.enrollment_application.count({
         where: {
-          grade_section_program: {
+          grade_level_program: {
             grade_level_offered: {
               grade_level_code: g.gradeLevelCode,
             },

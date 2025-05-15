@@ -9,7 +9,7 @@ export interface Fees {
     };
   };
 
-  grade_section_program: {
+  grade_level_program: {
     enrollment_fee: {
       fee_id: number;
       name: string;
@@ -22,7 +22,7 @@ export interface Fees {
 
   gradeLevelAndFees: {
     grade_level: Fees['gradeLevels']['grade_level'];
-    grade_section_program: Fees['grade_section_program'];
+    grade_level_program: Fees['grade_level_program'];
   }[];
 
   fetchValue: {
@@ -83,7 +83,7 @@ export interface Fees {
   }[];
 
   toBeCreated: {
-    grade_section_program_id: number;
+    grade_level_program_id: number;
     name: string;
     amount: Decimal;
     description: string | null;

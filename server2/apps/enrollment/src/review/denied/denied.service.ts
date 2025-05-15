@@ -19,7 +19,7 @@ export class DeniedService {
           // grade_level_offered: {
           //   school_id: schoolId,
           // },
-          grade_section_program: {
+          grade_level_program: {
             grade_level_offered: {
               school_id: schoolId,
             },

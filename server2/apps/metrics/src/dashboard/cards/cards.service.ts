@@ -42,6 +42,8 @@ export class CardsService {
   public async getAcademicYear(
     schoolId: number,
   ): Promise<AcademicYear['returnValue']['data']> {
+    console.log('SCHOOLID', schoolId);
+
     const academicYear = await this.prisma.school.findFirst({
       where: {
         school_id: schoolId,

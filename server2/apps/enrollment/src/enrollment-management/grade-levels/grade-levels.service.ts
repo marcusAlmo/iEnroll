@@ -170,9 +170,9 @@ export class GradeLevelsService {
               grade_level: true,
             },
           },
-          grade_section_program: {
+          grade_level_program: {
             select: {
-              grade_section_program_id: true, // Added this missing field
+              grade_level_program_id: true, // Added this missing field
               academic_program: {
                 select: {
                   program: true,
@@ -211,10 +211,10 @@ export class GradeLevelsService {
     for (const gradeLevel of gradeLevelsOnly) {
       const gradeData = dataByGradeLevelCode.get(gradeLevel.gradeLevelCode);
 
-      const sections = (gradeData?.grade_section_program || []).flatMap(
+      const sections = (gradeData?.grade_level_program || []).flatMap(
         (program) =>
           program.grade_section.map((section) => ({
-            gradeSectionProgramId: program.grade_section_program_id,
+            gradeSectionProgramId: program.grade_level_program_id,
             sectionId: section.grade_section_id,
             sectionName: section.section_name,
             adviser: section.adviser,
@@ -232,7 +232,7 @@ export class GradeLevelsService {
       result.push({
         gradeLevel: gradeLevel.gradeLevel,
         gradeSectionProgramId:
-          gradeData?.grade_section_program[0]?.grade_section_program_id || 0,
+          gradeData?.grade_level_program[0]?.grade_level_program_id || 0,
         gradeLevelOfferedId: gradeLevel.gradeLevelOfferedId,
         sections: sections,
       });
@@ -383,7 +383,7 @@ export class GradeLevelsService {
     });
     if (!program) return 3;
 
-    const data = await this.prisma.grade_section_program.findFirst({
+    const data = await this.prisma.grade_level_program.findFirst({
       where: {
         grade_level_offered_id: gradeLevelOfferedId,
         academic_program: {
@@ -414,7 +414,7 @@ export class GradeLevelsService {
       gradeLevelOfferedId,
       programId,
     });
-    const data = await prisma.grade_section_program.create({
+    const data = await prisma.grade_level_program.create({
       data: {
         grade_level_offered_id: gradeLevelOfferedId,
         program_id: programId,
@@ -425,7 +425,7 @@ export class GradeLevelsService {
       data,
     });
 
-    return data.grade_section_program_id;
+    return data.grade_level_program_id;
   }
 
   // update the grade section
@@ -452,7 +452,7 @@ export class GradeLevelsService {
         grade_section_id: sectionId,
       },
       data: {
-        grade_section_program_id: gradeSectionProgramId,
+        grade_level_program_id: gradeSectionProgramId,
         section_name: name,
         adviser: adviser,
         admission_slot: admissionSlot,
@@ -476,13 +476,13 @@ export class GradeLevelsService {
   ) {
     if (!programId) return { message: 'Related information not found' };
 
-    const data = await prisma.grade_section_program.findFirst({
+    const data = await prisma.grade_level_program.findFirst({
       where: {
         program_id: programId,
         grade_level_offered_id: gradeLevelOfferedid,
       },
       select: {
-        grade_section_program_id: true,
+        grade_level_program_id: true,
       },
     });
 
@@ -498,7 +498,7 @@ export class GradeLevelsService {
 
     const result = await prisma.grade_section.create({
       data: {
-        grade_section_program_id: gradeSectionProgramId,
+        grade_level_program_id: gradeSectionProgramId,
         section_name: sectionName,
         adviser: adviser,
         admission_slot: admissionSlot,

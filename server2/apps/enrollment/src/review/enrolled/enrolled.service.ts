@@ -15,7 +15,7 @@ export class EnrolledService {
         grade_section: {
           select: {
             section_name: true,
-            grade_section_program: {
+            grade_level_program: {
               select: {
                 grade_level_offered: {
                   select: {
@@ -88,14 +88,14 @@ export class EnrolledService {
   async getAllSectionsByGradeLevel(gradeLevelId: number) {
     const result = await this.prisma.grade_section.findMany({
       where: {
-        grade_section_program: {
+        grade_level_program: {
           grade_level_offered_id: gradeLevelId,
         },
       },
       select: {
-        grade_section_program: {
+        grade_level_program: {
           select: {
-            grade_section_program_id: true,
+            grade_level_program_id: true,
             academic_program: {
               select: {
                 program: true,
@@ -109,9 +109,8 @@ export class EnrolledService {
     });
 
     const refined = result.map((data) => ({
-      gradeSectionProgramId:
-        data.grade_section_program.grade_section_program_id,
-      programName: data.grade_section_program.academic_program.program,
+      gradeSectionProgramId: data.grade_level_program.grade_level_program_id,
+      programName: data.grade_level_program.academic_program.program,
       sectionId: data.grade_section_id,
       sectionName: data.section_name,
     }));
@@ -139,7 +138,7 @@ export class EnrolledService {
       enrollmentStatus: data.enrollment_application.status,
       enrollmentDate: data.enrollment_datetime,
       gradeLevel:
-        data.grade_section.grade_section_program.grade_level_offered.grade_level
+        data.grade_section.grade_level_program.grade_level_offered.grade_level
           .grade_level,
       sectionName: data.grade_section.section_name,
     };
@@ -161,7 +160,7 @@ export class EnrolledService {
   async getAllStudentsEnrolledByGradeLevel(gradeLevelId: number) {
     const result = await this.fetchStudentEnrollments({
       grade_section: {
-        grade_section_program: {
+        grade_level_program: {
           grade_level_offered_id: gradeLevelId,
         },
       },
@@ -173,7 +172,7 @@ export class EnrolledService {
   async getAllStudentsEnrolledBySchool(schoolId: number) {
     const result = await this.fetchStudentEnrollments({
       grade_section: {
-        grade_section_program: {
+        grade_level_program: {
           grade_level_offered: {
             school_id: schoolId,
           },
@@ -194,7 +193,7 @@ export class EnrolledService {
         filter.gradeLevelId
           ? {
               grade_section: {
-                grade_section_program: {
+                grade_level_program: {
                   grade_level_offered_id: filter.gradeLevelId,
                 },
               },
@@ -203,7 +202,7 @@ export class EnrolledService {
         filter.schoolId
           ? {
               grade_section: {
-                grade_section_program: {
+                grade_level_program: {
                   grade_level_offered: {
                     school_id: filter.schoolId,
                   },
@@ -240,7 +239,7 @@ export class EnrolledService {
       enrollment_datetime: Date;
       grade_section: {
         section_name: string;
-        grade_section_program: {
+        grade_level_program: {
           grade_level_offered: {
             grade_level: {
               grade_level: string;
@@ -278,8 +277,8 @@ export class EnrolledService {
         enrollmentStatus: data.enrollment_application.status,
         enrollmentDate: data.enrollment_datetime,
         gradeLevel:
-          data.grade_section.grade_section_program.grade_level_offered
-            .grade_level.grade_level,
+          data.grade_section.grade_level_program.grade_level_offered.grade_level
+            .grade_level,
         sectionName: data.grade_section.section_name,
         _score: score,
       };

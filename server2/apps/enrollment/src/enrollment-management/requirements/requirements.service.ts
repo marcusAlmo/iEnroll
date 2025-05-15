@@ -109,7 +109,7 @@ export class RequirementsService {
               requirement_id: requirement.requirementId,
             },
             data: {
-              grade_section_program_id: gradeSectionProgramId,
+              grade_level_program_id: gradeSectionProgramId,
               is_required: requirement.isRequired,
               name: requirement.name,
               requirement_type: requirement.type as $Enums.requirement_type,
@@ -214,7 +214,7 @@ export class RequirementsService {
         },
         select: {
           grade_level_offered_id: true,
-          grade_section_program: {
+          grade_level_program: {
             select: {
               enrollment_requirement: {
                 select: {
@@ -262,11 +262,8 @@ export class RequirementsService {
     console.log('data: ', data);
 
     for (const gradeLevelOffered of data) {
-      const {
-        grade_level_offered_id,
-        grade_level_code,
-        grade_section_program,
-      } = gradeLevelOffered;
+      const { grade_level_offered_id, grade_level_code, grade_level_program } =
+        gradeLevelOffered;
       const { grade_level } = gradeLevelOffered.grade_level;
 
       const requirements: Array<{
@@ -281,7 +278,7 @@ export class RequirementsService {
       }> = [];
 
       // Process all grade section programs (even if they have no requirements)
-      for (const program of grade_section_program) {
+      for (const program of grade_level_program) {
         // Only process requirements if they exist
         if (
           program.enrollment_requirement &&
@@ -323,7 +320,7 @@ export class RequirementsService {
     programs: number[],
     gradeLevelOfferedId: number,
   ): Promise<Requirements['retrievedGradeSectionProgramId']> {
-    const result = await this.prisma.grade_section_program.findMany({
+    const result = await this.prisma.grade_level_program.findMany({
       where: {
         academic_program: {
           program_id: {
@@ -338,7 +335,7 @@ export class RequirementsService {
             program_id: true,
           },
         },
-        grade_section_program_id: true,
+        grade_level_program_id: true,
       },
     });
 
@@ -346,7 +343,7 @@ export class RequirementsService {
       ? result.map((item) => {
           return {
             programId: item.academic_program.program_id,
-            grade_section_program_id: item.grade_section_program_id,
+            grade_level_program_id: item.grade_level_program_id,
           };
         })
       : [];
@@ -358,10 +355,10 @@ export class RequirementsService {
   ): Promise<boolean> {
     const result = data.requirements.map((requirement) => {
       return {
-        grade_section_program_id:
+        grade_level_program_id:
           gradeSectionProgramIds.find(
             (item) => item.programId == requirement.programId,
-          )?.grade_section_program_id ?? 0,
+          )?.grade_level_program_id ?? 0,
         name: requirement.name,
         requirement_type: requirement.type as $Enums.requirement_type,
         accepted_data_type: requirement.dataType as $Enums.accepted_data_type,
@@ -382,7 +379,7 @@ export class RequirementsService {
     gradeSectionProgramId: Requirements['retrievedGradeSectionProgramId'],
   ): Promise<number[]> {
     const gradeSectionProgramIds = gradeSectionProgramId.map(
-      (item) => item.grade_section_program_id,
+      (item) => item.grade_level_program_id,
     );
 
     const result = programIds.filter(
@@ -396,7 +393,7 @@ export class RequirementsService {
     gradeLevelOfferedId: number,
     programIds: number[],
   ): Promise<Requirements['retrievedGradeSectionProgramId']> {
-    const result = await this.prisma.grade_section_program.createManyAndReturn({
+    const result = await this.prisma.grade_level_program.createManyAndReturn({
       data: programIds.map((programId) => {
         return {
           grade_level_offered_id: gradeLevelOfferedId,
@@ -408,7 +405,7 @@ export class RequirementsService {
     return result.map((item) => {
       return {
         programId: item.program_id,
-        grade_section_program_id: item.grade_section_program_id,
+        grade_level_program_id: item.grade_level_program_id,
       };
     });
   }
@@ -422,23 +419,23 @@ export class RequirementsService {
     const result1 = await prisma.enrollment_requirement.findFirst({
       where: {
         requirement_id: requirementId,
-        grade_section_program: {
+        grade_level_program: {
           program_id: programId,
         },
       },
       select: {
-        grade_section_program_id: true,
+        grade_level_program_id: true,
       },
     });
 
-    if (result1) return result1.grade_section_program_id;
+    if (result1) return result1.grade_level_program_id;
 
     const result2 = await prisma.enrollment_requirement.findFirst({
       where: {
         requirement_id: requirementId,
       },
       select: {
-        grade_section_program: {
+        grade_level_program: {
           select: {
             grade_level_offered_id: true,
           },
@@ -448,16 +445,16 @@ export class RequirementsService {
 
     if (!result2) throw new Error('Requirement not found');
 
-    const result3 = await prisma.grade_section_program.create({
+    const result3 = await prisma.grade_level_program.create({
       data: {
         grade_level_offered_id:
-          result2.grade_section_program.grade_level_offered_id,
+          result2.grade_level_program.grade_level_offered_id,
         program_id: programId,
       },
     });
 
     if (!result3) throw new Error('Grade section program not found');
 
-    return result3.grade_section_program_id;
+    return result3.grade_level_program_id;
   }
 }

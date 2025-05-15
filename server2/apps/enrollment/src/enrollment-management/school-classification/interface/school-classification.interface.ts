@@ -44,7 +44,7 @@ export interface SchoolClassification {
       grade_level: string;
     };
     enrollment_schedule: SchoolClassification['repeatedBaseSelect'][];
-    grade_section_program: SchoolClassification['repeatedBaseSelect'][];
+    grade_level_program: SchoolClassification['repeatedBaseSelect'][];
     enrollment_application: SchoolClassification['repeatedBaseSelect'][];
   };
 

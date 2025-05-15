@@ -46,14 +46,14 @@ export class AssignedService {
   async getAllSectionsByGradeLevel(gradeLevelId: number) {
     const result = await this.prisma.grade_section.findMany({
       where: {
-        grade_section_program: {
+        grade_level_program: {
           grade_level_offered_id: gradeLevelId,
         },
       },
       select: {
-        grade_section_program: {
+        grade_level_program: {
           select: {
-            grade_section_program_id: true,
+            grade_level_program_id: true,
             academic_program: {
               select: {
                 program: true,
@@ -67,9 +67,8 @@ export class AssignedService {
     });
 
     const refined = result.map((data) => ({
-      gradeSectionProgramId:
-        data.grade_section_program.grade_section_program_id,
-      programName: data.grade_section_program.academic_program.program,
+      gradeSectionProgramId: data.grade_level_program.grade_level_program_id,
+      programName: data.grade_level_program.academic_program.program,
       sectionId: data.grade_section_id,
       sectionName: data.section_name,
     }));
@@ -131,7 +130,7 @@ export class AssignedService {
     }));
   }
 
-  // Since enrollment application now linked to grade_section_program_id, it will now be used
+  // Since enrollment application now linked to grade_level_program_id, it will now be used
   async getAllStudentsUnassigned(gradeSectionProgramId: number | number[]) {
     if (
       !Array.isArray(gradeSectionProgramId) &&
@@ -154,7 +153,7 @@ export class AssignedService {
 
     const result = await this.prisma.enrollment_application.findMany({
       where: {
-        grade_section_program_id:
+        grade_level_program_id:
           typeof gradeSectionProgramId === 'number'
             ? gradeSectionProgramId
             : {

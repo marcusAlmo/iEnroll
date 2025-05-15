@@ -6,7 +6,7 @@ export interface Requirements {
     grade_level: {
       grade_level: string;
     };
-    grade_section_program: {
+    grade_level_program: {
       enrollment_requirement: {
         requirement_id: number;
         name: string;
@@ -52,7 +52,7 @@ export interface Requirements {
 
   retrievedGradeSectionProgramId: {
     programId: number;
-    grade_section_program_id: number;
+    grade_level_program_id: number;
   }[];
 
   dataForProcessing: {
@@ -61,7 +61,7 @@ export interface Requirements {
   };
 
   finalData: {
-    grade_section_program_id: number;
+    grade_level_program_id: number;
     name: string;
     requirement_type: $Enums.requirement_type;
     accepted_data_type: $Enums.accepted_data_type;

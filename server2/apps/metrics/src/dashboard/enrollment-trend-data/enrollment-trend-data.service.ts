@@ -90,7 +90,7 @@ export class EnrollmentTrendDataService {
           enrollmentRecord[threeYears[i].getFullYear()] =
             await this.prisma.enrollment_application.count({
               where: {
-                grade_section_program: {
+                grade_level_program: {
                   grade_level_offered_id: a.gradeLevelOfferedId,
                 },
                 application_datetime: {
@@ -103,7 +103,7 @@ export class EnrollmentTrendDataService {
           enrollmentRecord[threeYears[i].getFullYear()] =
             await this.prisma.enrollment_application.count({
               where: {
-                grade_section_program: {
+                grade_level_program: {
                   grade_level_offered_id: a.gradeLevelOfferedId,
                 },
                 application_datetime: {

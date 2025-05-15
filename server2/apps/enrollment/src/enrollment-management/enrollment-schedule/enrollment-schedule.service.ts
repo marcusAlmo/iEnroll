@@ -246,7 +246,7 @@ export class EnrollmentScheduleService {
   ): Promise<EnrollmentSchedule['sectionRaw'][]> {
     const data = await this.prisma.grade_section.findMany({
       where: {
-        grade_section_program: {
+        grade_level_program: {
           grade_level_offered: {
             grade_level: {
               grade_level: {
@@ -258,7 +258,7 @@ export class EnrollmentScheduleService {
         },
       },
       select: {
-        grade_section_program: {
+        grade_level_program: {
           select: {
             grade_level_offered: {
               select: {
@@ -284,7 +284,7 @@ export class EnrollmentScheduleService {
 
     return data.map((d) => ({
       gradeLevel:
-        d.grade_section_program.grade_level_offered.grade_level.grade_level,
+        d.grade_level_program.grade_level_offered.grade_level.grade_level,
       sectionName: d.section_name,
       sectionCapacity: d.admission_slot,
       maximumApplication: d.max_application_slot,

@@ -41,9 +41,9 @@ export class EnrollService {
             },
           },
         },
-        grade_section_program: {
+        grade_level_program: {
           select: {
-            grade_section_program_id: true,
+            grade_level_program_id: true,
             academic_program: {
               select: {
                 program: true,
@@ -80,7 +80,7 @@ export class EnrollService {
           curr.grade_level.academic_level.academic_level_code;
         const gradeLevelName = curr.grade_level.grade_level;
         const gradeLevelCode = curr.grade_level.grade_level_code;
-        const gradeSectionPrograms = curr.grade_section_program;
+        const gradeSectionPrograms = curr.grade_level_program;
 
         // Filter valid enrollment schedules
         const filteredSchedules = curr.enrollment_schedule.filter(
@@ -89,7 +89,7 @@ export class EnrollService {
 
         // Build section types with sections
         const sectionTypes = gradeSectionPrograms.map((program) => ({
-          id: program.grade_section_program_id,
+          id: program.grade_level_program_id,
           type: program.academic_program.program,
           sections: program.grade_section.map((section) => ({
             id: section.grade_section_id,
@@ -257,14 +257,14 @@ export class EnrollService {
   }
 
   async getGradeSectionTypesByGradeLevel(gradeLevelCode: string) {
-    const result = await this.prisma.grade_section_program.findMany({
+    const result = await this.prisma.grade_level_program.findMany({
       where: {
         grade_level_offered: {
           grade_level_code: gradeLevelCode,
         },
       },
       select: {
-        grade_section_program_id: true,
+        grade_level_program_id: true,
         academic_program: {
           select: {
             program: true,
@@ -274,7 +274,7 @@ export class EnrollService {
     });
 
     return result.map((data) => ({
-      gradeSectionId: data.grade_section_program_id,
+      gradeSectionId: data.grade_level_program_id,
       gradeSectionType: data.academic_program.program,
     }));
   }
@@ -282,16 +282,16 @@ export class EnrollService {
   async getSectionsByGradeLevel(gradeLevelCode: string) {
     const result = await this.prisma.grade_section.findMany({
       where: {
-        grade_section_program: {
+        grade_level_program: {
           grade_level_offered: {
             grade_level_code: gradeLevelCode,
           },
         },
       },
       select: {
-        grade_section_program: {
+        grade_level_program: {
           select: {
-            grade_section_program_id: true,
+            grade_level_program_id: true,
             academic_program: {
               select: {
                 program_id: true,
@@ -307,10 +307,9 @@ export class EnrollService {
     });
 
     const mapped = result.map((data) => ({
-      programId: data.grade_section_program.academic_program.program_id,
-      programName: data.grade_section_program.academic_program.program,
-      gradeSectionProgramId:
-        data.grade_section_program.grade_section_program_id,
+      programId: data.grade_level_program.academic_program.program_id,
+      programName: data.grade_level_program.academic_program.program,
+      gradeSectionProgramId: data.grade_level_program.grade_level_program_id,
       gradeSectionId: data.grade_section_id,
       sectionName: data.section_name,
       maxSlot: data.max_application_slot,
@@ -348,7 +347,7 @@ export class EnrollService {
   async getAllGradeSectionTypeRequirements(gradeSectionProgramId: number) {
     const result = await this.prisma.enrollment_requirement.findMany({
       where: {
-        grade_section_program_id: gradeSectionProgramId,
+        grade_level_program_id: gradeSectionProgramId,
       },
       select: {
         requirement_id: true,
@@ -379,7 +378,7 @@ export class EnrollService {
   async getPaymentMethodDetails(gradeSectionProgramId: number) {
     const enrollmentFees = await this.prisma.enrollment_fee.findMany({
       where: {
-        grade_section_program_id: gradeSectionProgramId,
+        grade_level_program_id: gradeSectionProgramId,
       },
       select: {
         name: true,
@@ -389,9 +388,9 @@ export class EnrollService {
       },
     });
 
-    const paymentOptions = await this.prisma.grade_section_program.findFirst({
+    const paymentOptions = await this.prisma.grade_level_program.findFirst({
       where: {
-        grade_section_program_id: gradeSectionProgramId,
+        grade_level_program_id: gradeSectionProgramId,
         grade_level_offered: {
           school: {
             school_payment_option: {
@@ -609,9 +608,9 @@ export class EnrollService {
         schedule_id: details.scheduleId,
         grade_level_offered: {
           school_id: details.schoolId,
-          grade_section_program: {
+          grade_level_program: {
             some: {
-              grade_section_program_id: details.gradeSectionProgramId,
+              grade_level_program_id: details.gradeSectionProgramId,
               // program_id: details.gradeSectionProgramId,
             },
           },
@@ -717,7 +716,7 @@ export class EnrollService {
         this.prisma.enrollment_application.create({
           data: {
             application_id: details.studentId,
-            grade_section_program_id: details.gradeSectionProgramId,
+            grade_level_program_id: details.gradeSectionProgramId,
             grade_section_id: details.gradeSectionId,
             schedule_id: details.scheduleId,
             remarks: details.remarks,

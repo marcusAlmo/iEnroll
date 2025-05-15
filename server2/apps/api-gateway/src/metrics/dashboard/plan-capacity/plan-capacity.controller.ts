@@ -10,7 +10,6 @@ export class PlanCapacityController {
 
   @Get('collection')
   async getPlanCapacity(@User('school_id') schoolId: number) {
-    schoolId = 762306;
     return await this.planCapacityService.getPlanCapacity({ schoolId });
   }
 }

@@ -10,7 +10,7 @@ export const getAllGradeSectionTypeRequirements = async (
 ) => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
     return await instance.get<RequirementResponse>(
-      `/api/enrollment/enroll/requirements?grade_section_program_id=${gradeSectionProgramId}`,
+      `/api/enrollment/enroll/requirements?grade_level_program_id=${gradeSectionProgramId}`,
     );
   else return { data: getAllMockGradeSectionTypeRequirements() };
 };
@@ -20,7 +20,7 @@ export const getPaymentMethodDetails = async (
 ) => {
   if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_AXIOS === "true")
     return await instance.get<PaymentMethodDetailsResponse>(
-      `/api/enrollment/enroll/payment?grade_section_program_id=${gradeSectionProgramId}`,
+      `/api/enrollment/enroll/payment?grade_level_program_id=${gradeSectionProgramId}`,
     );
   else return { data: getMockPaymentMethodDetails() };
 };

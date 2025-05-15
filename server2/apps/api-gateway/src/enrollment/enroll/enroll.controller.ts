@@ -93,7 +93,7 @@ export class EnrollController {
 
   @Get('requirements')
   async getAllGradeSectionTypeRequirements(
-    @Query('grade_section_program_id', ParseIntPipe)
+    @Query('grade_level_program_id', ParseIntPipe)
     gradeSectionProgramId: number,
   ) {
     return await this.enrollService.getAllGradeSectionTypeRequirements({
@@ -103,7 +103,7 @@ export class EnrollController {
 
   @Get('payment')
   async getPaymentMethodDetails(
-    @Query('grade_section_program_id', ParseIntPipe)
+    @Query('grade_level_program_id', ParseIntPipe)
     gradeSectionProgramId: number,
   ) {
     return await this.enrollService.getPaymentMethodDetails({

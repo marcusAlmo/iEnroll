@@ -65,7 +65,7 @@ export class DashboardService {
         enrollment_application: {
           select: {
             status: true,
-            grade_section_program: {
+            grade_level_program: {
               select: {
                 grade_level_offered: {
                   select: {
@@ -83,7 +83,7 @@ export class DashboardService {
                 grade_section: {
                   select: {
                     section_name: true,
-                    grade_section_program: {
+                    grade_level_program: {
                       select: {
                         academic_program: {
                           select: {
@@ -121,18 +121,18 @@ export class DashboardService {
     return {
       enrollmentStatus: result.enrollment_application?.status,
       gradeLevel:
-        result.enrollment_application?.grade_section_program.grade_level_offered
+        result.enrollment_application?.grade_level_program.grade_level_offered
           .grade_level.grade_level,
       section:
         result.enrollment_application?.student_enrollment?.grade_section
           .section_name,
       program:
         result.enrollment_application?.student_enrollment?.grade_section
-          .grade_section_program.academic_program.program,
+          .grade_level_program.academic_program.program,
       isPaid: Boolean(result.enrollment_fee_payment),
       //? Since there are many payments, I reduced it to the most latest date
       dueDate:
-        result.enrollment_application?.student_enrollment?.grade_section.grade_section_program.enrollment_fee.reduce(
+        result.enrollment_application?.student_enrollment?.grade_section.grade_level_program.enrollment_fee.reduce(
           (latest, current) => {
             return new Date(current.due_date) > new Date(latest.due_date)
               ? current

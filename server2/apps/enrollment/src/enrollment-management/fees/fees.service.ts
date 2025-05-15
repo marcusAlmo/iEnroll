@@ -29,7 +29,7 @@ export class FeesService {
               grade_level: true,
             },
           },
-          grade_section_program: {
+          grade_level_program: {
             select: {
               enrollment_fee: {
                 select: {
@@ -77,7 +77,7 @@ export class FeesService {
           const toBeCreated = gradeSectionProgramIds.flatMap((id) => {
             const newFees: Fees['toBeCreated'][] = receivedData.newFees.map(
               (f) => ({
-                grade_section_program_id: id,
+                grade_level_program_id: id,
                 name: f.feeName,
                 amount: new Decimal(f.amount),
                 description: f.description,
@@ -119,7 +119,7 @@ export class FeesService {
       where: {
         school_id: schoolId,
         is_active: true,
-        grade_section_program: {
+        grade_level_program: {
           some: {
             grade_level_offered_id: {
               not: undefined,
@@ -196,7 +196,7 @@ export class FeesService {
     for (const d of data) {
       const seenFees = new Set<string>();
 
-      const fees: Fees['fetchValue']['fees'] = d.grade_section_program.flatMap(
+      const fees: Fees['fetchValue']['fees'] = d.grade_level_program.flatMap(
         (p) =>
           p.enrollment_fee
             .map((e) => ({
@@ -250,19 +250,18 @@ export class FeesService {
     gradeLevelCode: string,
     prisma: Prisma.TransactionClient,
   ): Promise<number[]> {
-    const gradeSectionProgramIdArr =
-      await prisma.grade_section_program.findMany({
-        where: {
-          grade_level_offered: {
-            school_id: schoolId,
-            grade_level_code: gradeLevelCode,
-          },
+    const gradeSectionProgramIdArr = await prisma.grade_level_program.findMany({
+      where: {
+        grade_level_offered: {
+          school_id: schoolId,
+          grade_level_code: gradeLevelCode,
         },
-        select: {
-          grade_section_program_id: true,
-          program_id: true,
-        },
-      });
+      },
+      select: {
+        grade_level_program_id: true,
+        program_id: true,
+      },
+    });
 
     const existingRecordProgramId = gradeSectionProgramIdArr.map(
       (g) => g.program_id,
@@ -275,7 +274,7 @@ export class FeesService {
     });
 
     const existingGradeSectionProgramId: number[] =
-      gradeSectionProgramIdArr.map((g) => g.grade_section_program_id);
+      gradeSectionProgramIdArr.map((g) => g.grade_level_program_id);
 
     const programId = programIds
       .filter((p) => !existingRecordProgramId.includes(p.program_id))
@@ -319,11 +318,11 @@ export class FeesService {
     }));
 
     const gradeSectionProgramIdArr =
-      await prisma.grade_section_program.createManyAndReturn({
+      await prisma.grade_level_program.createManyAndReturn({
         data: toBeCreated,
       });
 
-    return gradeSectionProgramIdArr.map((g) => g.grade_section_program_id);
+    return gradeSectionProgramIdArr.map((g) => g.grade_level_program_id);
   }
 
   private async createNewFees(

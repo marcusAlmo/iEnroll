@@ -1,7 +1,7 @@
 export interface GradeLevels {
   gradeLevels: {
-    grade_section_program: {
-      grade_section_program_id: number;
+    grade_level_program: {
+      grade_level_program_id: number;
       academic_program: {
         program: string;
         description: string;

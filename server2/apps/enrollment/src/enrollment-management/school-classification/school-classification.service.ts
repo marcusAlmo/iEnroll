@@ -99,7 +99,7 @@ export class SchoolClassificationService {
     // get the count of students application
     const result = await this.prisma.enrollment_application.count({
       where: {
-        grade_section_program: {
+        grade_level_program: {
           grade_level_offered: {
             school_id: schoolId,
           },
@@ -218,7 +218,10 @@ export class SchoolClassificationService {
       await this.getGradeLevelsFromAcademicLevels(academicLevels, prisma);
 
     // eslint-disable-next-line
-    console.log('gradeLevelsFromAcademicLevels: ', gradeLevelsFromAcademicLevels);
+    console.log(
+      'gradeLevelsFromAcademicLevels: ',
+      gradeLevelsFromAcademicLevels,
+    );
 
     const result = await prisma.grade_level_offered.findMany({
       where: {
@@ -243,7 +246,8 @@ export class SchoolClassificationService {
     console.log('result: ', result);
 
     // eslint-disable-next-line
-    return gradeLevelsFromAcademicLevels.filter((item) => {
+    return gradeLevelsFromAcademicLevels
+      .filter((item) => {
         return !result.some(
           (grade) => grade.grade_level.grade_level == item.gradeLevel,
         );
