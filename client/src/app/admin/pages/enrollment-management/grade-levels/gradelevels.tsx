@@ -579,6 +579,11 @@ const GradeLevels: React.FC = () => {
                   !(isNewSection || isEditing) ? "opacity-75" : ""
                 }`}
               />
+              {sectionDetails.sectionCapacity > sectionDetails.maximumApplication && (
+                <p className="text-red-500 text-sm mt-1">
+                  ⚠️ Warning: Section capacity should not exceed maximum application count
+                </p>
+              )}
             </div>
 
             {/* Show input fields for custom program when checkbox is checked during new section creation or editing */}
