@@ -63,7 +63,6 @@ model application_attachment {
   review_datetime        DateTime?              @db.Timestamp(6)
   upload_datetime        DateTime?              @default(now()) @db.Timestamp(6)
   update_datetime        DateTime?              @default(now()) @db.Timestamp(6)
-  remarks                String?                @db.VarChar(255)
   enrollment_application enrollment_application @relation(fields: [application_id], references: [application_id], map: "fk_application_attachment_application_id")
   file                   file?                  @relation(fields: [file_id], references: [file_id], onDelete: Restrict, map: "fk_application_attachment_file_id")
   enrollment_requirement enrollment_requirement @relation(fields: [requirement_id], references: [requirement_id], map: "fk_application_attachment_requirement_id")
@@ -331,6 +330,7 @@ model user {
   registration_datetime                         DateTime?                @default(now()) @db.Timestamp(6)
   update_datetime                               DateTime?                @default(now()) @db.Timestamp(6)
   password_visible                              String?                  @db.VarChar(255)
+  birthdate                                     DateTime?                @db.Date
   conversation_conversation_participant_1Touser conversation[]           @relation("conversation_participant_1Touser")
   conversation_conversation_participant_2Touser conversation[]           @relation("conversation_participant_2Touser")
   message                                       message[]
@@ -802,6 +802,22 @@ model grade_level_program {
   @@schema("enrollment")
 }
 
+model flyway_schema_history {
+  installed_rank Int      @id(map: "flyway_schema_history_pk")
+  version        String?  @db.VarChar(50)
+  description    String   @db.VarChar(200)
+  type           String   @db.VarChar(20)
+  script         String   @db.VarChar(1000)
+  checksum       Int?
+  installed_by   String   @db.VarChar(100)
+  installed_on   DateTime @default(now()) @db.Timestamp(6)
+  execution_time Int
+  success        Boolean
+
+  @@index([success], map: "flyway_schema_history_s_idx")
+  @@schema("chat")
+}
+
 enum accepted_data_type {
   string
   number
@@ -882,7 +898,6 @@ enum payment_option {
 enum access_type_access_list {
   read
   modify
-  restrict
 
   @@schema("enrollment")
 }
