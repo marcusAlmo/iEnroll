@@ -5,6 +5,7 @@ import { MicroserviceUtility } from '@lib/microservice-utility/microservice-util
 import { SchoolClassification } from './interface/school-classification.interface';
 import { Prisma } from '@prisma/client';
 import { school_type } from '@prisma/client';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class SchoolClassificationService {
@@ -330,6 +331,12 @@ export class SchoolClassificationService {
     schoolId: number,
     schoolType: string,
   ): Promise<SchoolClassification['finalOutput']> {
+    if (!acadLevels || !acadLevels.length)
+      throw new RpcException({
+        statusCode: 400,
+        message: 'No acads level found.',
+      });
+
     const data = await this.prisma.academic_level.findMany({
       where: {
         academic_level: {
