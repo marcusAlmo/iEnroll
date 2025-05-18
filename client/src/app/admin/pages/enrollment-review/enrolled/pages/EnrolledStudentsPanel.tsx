@@ -1,6 +1,7 @@
 import React from "react";
 import { useEnrolledStudents } from "@/app/admin/context/useEnrolledStudents";
 import PrintButton from "./PrintButton";
+import ExcelButton from "./ExcelButton";
 
 /**
  * EnrolledStudentsPanel Component
@@ -58,7 +59,11 @@ const EnrolledStudentsPanel: React.FC = () => {
           </h3>
         </div>
         <div className="text-text-2 flex items-center gap-2 text-xs">
-          <PrintButton />:
+          <div className="flex gap-2">
+            <PrintButton />
+            <ExcelButton />
+          </div>
+          :
           <div className="bg-accent/40 text-primary rounded-[10px] px-10 py-[8px] text-sm">
             {getGradeLevelName()} {selectedSection && `- ${getSectionName()}`}
           </div>
@@ -80,15 +85,13 @@ const EnrolledStudentsPanel: React.FC = () => {
       <div className="flex w-full flex-col text-sm">
         {isStudentsPending ? (
           <div className="text-text-2 py-4 text-center">Loading...</div>
-        ) : 
-        !students || students.length === 0 ? (
+        ) : !students || students.length === 0 ? (
           <div className="text-text-2 py-4 text-center">
             {searchTerm
               ? "No students found matching your search."
               : "Select a grade level and section to view enrolled students, or use the search bar to find students."}
           </div>
-        ) : 
-        (
+        ) : (
           <ul className="w-full">
             {students.map((student) => (
               <li
