@@ -160,7 +160,7 @@ To thoroughly test the app, either set the environment variable `VITE_ENABLE_AXI
 ## Contributors
 
 <p align="center">
-  <div align="center" style="display: flex; justify-content: center; gap: 40px;">
+  <div align="center" style="display: flex; justify-content: center; gap: 40px; flex-direction: row;">
     <div align="center">
       <a href="https://github.com/ella-emc">
         <img src="https://avatars.githubusercontent.com/u/107303409?v=4&h=100&w=100&fit=cover&mask=circle&maxage=7d" width="100" alt="@ella-mc" />
