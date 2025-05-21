@@ -160,10 +160,10 @@ To thoroughly test the app, either set the environment variable `VITE_ENABLE_AXI
 ## Contributors
 
 <p align="center">
-  <div align="center" style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+  <div align="center" style="display: flex; justify-content: center; gap: 40px;">
     <div align="center">
       <a href="https://github.com/ella-emc">
-        <img src="https://avatars.githubusercontent.com/u/107303409?v=4" width="100" alt="@ella-mc" />
+        <img src="https://avatars.githubusercontent.com/u/107303409?v=4&h=100&w=100&fit=cover&mask=circle&maxage=7d" width="100" alt="@ella-mc" />
         <br />
         <sub><b>@ella-emc</b></sub>
       </a>
@@ -172,7 +172,7 @@ To thoroughly test the app, either set the environment variable `VITE_ENABLE_AXI
     </div>
     <div align="center">
       <a href="https://github.com/jhona06">
-        <img src="https://avatars.githubusercontent.com/u/159889662?v=4" width="100" alt="@jhona06" />
+        <img src="https://avatars.githubusercontent.com/u/159889662?v=4&h=100&w=100&fit=cover&mask=circle&maxage=7d" width="100" alt="@jhona06" />
         <br />
         <sub><b>@jhona06</b></sub>
       </a>
@@ -181,7 +181,7 @@ To thoroughly test the app, either set the environment variable `VITE_ENABLE_AXI
     </div>
     <div align="center">
       <a href="https://github.com/azerndo">
-        <img src="https://avatars.githubusercontent.com/u/92623569?v=4" width="100" alt="@azerndo" />
+        <img src="https://avatars.githubusercontent.com/u/92623569?v=4&h=100&w=100&fit=cover&mask=circle&maxage=7d" width="100" alt="@azerndo" />
         <br />
         <sub><b>@azerndo</b></sub>
       </a>
