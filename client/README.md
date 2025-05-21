@@ -1,4 +1,10 @@
-# iEnroll
+<p align="center">
+  <img src="./docs/face-smile-wink-solid.svg" width="120" alt="IEnroll Logo" />
+</p>
+
+<h1 align="center">
+  iEnroll Frontend
+</h1>
 
 Welcome to iEnroll, a web-based desktop and mobile platform for efficient enrollment in schools. This README file contains instructions on the project's file structure, naming conventions, other programming practices, and a guide on how to run this project.
 
@@ -150,3 +156,37 @@ To run the localhost and make the site accessible to your mobile device, do the 
 ## Notice
 
 To thoroughly test the app, either set the environment variable `VITE_ENABLE_AXIOS=true` or run the app in production mode.
+
+## Contributors
+
+<p align="center">
+  <div align="center" style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+    <div align="center">
+      <a href="https://github.com/ella-emc">
+        <img src="https://avatars.githubusercontent.com/u/107303409?v=4" width="100" alt="@ella-mc" />
+        <br />
+        <sub><b>@ella-emc</b></sub>
+      </a>
+      <br />
+      <i>Frontend Lead</i>
+    </div>
+    <div align="center">
+      <a href="https://github.com/jhona06">
+        <img src="https://avatars.githubusercontent.com/u/159889662?v=4" width="100" alt="@jhona06" />
+        <br />
+        <sub><b>@jhona06</b></sub>
+      </a>
+      <br />
+      <i>Frontend Developer</i>
+    </div>
+    <div align="center">
+      <a href="https://github.com/azerndo">
+        <img src="https://avatars.githubusercontent.com/u/92623569?v=4" width="100" alt="@azerndo" />
+        <br />
+        <sub><b>@azerndo</b></sub>
+      </a>
+      <br />
+      <i>UI/UX Designer & Frontend Developer</i>
+    </div>
+  </div>
+</p>
