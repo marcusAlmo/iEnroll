@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".server2/docs/face-smile-wink-solid.svg" width="120" alt="IEnroll Logo" />
+  <img src="../server2/docs/face-smile-wink-solid.svg" width="120" alt="IEnroll Logo" />
 </p>
 
 <h1 align="center">
